@@ -1,0 +1,58 @@
+name = "leyang-blog-opensource"
+main = "vinext/server/app-router-entry"
+compatibility_date = "2026-04-14"
+compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
+
+[assets]
+binding = "ASSETS"
+not_found_handling = "none"
+
+[cache]
+enabled = true
+
+[dev]
+port = 8788
+
+[ai]
+binding = "WORKERS_AI"
+remote = true
+
+# Minimal resource bindings for open-source / Deploy to Cloudflare usage.
+# Modern Wrangler and Deploy buttons can auto-provision these resources.
+# `npm run cf:init` will replace them in `wrangler.local.toml` with concrete remote bindings.
+
+[[d1_databases]]
+binding = "DB"
+
+[[r2_buckets]]
+binding = "IMAGES"
+
+[[kv_namespaces]]
+binding = "CACHE"
+
+# Optional Queue binding for background jobs. Uncomment after creating the queue.
+# [[queues.producers]]
+# binding = "BACKGROUND_QUEUE"
+# queue = "leyang-blog-background-jobs"
+#
+# [[queues.consumers]]
+# queue = "leyang-blog-background-jobs"
+
+[vars]
+NEXT_PUBLIC_SITE_URL = "https://blog.zhangleyang.com"
+AI_BASE_URL = "https://api.openai.com/v1"
+AI_MODEL = "gpt-4o-mini"
+WORKERS_AI_MODEL = "@cf/zai-org/glm-4.7-flash"
+# Optional enhancement flags. Leave unset/disabled for open-source or low-cost deployments.
+# ENABLE_BACKGROUND_JOBS = "true"
+# ENABLE_WORKERS_AI = "true"
+# ENABLE_VECTOR_SEARCH = "true"
+# ENABLE_CF_IMAGE_PIPELINE = "true"
+
+# Secrets（不要写入配置文件，通过 wrangler secret put 设置）：
+# - ADMIN_PASSWORD
+# - ADMIN_TOKEN_SALT
+# - AI_CONFIG_ENCRYPTION_SECRET
+# - AI_API_KEY
+# - CLOUDFLARE_ACCOUNT_ID (optional, for Workers AI model discovery)
+# - CLOUDFLARE_API_TOKEN (optional, for Workers AI model discovery)

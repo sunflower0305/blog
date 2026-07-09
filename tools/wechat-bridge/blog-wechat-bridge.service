@@ -1,0 +1,16 @@
+[Unit]
+Description=blog WeChat bridge
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/blog-wechat-bridge
+EnvironmentFile=/etc/blog-wechat-bridge/bridge.env
+ExecStart=/usr/bin/node /opt/blog-wechat-bridge/server.mjs
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
