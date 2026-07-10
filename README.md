@@ -8,7 +8,7 @@
 Leyang Blog 不只是个渲染 Markdown 的静态模板，而是一套完整的博客系统：前后台双编辑器、AI 写作辅助、AI 生图、主题系统、全文检索、API Token、外部发布生态都已经接好，目标就是让你更容易持续写下去。
 
 - 在线示例：<https://blog.zhangleyang.com/>
-- 介绍文章：<https://blog.zhangleyang.com/leyang-blog>
+- 介绍文章：<https://blog.zhangleyang.com/2026-07-10-uxI_bn>
 - 项目文档：<https://zread.ai/sunflower0305/blog>
 
 ## 为什么值得做成自己的站
