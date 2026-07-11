@@ -370,7 +370,10 @@ export function InlineArticleEditor({
       />
 
       {/* 右上角固顶状态栏：字数 + 保存 */}
-      <div className="fixed top-16 right-4 sm:right-6 z-30 flex items-center gap-2 rounded-lg border border-[var(--editor-line)] bg-[var(--editor-panel)] backdrop-blur px-3 py-2 shadow-lg text-xs">
+      <div
+        data-inline-editor-toolbar
+        className="fixed top-16 right-4 sm:right-6 z-30 flex items-center gap-2 rounded-lg border border-[var(--editor-line)] bg-[var(--editor-panel)] backdrop-blur px-3 py-2 shadow-lg text-xs"
+      >
         {onExitReading ? (
           <>
             <button

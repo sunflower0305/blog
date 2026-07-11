@@ -1,12 +1,18 @@
-import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+import { getVerticalCollisionOffset } from '@/lib/popover-position'
 
 describe('article page layer ordering', () => {
-  it('keeps the inline editor toolbar below header popovers', () => {
-    const header = readFileSync('components/SiteHeader.tsx', 'utf8')
-    const inlineEditor = readFileSync('components/InlineArticleEditor.tsx', 'utf8')
+  it('moves a header popover below an intersecting editor toolbar', () => {
+    const popover = { top: 72, right: 586, bottom: 304, left: 406 }
+    const toolbar = { top: 97, right: 586, bottom: 168, left: 182 }
 
-    expect(header).toMatch(/top-0 z-40\b/)
-    expect(inlineEditor).toMatch(/fixed top-16[^\n]*\bz-30\b/)
+    expect(getVerticalCollisionOffset(popover, toolbar)).toBe(104)
+  })
+
+  it('does not move a popover that does not intersect the toolbar', () => {
+    const popover = { top: 72, right: 160, bottom: 304, left: 40 }
+    const toolbar = { top: 97, right: 586, bottom: 168, left: 182 }
+
+    expect(getVerticalCollisionOffset(popover, toolbar)).toBe(0)
   })
 })
