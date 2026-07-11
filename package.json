@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "CLOUDFLARE_VITE_FORCE_LOCAL=true vp exec vinext dev",
     "dev:remote": "bash scripts/cf-dev-remote-vinext.sh",
-    "build": "rm -rf .next dist && vp exec vinext build",
+    "build": "vp exec vinext build",
     "check": "vp check",
     "test": "vp test",
     "test:run": "vp test run",
