@@ -4,7 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-CONFIG_PATH="$(bash "${SCRIPT_DIR}/cf-vinext-config.sh")"
+CONFIG_PATH="$(VINEXT_INCLUDE_LOCAL_SECRETS=1 bash "${SCRIPT_DIR}/cf-vinext-config.sh")"
 
 cd "${REPO_ROOT}"
 

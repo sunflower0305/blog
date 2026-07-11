@@ -172,6 +172,30 @@ function compactObject(value) {
 
 const baseConfig = parseWranglerToml(fs.readFileSync(baseConfigPath, 'utf8'))
 const resourceConfig = parseWranglerToml(fs.readFileSync(resourceConfigPath, 'utf8'))
+const localSecrets = {}
+
+if (process.env.VINEXT_INCLUDE_LOCAL_SECRETS === '1') {
+  const localEnvPath = new URL('../.env.local', `file://${outputConfigPath}`)
+  const localOnlyKeys = new Set([
+    'ADMIN_PASSWORD',
+    'ADMIN_TOKEN_SALT',
+    'AI_CONFIG_ENCRYPTION_SECRET',
+    'AI_API_KEY',
+  ])
+
+  if (fs.existsSync(localEnvPath)) {
+    for (const rawLine of fs.readFileSync(localEnvPath, 'utf8').split(/\r?\n/)) {
+      const match = rawLine.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/)
+      if (!match || !localOnlyKeys.has(match[1])) continue
+
+      let value = match[2]
+      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1)
+      }
+      if (value) localSecrets[match[1]] = value
+    }
+  }
+}
 const d1 = resourceConfig.d1_databases.find((binding) => binding.binding === 'DB')
 const r2 = resourceConfig.r2_buckets.find((binding) => binding.binding === 'IMAGES')
 const cache = resourceConfig.kv_namespaces.find((binding) => binding.binding === 'CACHE')
@@ -191,6 +215,7 @@ const vinextConfig = compactObject({
   vars: {
     ...(baseConfig.vars ?? {}),
     ...resourceConfig.vars,
+    ...localSecrets,
   },
 })
 
@@ -237,7 +262,8 @@ if (process.env.VINEXT_INCLUDE_ROUTES === '1') {
   delete vinextConfig.workers_dev
 }
 
-fs.writeFileSync(outputConfigPath, `${JSON.stringify(vinextConfig, null, 2)}\n`)
+fs.writeFileSync(outputConfigPath, `${JSON.stringify(vinextConfig, null, 2)}\n`, { mode: 0o600 })
+fs.chmodSync(outputConfigPath, 0o600)
 NODE
 
 printf '%s\n' "${OUTPUT_CONFIG_PATH}"
