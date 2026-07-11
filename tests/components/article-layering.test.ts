@@ -1,18 +1,20 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { getVerticalCollisionOffset } from '@/lib/popover-position'
 
 describe('article page layer ordering', () => {
-  it('moves a header popover below an intersecting editor toolbar', () => {
-    const popover = { top: 72, right: 586, bottom: 304, left: 406 }
-    const toolbar = { top: 97, right: 586, bottom: 168, left: 182 }
+  it('keeps header popovers above the inline editor toolbar', () => {
+    const header = readFileSync('components/SiteHeader.tsx', 'utf8')
+    const inlineEditor = readFileSync('components/InlineArticleEditor.tsx', 'utf8')
 
-    expect(getVerticalCollisionOffset(popover, toolbar)).toBe(104)
+    expect(header).toMatch(/top-0 z-40\b/)
+    expect(inlineEditor).toMatch(/data-inline-editor-toolbar[\s\S]*?\bz-30\b/)
   })
 
-  it('does not move a popover that does not intersect the toolbar', () => {
-    const popover = { top: 72, right: 160, bottom: 304, left: 40 }
-    const toolbar = { top: 97, right: 586, bottom: 168, left: 182 }
+  it('anchors category and theme dropdowns eight pixels below their triggers', () => {
+    const header = readFileSync('components/SiteHeader.tsx', 'utf8')
+    const themeDropdown = readFileSync('components/ThemeDropdown.tsx', 'utf8')
 
-    expect(getVerticalCollisionOffset(popover, toolbar)).toBe(0)
+    expect(header).toContain('absolute top-full left-0 mt-2')
+    expect(themeDropdown).toContain("top: inlineMenu ? undefined : 'calc(100% + 8px)'")
   })
 })

@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useRef, useEffect, useLayoutEffect, useSyncExternalStore } from 'react'
+import { useState, useRef, useEffect, useSyncExternalStore } from 'react'
 import { ChevronDown } from 'lucide-react'
-import { getVerticalCollisionOffset } from '@/lib/popover-position'
 import {
   getClientThemePreference,
   subscribeToThemeChange,
@@ -47,22 +46,7 @@ export function ThemeDropdown({
     () => initialTheme,
   )
   const [open, setOpen] = useState(false)
-  const [dropdownOffset, setDropdownOffset] = useState(8)
   const ref = useRef<HTMLDivElement>(null)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-
-  useLayoutEffect(() => {
-    if (!open || inlineMenu || !dropdownRef.current) return
-
-    const editorToolbar = document.querySelector<HTMLElement>('[data-inline-editor-toolbar]')
-    if (!editorToolbar) return
-
-    const offset = getVerticalCollisionOffset(
-      dropdownRef.current.getBoundingClientRect(),
-      editorToolbar.getBoundingClientRect(),
-    )
-    if (offset > 0) setDropdownOffset(current => current + offset)
-  }, [open, inlineMenu])
 
   // Click outside to close
   useEffect(() => {
@@ -96,10 +80,7 @@ export function ThemeDropdown({
       }}
     >
       <button
-        onClick={() => {
-          if (!open) setDropdownOffset(8)
-          setOpen(!open)
-        }}
+        onClick={() => setOpen(!open)}
         style={{
           display: 'inline-flex',
           alignItems: 'center',
@@ -129,10 +110,9 @@ export function ThemeDropdown({
 
       {open && (
         <div
-          ref={dropdownRef}
           style={{
             position: inlineMenu ? 'static' : 'absolute',
-            top: inlineMenu ? undefined : `calc(100% + ${dropdownOffset}px)`,
+            top: inlineMenu ? undefined : 'calc(100% + 8px)',
             left: inlineMenu ? undefined : 0,
             minWidth: inlineMenu ? '100%' : 120,
             width: inlineMenu ? '100%' : undefined,
