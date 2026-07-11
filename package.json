@@ -31,7 +31,7 @@
     "@tiptap/extension-youtube": "^3.27.3",
     "@tiptap/pm": "^3.27.3",
     "@tiptap/react": "^3.27.3",
-    "@vinext/cloudflare": "1.0.0-beta.0",
+    "@vinext/cloudflare": "1.0.0-beta.1",
     "html2pdf.js": "^0.14.0",
     "juice": "^12.1.1",
     "katex": "^0.17.0",
@@ -51,7 +51,7 @@
     "tiptap-extension-global-drag-handle": "^0.1.18",
     "tiptap-markdown": "^0.9.0",
     "turndown": "^7.2.4",
-    "vinext": "1.0.0-beta.0"
+    "vinext": "1.0.0-beta.1"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.44.0",
