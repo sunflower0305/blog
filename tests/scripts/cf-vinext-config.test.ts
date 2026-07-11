@@ -24,6 +24,8 @@ compatibility_date = "2026-04-14"
 
 [vars]
 NEXT_PUBLIC_SITE_URL = "https://example.com"
+AI_BASE_URL = "https://api.openai.com/v1"
+AI_MODEL = "gpt-4o-mini"
 `)
     writeFileSync(join(repo, 'wrangler.local.toml'), `
 name = "test-worker"
@@ -37,6 +39,11 @@ database_id = "00000000-0000-0000-0000-000000000000"
 ADMIN_PASSWORD="local password"
 ADMIN_TOKEN_SALT=local-salt
 AI_CONFIG_ENCRYPTION_SECRET='local-encryption-secret'
+AI_API_KEY=local-api-key
+AI_BASE_URL=https://zenmux.ai/api/v1
+AI_MODEL=deepseek-v4-flash
+WORKERS_AI_MODEL=@cf/zai-org/glm-4.7-flash
+ENABLE_WORKERS_AI=true
 UNRELATED_SECRET=must-not-be-copied
 `)
 
@@ -59,6 +66,11 @@ UNRELATED_SECRET=must-not-be-copied
       ADMIN_PASSWORD: 'local password',
       ADMIN_TOKEN_SALT: 'local-salt',
       AI_CONFIG_ENCRYPTION_SECRET: 'local-encryption-secret',
+      AI_API_KEY: 'local-api-key',
+      AI_BASE_URL: 'https://zenmux.ai/api/v1',
+      AI_MODEL: 'deepseek-v4-flash',
+      WORKERS_AI_MODEL: '@cf/zai-org/glm-4.7-flash',
+      ENABLE_WORKERS_AI: 'true',
     })
     expect(config.vars.UNRELATED_SECRET).toBeUndefined()
     expect(statSync(outputPath).mode & 0o777).toBe(0o600)

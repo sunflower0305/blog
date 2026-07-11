@@ -181,6 +181,10 @@ if (process.env.VINEXT_INCLUDE_LOCAL_SECRETS === '1') {
     'ADMIN_TOKEN_SALT',
     'AI_CONFIG_ENCRYPTION_SECRET',
     'AI_API_KEY',
+    'AI_BASE_URL',
+    'AI_MODEL',
+    'WORKERS_AI_MODEL',
+    'ENABLE_WORKERS_AI',
   ])
 
   if (fs.existsSync(localEnvPath)) {
