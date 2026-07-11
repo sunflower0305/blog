@@ -35,12 +35,12 @@
     "html2pdf.js": "^0.14.0",
     "juice": "^12.1.1",
     "katex": "^0.17.0",
-    "lucide-react": "^1.23.0",
+    "lucide-react": "^1.24.0",
     "markdown-it": "^14.3.0",
     "nanoid": "^5.1.16",
     "next": "16.2.10",
     "novel": "^1.0.2",
-    "openai": "^6.45.0",
+    "openai": "^6.46.0",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "react-easy-crop": "^6.2.2",
@@ -54,7 +54,7 @@
     "vinext": "1.0.0-beta.0"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.43.1",
+    "@cloudflare/vite-plugin": "^1.44.0",
     "@tailwindcss/postcss": "^4.3.2",
     "@types/node": "^26.1.1",
     "@types/react": "^19.2.17",
@@ -68,7 +68,7 @@
     "vite": "^8.1.4",
     "vite-plus": "0.2.4",
     "vitest": "4.1.9",
-    "wrangler": "^4.107.1"
+    "wrangler": "^4.110.0"
   },
   "description": "Open-source blog with Next.js 16, Cloudflare D1, R2, built-in themes, and AI provider presets.",
   "license": "MIT",
