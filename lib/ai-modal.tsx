@@ -558,7 +558,12 @@ export function AIModal({
                       {formatHistoryTime(item.createdAt)}
                     </div>
                   </div>
-                  <div className="mt-2 line-clamp-3 text-sm text-[var(--editor-ink)] whitespace-pre-wrap">
+                  <div
+                    tabIndex={0}
+                    role="region"
+                    aria-label={`${item.promptLabel}的完整生成内容`}
+                    className="mt-2 max-h-40 overflow-y-auto overscroll-contain whitespace-pre-wrap pr-2 text-sm leading-relaxed text-[var(--editor-ink)] focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--editor-accent)]"
+                  >
                     {item.output}
                   </div>
                   <div className="mt-3 flex flex-wrap justify-end gap-2">
