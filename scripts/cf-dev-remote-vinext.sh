@@ -18,6 +18,4 @@ echo "==> using vinext wrangler config: ${CONFIG_PATH}"
 bash "${SCRIPT_DIR}/cf-validate-config.sh" "${CONFIG_PATH}"
 
 WRANGLER_VINEXT_CONFIG="${CONFIG_PATH}" \
-  XDG_CONFIG_HOME=.wrangler/xdg \
-  WRANGLER_LOG_PATH=.wrangler/logs \
   pnpm exec vp exec vinext dev

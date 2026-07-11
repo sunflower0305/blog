@@ -15,8 +15,6 @@ bash "${SCRIPT_DIR}/cf-validate-config.sh" "${CONFIG_PATH}"
 rm -rf .next dist
 
 WRANGLER_VINEXT_CONFIG="${CONFIG_PATH}" \
-  XDG_CONFIG_HOME=.wrangler/xdg \
-  WRANGLER_LOG_PATH=.wrangler/logs \
   pnpm exec vp exec vinext build
 
 rm -rf .next
@@ -24,6 +22,4 @@ rm -rf .next
 echo "==> starting vinext Cloudflare preview on http://127.0.0.1:${PORT}"
 WRANGLER_VINEXT_CONFIG="${CONFIG_PATH}" \
   WRANGLER_SEND_METRICS=false \
-  XDG_CONFIG_HOME=.wrangler/xdg \
-  WRANGLER_LOG_PATH=.wrangler/logs \
   pnpm exec vp preview --host 127.0.0.1 --port "${PORT}"

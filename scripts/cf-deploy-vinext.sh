@@ -107,8 +107,6 @@ NODE
   fi
 
   WRANGLER_SEND_METRICS=false \
-    XDG_CONFIG_HOME=.wrangler/xdg \
-    WRANGLER_LOG_PATH=.wrangler/logs \
     pnpm exec vp exec wrangler kv bulk put "${kv_file}" \
       --namespace-id "${namespace_id}" \
       --remote
@@ -122,13 +120,9 @@ bash "${SCRIPT_DIR}/cf-validate-config.sh" "${CONFIG_PATH}"
 rm -rf .next dist
 
 WRANGLER_VINEXT_CONFIG="${CONFIG_PATH}" \
-  XDG_CONFIG_HOME=.wrangler/xdg \
-  WRANGLER_LOG_PATH=.wrangler/logs \
   pnpm exec vp exec vinext-cloudflare deploy --config "${REPO_ROOT}/dist/server/wrangler.json" --dry-run
 
 WRANGLER_VINEXT_CONFIG="${CONFIG_PATH}" \
-  XDG_CONFIG_HOME=.wrangler/xdg \
-  WRANGLER_LOG_PATH=.wrangler/logs \
   pnpm exec vp exec vinext build
 
 rm -rf .next
@@ -164,8 +158,6 @@ deploy_args=(deploy --config "${REPO_ROOT}/dist/server/wrangler.json" --skip-bui
 if [[ "${DRY_RUN}" == "1" ]]; then
   echo "==> running vinext Wrangler deploy dry-run"
   WRANGLER_SEND_METRICS=false \
-    XDG_CONFIG_HOME=.wrangler/xdg \
-    WRANGLER_LOG_PATH=.wrangler/logs \
     pnpm exec vp exec wrangler deploy -c "${REPO_ROOT}/dist/server/wrangler.json" --dry-run
   exit 0
 fi
@@ -216,6 +208,4 @@ echo "==> deploying vinext Worker with @vinext/cloudflare"
 
 WRANGLER_SEND_METRICS=false \
   WRANGLER_VINEXT_CONFIG="${CONFIG_PATH}" \
-  XDG_CONFIG_HOME=.wrangler/xdg \
-  WRANGLER_LOG_PATH=.wrangler/logs \
   pnpm exec vp exec vinext-cloudflare "${deploy_args[@]}"
