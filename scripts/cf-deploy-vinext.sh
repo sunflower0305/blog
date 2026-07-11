@@ -17,6 +17,9 @@ fi
 
 for arg in "$@"; do
   case "$arg" in
+    --)
+      # pnpm forwards a standalone separator to scripts in some invocation styles.
+      ;;
     --dry-run)
       DRY_RUN=1
       ;;
@@ -33,7 +36,7 @@ for arg in "$@"; do
       ;;
     *)
       echo "Unknown argument: $arg" >&2
-      echo "Usage: pnpm run deploy [-- --dry-run|--warm-cdn|--no-warm-cdn|--warm-cdn-strict]" >&2
+      echo "Usage: pnpm run deploy [--dry-run|--warm-cdn|--no-warm-cdn|--warm-cdn-strict]" >&2
       exit 1
       ;;
   esac
