@@ -1,6 +1,8 @@
 [![zread](https://raw.githubusercontent.com/sunflower0305/claude-proxy/master/docs/assets/zread-badge.svg)](https://zread.ai/sunflower0305/blog)
 [![Cloudflare](https://img.shields.io/badge/Cloudflare-F38020?logo=cloudflare&logoColor=white)](https://blog.zhangleyang.com)
 
+[中文](README.md) | [English](README.en.md)
+
 # Leyang Blog
 
 如果你也想拥有一个真正属于自己的学习、写作、分享阵地，而不是把内容完全寄托在平台算法上，此项目就是为你量身定做的。
