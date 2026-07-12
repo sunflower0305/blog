@@ -44,16 +44,5 @@ NEXT_PUBLIC_SITE_URL = "https://blog.zhangleyang.com"
 AI_BASE_URL = "https://api.openai.com/v1"
 AI_MODEL = "gpt-4o-mini"
 WORKERS_AI_MODEL = "@cf/zai-org/glm-4.7-flash"
-# Optional enhancement flags. Leave unset/disabled for open-source or low-cost deployments.
-# ENABLE_BACKGROUND_JOBS = "true"
-# ENABLE_WORKERS_AI = "true"
-# ENABLE_VECTOR_SEARCH = "true"
-# ENABLE_CF_IMAGE_PIPELINE = "true"
-
-# Secrets（不要写入配置文件，通过 wrangler secret put 设置）：
-# - ADMIN_PASSWORD
-# - ADMIN_TOKEN_SALT
-# - AI_CONFIG_ENCRYPTION_SECRET
-# - AI_API_KEY
-# - CLOUDFLARE_ACCOUNT_ID (optional, for Workers AI model discovery)
-# - CLOUDFLARE_API_TOKEN (optional, for Workers AI model discovery)
+# Runtime variables and secrets are declared in config/runtime-env.json.
+# Sensitive values must be stored with `wrangler secret put`, never in this file.

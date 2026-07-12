@@ -11,6 +11,9 @@ cd "${REPO_ROOT}"
 echo "==> clean build artifacts"
 rm -rf .next dist
 
+echo "==> pnpm run config:check"
+pnpm run config:check
+
 echo "==> pnpm run lint"
 pnpm run lint
 

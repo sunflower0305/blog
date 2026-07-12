@@ -5,6 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 BASE_CONFIG_PATH="${REPO_ROOT}/wrangler.toml"
+RUNTIME_ENV_CONTRACT_PATH="${REPO_ROOT}/config/runtime-env.json"
 OUTPUT_CONFIG_PATH="${REPO_ROOT}/.wrangler/wrangler.vinext.local.jsonc"
 
 if [[ -n "${WRANGLER_VINEXT_CONFIG:-}" ]]; then
@@ -24,10 +25,10 @@ fi
 
 mkdir -p "${REPO_ROOT}/.wrangler"
 
-node --input-type=module - "${BASE_CONFIG_PATH}" "${RESOURCE_CONFIG_PATH}" "${OUTPUT_CONFIG_PATH}" <<'NODE'
+node --input-type=module - "${BASE_CONFIG_PATH}" "${RESOURCE_CONFIG_PATH}" "${OUTPUT_CONFIG_PATH}" "${RUNTIME_ENV_CONTRACT_PATH}" <<'NODE'
 import fs from 'node:fs'
 
-const [baseConfigPath, resourceConfigPath, outputConfigPath] = process.argv.slice(2)
+const [baseConfigPath, resourceConfigPath, outputConfigPath, contractPath] = process.argv.slice(2)
 
 function parseTomlString(value) {
   const match = value.match(/^\s*"((?:\\"|[^"])*)"/)
@@ -172,20 +173,21 @@ function compactObject(value) {
 
 const baseConfig = parseWranglerToml(fs.readFileSync(baseConfigPath, 'utf8'))
 const resourceConfig = parseWranglerToml(fs.readFileSync(resourceConfigPath, 'utf8'))
+const runtimeEnvContract = JSON.parse(fs.readFileSync(contractPath, 'utf8'))
+const contractDefaults = Object.fromEntries(
+  runtimeEnvContract.variables
+    .filter((variable) => variable.wranglerVar)
+    .map((variable) => [variable.key, variable.defaults?.wrangler ?? '']),
+)
 const localSecrets = {}
 
 if (process.env.VINEXT_INCLUDE_LOCAL_SECRETS === '1') {
   const localEnvPath = new URL('../.env.local', `file://${outputConfigPath}`)
-  const localOnlyKeys = new Set([
-    'ADMIN_PASSWORD',
-    'ADMIN_TOKEN_SALT',
-    'AI_CONFIG_ENCRYPTION_SECRET',
-    'AI_API_KEY',
-    'AI_BASE_URL',
-    'AI_MODEL',
-    'WORKERS_AI_MODEL',
-    'ENABLE_WORKERS_AI',
-  ])
+  const localOnlyKeys = new Set(
+    runtimeEnvContract.variables
+      .filter((variable) => variable.localPreview)
+      .map((variable) => variable.key),
+  )
 
   if (fs.existsSync(localEnvPath)) {
     for (const rawLine of fs.readFileSync(localEnvPath, 'utf8').split(/\r?\n/)) {
@@ -217,6 +219,7 @@ const vinextConfig = compactObject({
   r2_buckets: baseConfig.r2_buckets,
   kv_namespaces: baseConfig.kv_namespaces,
   vars: {
+    ...contractDefaults,
     ...(baseConfig.vars ?? {}),
     ...resourceConfig.vars,
     ...localSecrets,

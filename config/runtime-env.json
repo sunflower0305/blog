@@ -1,0 +1,128 @@
+{
+  "version": 1,
+  "groups": [
+    { "id": "core", "title": null },
+    { "id": "external-ai", "title": "Optional external AI fallback" },
+    { "id": "cloudflare", "title": "Optional Cloudflare enhancements" }
+  ],
+  "variables": [
+    {
+      "key": "ADMIN_PASSWORD",
+      "group": "core",
+      "sensitive": true,
+      "localPreview": true,
+      "example": "change-me"
+    },
+    {
+      "key": "ADMIN_TOKEN_SALT",
+      "group": "core",
+      "sensitive": true,
+      "localPreview": true,
+      "example": "change-me-to-a-random-string"
+    },
+    {
+      "key": "AI_CONFIG_ENCRYPTION_SECRET",
+      "group": "core",
+      "sensitive": true,
+      "localPreview": true,
+      "example": "change-me-to-another-random-string"
+    },
+    {
+      "key": "NEXT_PUBLIC_SITE_URL",
+      "group": "core",
+      "sensitive": false,
+      "localPreview": true,
+      "wranglerVar": true,
+      "defaults": {
+        "wrangler": "https://blog.zhangleyang.com",
+        "envExample": "http://localhost:3000"
+      }
+    },
+    {
+      "key": "AI_API_KEY",
+      "group": "external-ai",
+      "sensitive": true,
+      "localPreview": true,
+      "example": ""
+    },
+    {
+      "key": "AI_BASE_URL",
+      "group": "external-ai",
+      "sensitive": false,
+      "localPreview": true,
+      "wranglerVar": true,
+      "defaults": {
+        "wrangler": "https://api.openai.com/v1",
+        "envExample": "https://api.openai.com/v1"
+      }
+    },
+    {
+      "key": "AI_MODEL",
+      "group": "external-ai",
+      "sensitive": false,
+      "localPreview": true,
+      "wranglerVar": true,
+      "defaults": { "wrangler": "gpt-4o-mini", "envExample": "gpt-4o-mini" }
+    },
+    {
+      "key": "WORKERS_AI_MODEL",
+      "group": "external-ai",
+      "sensitive": false,
+      "localPreview": true,
+      "wranglerVar": true,
+      "defaults": {
+        "wrangler": "@cf/zai-org/glm-4.7-flash",
+        "envExample": "@cf/zai-org/glm-4.7-flash"
+      }
+    },
+    {
+      "key": "ENABLE_BACKGROUND_JOBS",
+      "group": "cloudflare",
+      "sensitive": false,
+      "localPreview": false,
+      "example": ""
+    },
+    {
+      "key": "ENABLE_WORKERS_AI",
+      "group": "cloudflare",
+      "sensitive": false,
+      "localPreview": true,
+      "example": ""
+    },
+    {
+      "key": "ENABLE_VECTOR_SEARCH",
+      "group": "cloudflare",
+      "sensitive": false,
+      "localPreview": false,
+      "example": ""
+    },
+    {
+      "key": "ENABLE_CF_IMAGE_PIPELINE",
+      "group": "cloudflare",
+      "sensitive": false,
+      "localPreview": false,
+      "example": ""
+    },
+    {
+      "key": "ENABLE_PUBLIC_CACHE_IN_DEV",
+      "group": "cloudflare",
+      "sensitive": false,
+      "localPreview": false,
+      "example": ""
+    },
+    {
+      "key": "CLOUDFLARE_ACCOUNT_ID",
+      "group": "cloudflare",
+      "sensitive": true,
+      "localPreview": false,
+      "example": ""
+    },
+    {
+      "key": "CLOUDFLARE_API_TOKEN",
+      "group": "cloudflare",
+      "sensitive": true,
+      "localPreview": false,
+      "example": ""
+    }
+  ]
+}

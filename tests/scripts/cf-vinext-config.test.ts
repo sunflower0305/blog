@@ -8,7 +8,9 @@ describe('cf-vinext-config', () => {
   it('copies only allowed local secrets into the generated preview bindings', () => {
     const repo = mkdtempSync(join(tmpdir(), 'cf-vinext-config-'))
     const scripts = join(repo, 'scripts')
+    const configDirectory = join(repo, 'config')
     mkdirSync(scripts)
+    mkdirSync(configDirectory)
 
     for (const name of ['cf-vinext-config.sh', 'cf-config.sh']) {
       const source = join(process.cwd(), 'scripts', name)
@@ -16,6 +18,10 @@ describe('cf-vinext-config', () => {
       copyFileSync(source, target)
       chmodSync(target, 0o755)
     }
+    copyFileSync(
+      join(process.cwd(), 'config/runtime-env.json'),
+      join(configDirectory, 'runtime-env.json'),
+    )
 
     writeFileSync(join(repo, 'wrangler.toml'), `
 name = "test-worker"
