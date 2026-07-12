@@ -20,6 +20,15 @@ AI_CONFIG_ENCRYPTION_SECRET=change-me-to-another-random-string
 NEXT_PUBLIC_SITE_URL=https://your-domain.com
 ```
 
+环境变量定义统一维护在 [`config/runtime-env.json`](config/runtime-env.json)。`.env.example` 由该契约生成，修改变量后请运行：
+
+```bash
+pnpm run config:generate
+pnpm run config:check
+```
+
+不要把管理员密码、API Key 等敏感值写入 `runtime-env.json` 或 `wrangler.toml`；本地使用 `.env.local`，生产环境使用 Cloudflare Secrets。
+
 ### 2. 登录 Cloudflare
 
 ```bash
@@ -98,9 +107,10 @@ pnpm exec wrangler secret put ADMIN_TOKEN_SALT -c wrangler.local.toml
 
 ### RSS / sitemap / canonical 指向错域名
 
-检查：
+重新运行初始化命令，让站点地址写入 `wrangler.local.toml`：
 
-- `.env.local`
-- `wrangler.local.toml`
+```bash
+pnpm run cf:init -- --site-url=https://your-domain.com
+```
 
-两处的 `NEXT_PUBLIC_SITE_URL` 必须一致。
+本地开发时，`.env.local` 中的 `NEXT_PUBLIC_SITE_URL` 优先于契约默认值；部署和预览脚本会按“契约默认值 → `wrangler.toml` → `wrangler.local.toml` → `.env.local` 本地预览覆盖”的顺序合并配置。

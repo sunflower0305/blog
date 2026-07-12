@@ -84,6 +84,24 @@ pnpm run dev
 pnpm run dev:remote
 ```
 
+### 环境变量配置
+
+[`config/runtime-env.json`](config/runtime-env.json) 是运行时环境变量的唯一配置契约，统一声明变量名、是否敏感、是否用于本地预览，以及公开默认值。不要分别维护 `.env.example` 和 `wrangler.toml` 中的变量清单。
+
+- `.env.local`：本机开发和预览的实际值，不提交仓库
+- `wrangler.local.toml`：由 `pnpm run cf:init` 生成的 Cloudflare 资源绑定和本地部署配置，不提交仓库
+- Cloudflare Secrets：生产环境敏感值，例如管理员密码和 API Key
+- `wrangler.toml`：Deploy Button 所需的结构配置和非敏感默认值
+
+修改环境变量契约后运行：
+
+```bash
+pnpm run config:generate
+pnpm run config:check
+```
+
+前者重新生成 `.env.example`，后者检查生成文件和 `wrangler.toml` 是否与契约一致。`pnpm run verify` 已包含该检查。
+
 常用入口：
 
 - 首页：`/`
@@ -132,6 +150,8 @@ pnpm run preview
 | `pnpm run test:run`     | 通过 Vite+ / Vitest 跑测试                                     |
 | `pnpm run verify:quick` | 跑 lint、test、build                                           |
 | `pnpm run verify`       | 跑完整验证链路                                                 |
+| `pnpm run config:generate` | 根据环境变量契约生成 `.env.example`                         |
+| `pnpm run config:check` | 检查环境变量配置是否与契约一致                                 |
 | `pnpm run cf:init`      | 初始化 DB、IMAGES、CACHE 和模板默认设置                        |
 | `pnpm run preview`      | Worker 运行时预览                                              |
 | `pnpm run deploy`       | 部署到 Cloudflare Workers                                      |
