@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import {
   readRuntimeEnvContract,
   renderEnvExample,
+  validateCloudflareDeployBindings,
   validateRuntimeEnvFiles,
 } from '../../scripts/runtime-env-config.mjs'
 
@@ -22,8 +23,23 @@ describe('runtime environment contract', () => {
       validateRuntimeEnvFiles(contract, {
         envExamplePath: join(process.cwd(), '.env.example'),
         wranglerPath: join(process.cwd(), 'wrangler.toml'),
+        packageJsonPath: join(process.cwd(), 'package.json'),
       }),
     ).toEqual([])
+  })
+
+  it('detects missing, extra, and changed Cloudflare Deploy bindings', () => {
+    const contract = readRuntimeEnvContract()
+    const packageJson = JSON.parse(readFileSync('package.json', 'utf8'))
+    delete packageJson.cloudflare.bindings.ADMIN_PASSWORD
+    packageJson.cloudflare.bindings.AI_API_KEY.description = 'wrong'
+    packageJson.cloudflare.bindings.UNKNOWN_KEY = { description: 'extra' }
+
+    expect(validateCloudflareDeployBindings(contract, packageJson)).toEqual([
+      'package.json cloudflare.bindings.ADMIN_PASSWORD is missing',
+      'package.json cloudflare.bindings.AI_API_KEY.description must match the contract',
+      'package.json cloudflare.bindings.UNKNOWN_KEY is not declared for Cloudflare Deploy in the contract',
+    ])
   })
 
   it('reports drift in generated and Wrangler configuration', () => {

@@ -13,6 +13,9 @@ export function readRuntimeEnvContract(filePath = contractPath) {
     if (!variable.key || keys.has(variable.key)) {
       throw new Error(`Invalid or duplicate runtime env key: ${variable.key ?? '<missing>'}`)
     }
+    if (variable.cloudflareDeploy && !variable.description) {
+      throw new Error(`Cloudflare Deploy variable requires a description: ${variable.key}`)
+    }
     keys.add(variable.key)
   }
 
@@ -42,6 +45,33 @@ export function renderEnvExample(contract) {
   return `${lines.join('\n')}\n`
 }
 
+export function validateCloudflareDeployBindings(contract, packageJson) {
+  const errors = []
+  const actualBindings = packageJson.cloudflare?.bindings ?? {}
+  const expectedBindings = Object.fromEntries(
+    contract.variables
+      .filter((variable) => variable.cloudflareDeploy)
+      .map((variable) => [variable.key, { description: variable.description }]),
+  )
+
+  for (const [key, expected] of Object.entries(expectedBindings)) {
+    const actual = actualBindings[key]
+    if (!actual) {
+      errors.push(`package.json cloudflare.bindings.${key} is missing`)
+    } else if (actual.description !== expected.description) {
+      errors.push(`package.json cloudflare.bindings.${key}.description must match the contract`)
+    }
+  }
+
+  for (const key of Object.keys(actualBindings)) {
+    if (!(key in expectedBindings)) {
+      errors.push(`package.json cloudflare.bindings.${key} is not declared for Cloudflare Deploy in the contract`)
+    }
+  }
+
+  return errors
+}
+
 function parseWranglerVars(source) {
   const vars = {}
   let section = ''
@@ -60,7 +90,7 @@ function parseWranglerVars(source) {
   return vars
 }
 
-export function validateRuntimeEnvFiles(contract, { envExamplePath, wranglerPath }) {
+export function validateRuntimeEnvFiles(contract, { envExamplePath, wranglerPath, packageJsonPath }) {
   const errors = []
   const expectedExample = renderEnvExample(contract)
   const actualExample = fs.readFileSync(envExamplePath, 'utf8')
@@ -88,6 +118,11 @@ export function validateRuntimeEnvFiles(contract, { envExamplePath, wranglerPath
     }
   }
 
+  if (packageJsonPath) {
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
+    errors.push(...validateCloudflareDeployBindings(contract, packageJson))
+  }
+
   return errors
 }
 
@@ -100,11 +135,12 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const contract = readRuntimeEnvContract()
   const envExamplePath = path.join(repoRoot, '.env.example')
   const wranglerPath = path.join(repoRoot, 'wrangler.toml')
+  const packageJsonPath = path.join(repoRoot, 'package.json')
 
   if (command === 'generate-env-example') {
     fs.writeFileSync(envExamplePath, renderEnvExample(contract))
   } else if (command === 'validate') {
-    const errors = validateRuntimeEnvFiles(contract, { envExamplePath, wranglerPath })
+    const errors = validateRuntimeEnvFiles(contract, { envExamplePath, wranglerPath, packageJsonPath })
     if (errors.length > 0) {
       for (const error of errors) console.error(`❌ ${error}`)
       process.exit(1)

@@ -88,7 +88,7 @@ pnpm run dev:remote
 
 ### 环境变量配置
 
-[`config/runtime-env.json`](config/runtime-env.json) 是运行时环境变量的唯一配置契约，统一声明变量名、是否敏感、是否用于本地预览，以及公开默认值。不要分别维护 `.env.example` 和 `wrangler.toml` 中的变量清单。
+[`config/runtime-env.json`](config/runtime-env.json) 是运行时环境变量的唯一配置契约，统一声明变量名、是否敏感、是否用于本地预览、Cloudflare Deploy Button 展示信息，以及公开默认值。不要分别维护 `.env.example`、`wrangler.toml` 和 `package.json.cloudflare.bindings` 中的变量清单。
 
 - `.env.local`：本机开发和预览的实际值，不提交仓库
 - `wrangler.local.toml`：由 `pnpm run cf:init` 生成的 Cloudflare 资源绑定和本地部署配置，不提交仓库
@@ -102,7 +102,7 @@ pnpm run config:generate
 pnpm run config:check
 ```
 
-前者重新生成 `.env.example`，后者检查生成文件和 `wrangler.toml` 是否与契约一致。`pnpm run verify` 已包含该检查。
+前者重新生成 `.env.example`，后者检查生成文件、`wrangler.toml` 和 `package.json.cloudflare.bindings` 是否与契约一致。`pnpm run verify` 已包含该检查。
 
 常用入口：
 

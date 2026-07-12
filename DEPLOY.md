@@ -20,7 +20,7 @@ AI_CONFIG_ENCRYPTION_SECRET=change-me-to-another-random-string
 NEXT_PUBLIC_SITE_URL=https://your-domain.com
 ```
 
-环境变量定义统一维护在 [`config/runtime-env.json`](config/runtime-env.json)。`.env.example` 由该契约生成，修改变量后请运行：
+环境变量定义统一维护在 [`config/runtime-env.json`](config/runtime-env.json)。`.env.example` 由该契约生成，`package.json.cloudflare.bindings` 作为 Cloudflare Deploy Button 所需的受校验投影；修改变量后请运行：
 
 ```bash
 pnpm run config:generate
