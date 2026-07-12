@@ -156,7 +156,18 @@ if (!cache?.id) {
 }
 NODE
 
-deploy_args=(deploy --config "${REPO_ROOT}/dist/server/wrangler.json" --skip-build)
+DEPLOY_WORKER_NAME="$(
+  node "${SCRIPT_DIR}/cf-worker-name.mjs" "${REPO_ROOT}/dist/server/wrangler.json"
+)"
+
+echo "==> targeting Cloudflare Worker: ${DEPLOY_WORKER_NAME}"
+
+deploy_args=(
+  deploy
+  --config "${REPO_ROOT}/dist/server/wrangler.json"
+  --skip-build
+  --name "${DEPLOY_WORKER_NAME}"
+)
 
 if [[ "${DRY_RUN}" == "1" ]]; then
   echo "==> running vinext Wrangler deploy dry-run"
@@ -195,10 +206,6 @@ fi
 
 if [[ -n "${VINEXT_TPR_WINDOW:-}" ]]; then
   deploy_args+=(--tpr-window "${VINEXT_TPR_WINDOW}")
-fi
-
-if [[ -n "${VINEXT_WORKER_NAME:-}" ]]; then
-  deploy_args+=(--name "${VINEXT_WORKER_NAME}")
 fi
 
 if [[ -n "${VINEXT_CF_ENV:-}" ]]; then
