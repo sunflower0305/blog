@@ -53,4 +53,5 @@ worker-configuration.d.ts
 
 .claude/
 .codex/
+.github/
 article/
