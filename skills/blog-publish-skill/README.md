@@ -2,7 +2,7 @@
 
 这个目录放的是配套的 Claude Skill，用来把 Markdown、纯文本或网页内容直接发布到你自己的 Leyang Blog。
 
-Skill 名称和命令是 `leyang-blog-publish`，源码目录是 `ecosystem/blog-publish-skill/`。
+Skill 名称和命令是 `leyang-blog-publish`，源码目录是 `skills/blog-publish-skill/`。
 
 ## 能做什么
 
