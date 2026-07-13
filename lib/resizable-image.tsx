@@ -8,7 +8,8 @@ import { AlignCenter, AlignLeft, Copy, Crop, Download, ImagePlus, MoreHorizontal
 import { UploadImagesPlugin } from 'novel'
 import { createPortal } from 'react-dom'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { copyEditorImage, downloadEditorImage } from './editor-file-upload'
+import { copyEditorImage, downloadEditorImage, getEditorImagePreviewUrl } from './editor-file-upload'
+import { getSiteUrl } from './site-config'
 
 export type EditorImageAlignment = 'left' | 'center'
 
@@ -41,6 +42,7 @@ type ResizableImageNode = {
 }
 
 const CONTEXT_MENU_WIDTH = 220
+const EDITOR_SITE_URL = getSiteUrl()
 
 function normalizeAlignment(value: unknown): EditorImageAlignment {
   return value === 'left' ? 'left' : 'center'
@@ -102,6 +104,10 @@ function ResizableImageView(props: any) {
     selected: boolean
     updateAttributes: (attrs: Record<string, unknown>) => void
   }
+  const deliverySrc = useMemo(
+    () => getEditorImagePreviewUrl(node.attrs.src, EDITOR_SITE_URL),
+    [node.attrs.src],
+  )
 
   const imgRef = useRef<HTMLImageElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -304,7 +310,7 @@ function ResizableImageView(props: any) {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           ref={imgRef}
-          src={node.attrs.src}
+          src={deliverySrc}
           alt={node.attrs.alt || ''}
           title={node.attrs.title || ''}
           style={{ width: '100%', display: 'block' }}

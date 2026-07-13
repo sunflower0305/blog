@@ -30,7 +30,7 @@ import {
   removeUploadPlaceholder,
   replaceImageNodeAtPosition,
   uploadEditorFile,
-  getEditorImageContentUrl,
+  getEditorImageSourceUrl,
 } from '@/lib/editor-file-upload'
 import {
   extractFilesFromClipboard,
@@ -231,7 +231,7 @@ export function InlineArticleEditor({
       const result = await uploadEditorFile(optimizedFile)
       const editor = editorRef.current
       if (editor) checkDirty(editor)
-      return getEditorImageContentUrl(result)
+      return getEditorImageSourceUrl(result)
     } catch (error) {
       setFeedback({
         type: 'error',

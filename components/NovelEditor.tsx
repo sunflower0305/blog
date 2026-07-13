@@ -54,7 +54,8 @@ import {
   removeUploadPlaceholder,
   replaceImageNodeAtPosition,
   uploadEditorFile,
-  getEditorImageContentUrl,
+  getEditorImageSourceUrl,
+  getEditorImagePreviewUrl,
 } from '@/lib/editor-file-upload'
 import { copyAsWechatArticleFormat, downloadArticleAsPdf } from '@/lib/wechat-copy'
 import {
@@ -65,7 +66,7 @@ import {
 import type { EditorImageActionTarget } from '@/lib/resizable-image'
 import { resolvePostCoverImage } from '@/lib/default-cover-images'
 import { buildAutoDescription, normalizePostSlug, sanitizePostSlugInput } from '@/lib/post-utils'
-import { getSiteDisplayUrl } from '@/lib/site-config'
+import { getSiteDisplayUrl, getSiteUrl } from '@/lib/site-config'
 import { resizeTextareaHeight, useAutoResizeTextarea } from '@/lib/textarea-autosize'
 import { setEditorHtmlContent } from '@/lib/editor-content'
 
@@ -79,6 +80,7 @@ type SaveState = 'saved' | 'dirty' | 'saving' | 'error'
 const SIDEBAR_KEY = 'blog:sidebar-open'
 const AUTOSAVE_DEBOUNCE_MS = 1500
 const AUTOSAVE_MAX_RETRY_DELAY_MS = 10000
+const SITE_URL = getSiteUrl()
 const SITE_DISPLAY_URL = getSiteDisplayUrl()
 
 const EMPTY_DOCUMENT = {
@@ -580,7 +582,7 @@ export function NovelEditor({ initialData }: NovelEditorProps = {}) {
       const optimizedFile = await optimizeImageForUpload(file, EDITOR_IMAGE_OPTIMIZE_OPTIONS)
       const result = await uploadEditorFile(optimizedFile, (p) => setUploadProgress(p))
       if (editorRef.current) scheduleDraftSave(latestTitleRef.current, editorRef.current)
-      return getEditorImageContentUrl(result)
+      return getEditorImageSourceUrl(result)
     } catch (error) {
       setFeedback({ type: 'error', message: error instanceof Error ? error.message : '图片上传失败' })
       throw error
@@ -1377,7 +1379,7 @@ export function NovelEditor({ initialData }: NovelEditorProps = {}) {
                 {coverImage ? (
                   <div className="relative rounded-md overflow-hidden border border-[var(--editor-line)] group" style={{ height: 120 }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={coverImage} alt="封面预览" className="w-full h-full object-cover" />
+                    <img src={getEditorImagePreviewUrl(coverImage, SITE_URL)} alt="封面预览" className="w-full h-full object-cover" />
                     {/* 悬停时显示的操作按钮 */}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                       <button

@@ -1,4 +1,5 @@
 import type { EditorInstance } from 'novel'
+import { optimizePostImageUrls } from './post-utils'
 
 export interface UploadedEditorFile {
   url: string
@@ -150,8 +151,12 @@ export async function uploadEditorFile(
   })
 }
 
-export function getEditorImageContentUrl(uploaded: UploadedEditorFile) {
-  return uploaded.variants?.content || uploaded.url
+export function getEditorImageSourceUrl(uploaded: UploadedEditorFile) {
+  return uploaded.url
+}
+
+export function getEditorImagePreviewUrl(imageUrl: string, siteUrl: string) {
+  return optimizePostImageUrls(imageUrl, siteUrl)
 }
 
 export function createUploadPlaceholderMarker() {

@@ -4,7 +4,8 @@ import {
   buildUploadPlaceholderText,
   copyEditorImage,
   createUploadPlaceholderMarker,
-  getEditorImageContentUrl,
+  getEditorImageSourceUrl,
+  getEditorImagePreviewUrl,
   insertGeneratedImageAfterNode,
   insertGeneratedImageAtPosition,
   insertUploadedFileIntoEditor,
@@ -165,8 +166,8 @@ describe('editor-file-upload helpers', () => {
     expect(progress).toHaveBeenCalledWith(50)
   })
 
-  it('prefers the content variant for editor image insertion while preserving the raw URL', () => {
-    expect(getEditorImageContentUrl({
+  it('stores the stable source URL and leaves delivery optimization to the editor preview', () => {
+    expect(getEditorImageSourceUrl({
       url: '/api/images/image/raw.webp',
       type: 'image',
       name: 'raw.webp',
@@ -174,13 +175,30 @@ describe('editor-file-upload helpers', () => {
         raw: '/api/images/image/raw.webp',
         content: '/api/images/image/raw.webp?w=1600&q=85&format=webp',
       },
-    })).toBe('/api/images/image/raw.webp?w=1600&q=85&format=webp')
+    })).toBe('/api/images/image/raw.webp')
 
-    expect(getEditorImageContentUrl({
+    expect(getEditorImageSourceUrl({
       url: '/api/images/image/raw.webp',
       type: 'image',
       name: 'raw.webp',
     })).toBe('/api/images/image/raw.webp')
+  })
+
+  it('optimizes local editor previews without changing external or raw image URLs', () => {
+    const siteUrl = 'https://blog.zhangleyang.com'
+
+    expect(getEditorImagePreviewUrl(
+      '/api/images/image/2026/07/editor.png',
+      siteUrl,
+    )).toBe('/api/images/image/2026/07/editor.png?w=1600&q=85&format=auto')
+    expect(getEditorImagePreviewUrl(
+      'https://cdn.example.com/editor.png',
+      siteUrl,
+    )).toBe('https://cdn.example.com/editor.png')
+    expect(getEditorImagePreviewUrl(
+      '/api/images/image/2026/07/editor.png?__raw=1',
+      siteUrl,
+    )).toBe('/api/images/image/2026/07/editor.png?__raw=1')
   })
 
   it('maps common upload failures to user-facing messages', async () => {
