@@ -1,8 +1,6 @@
 ---
 name: leyang-blog-publish
 description: 将 Markdown 文件、文本内容或 URL 发布到自己的 Leyang Blog，支持分类选择、草稿/发布状态、本地图片和第三方图片上传。用户说发布到博客、发到 Leyang Blog、publish draft、发布 Markdown、发布文章并带图片时，应使用这个 Skill。
-trigger: /leyang-blog-publish
-user_invocable: true
 ---
 
 # leyang-blog-publish: 发布内容到 Leyang Blog
@@ -104,7 +102,7 @@ curl -s -X POST "https://your-domain.com/api/uploads" \
   -F "file=@/absolute/path/to/file"
 ```
 
-拿到返回 URL 后，替换正文中的本地引用。上传接口通常返回相对路径 `/api/images/...`；发布正文里应替换成博客绝对 URL，避免跨平台复制时丢失域名。
+图片使用响应中的 `url` 保存原始地址，不使用 `variants.content`；图片尺寸和 AVIF/WebP 格式由博客展示层根据浏览器能力自动处理。上传接口通常返回相对路径 `/api/images/...`，发布正文里应转换成博客绝对 URL，避免跨平台复制时丢失域名。
 
 ### 6. 转存第三方图片
 
