@@ -27,7 +27,6 @@ export const AI_PROVIDER_PRESETS: AIProviderPreset[] = [
     defaultModel: "@cf/zai-org/glm-4.7-flash",
     quickModels: [
       "@cf/zai-org/glm-4.7-flash",
-      "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
       "@cf/openai/gpt-oss-120b",
       "@cf/openai/gpt-oss-20b",
       "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b",
