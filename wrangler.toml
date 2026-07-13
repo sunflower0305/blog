@@ -18,9 +18,9 @@ port = 8788
 binding = "WORKERS_AI"
 remote = true
 
-# Minimal resource bindings for open-source / Deploy to Cloudflare usage.
+# Minimal resource bindings for Deploy to Cloudflare usage.
 # Modern Wrangler and Deploy buttons can auto-provision these resources.
-# `npm run cf:init` will replace them in `wrangler.local.toml` with concrete remote bindings.
+# `pnpm run cf:init` will replace them in `wrangler.local.toml` with concrete remote bindings.
 
 [[d1_databases]]
 binding = "DB"
