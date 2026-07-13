@@ -18,6 +18,7 @@ import { getRelatedPosts } from "@/lib/related-content";
 import { getPublicContentCacheNamespace } from "@/lib/cache";
 import { getSiteUrl } from "@/lib/site-config";
 import { resolvePostCoverImage } from "@/lib/default-cover-images";
+import { optimizePostImageUrls } from "@/lib/post-utils";
 import { PostViewTracker } from "@/components/PostViewTracker";
 
 // Cloudflare Workers 缓存策略
@@ -200,6 +201,7 @@ export default async function PostPage({
       }))
     : { strategy: "fts" as const, source: "rules" as const, results: [] };
   const contentContainerId = `post-content-${post.slug}`;
+  const deliveredHtml = optimizePostImageUrls(post.html, getSiteUrl());
 
   return (
     <div className="min-h-screen bg-[var(--background)] flex flex-col">
@@ -347,11 +349,11 @@ export default async function PostPage({
               id={contentContainerId}
               data-admin-edit-trigger
               className="rich-content"
-              dangerouslySetInnerHTML={{ __html: post.html }}
+              dangerouslySetInnerHTML={{ __html: deliveredHtml }}
             />
             <TwitterEmbedsEnhancer
               containerId={contentContainerId}
-              html={post.html}
+              html={deliveredHtml}
             />
 
             {related.results.length > 0 && (

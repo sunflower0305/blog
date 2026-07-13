@@ -22,6 +22,13 @@ type RuntimeEnv = {
 
 type CloudflareImageFit = 'scale-down' | 'contain' | 'cover' | 'crop' | 'pad'
 type CloudflareImageFormat = 'auto' | 'avif' | 'webp' | 'json' | 'jpeg' | 'png'
+type CloudflareImageTransform = {
+  width?: number
+  height?: number
+  quality?: number
+  fit?: CloudflareImageFit
+  format?: CloudflareImageFormat
+}
 
 const TRANSFORM_QUERY_KEYS = ['w', 'width', 'h', 'height', 'q', 'quality', 'fit', 'format']
 
@@ -65,7 +72,7 @@ function parseFormat(value: string | null): CloudflareImageFormat | undefined {
   }
 }
 
-function getImageTransform(searchParams: URLSearchParams) {
+function getImageTransform(searchParams: URLSearchParams): CloudflareImageTransform | null {
   const width = parseBoundedInt(searchParams.get('w') || searchParams.get('width'), 16, 4096)
   const height = parseBoundedInt(searchParams.get('h') || searchParams.get('height'), 16, 4096)
   const quality = parseBoundedInt(searchParams.get('q') || searchParams.get('quality'), 30, 100)
@@ -83,6 +90,43 @@ function getImageTransform(searchParams: URLSearchParams) {
     ...(fit ? { fit } : {}),
     ...(format ? { format } : {}),
   }
+}
+
+function acceptsImageFormat(accept: string | null, mimeType: string): boolean {
+  if (!accept) return false
+
+  return accept.split(',').some((entry) => {
+    const [type, ...parameters] = entry.trim().toLowerCase().split(';')
+    if (type !== mimeType) return false
+
+    const quality = parameters
+      .map((parameter) => parameter.trim())
+      .find((parameter) => parameter.startsWith('q='))
+    return quality ? Number.parseFloat(quality.slice(2)) > 0 : true
+  })
+}
+
+function negotiateImageFormat(
+  transform: CloudflareImageTransform,
+  accept: string | null,
+): CloudflareImageTransform {
+  if (transform.format !== 'auto') return transform
+
+  const { format: _auto, ...negotiated } = transform
+  if (acceptsImageFormat(accept, 'image/avif')) return { ...negotiated, format: 'avif' }
+  if (acceptsImageFormat(accept, 'image/webp')) return { ...negotiated, format: 'webp' }
+  return negotiated
+}
+
+function appendVary(headers: Headers, value: string) {
+  const current = headers.get('vary')
+  const values = current
+    ? current.split(',').map((item) => item.trim()).filter(Boolean)
+    : []
+  if (!values.some((item) => item.toLowerCase() === value.toLowerCase())) {
+    values.push(value)
+  }
+  headers.set('vary', values.join(', '))
 }
 
 export async function GET(
@@ -106,6 +150,7 @@ export async function GET(
   const rangeHeader = req.headers.get('Range')
   const isRawRequest = req.nextUrl.searchParams.get('__raw') === '1'
   const transform = !rangeHeader && !isRawRequest ? getImageTransform(req.nextUrl.searchParams) : null
+  const negotiateFormat = transform?.format === 'auto'
 
   if (transform && readFlag(env.ENABLE_CF_IMAGE_PIPELINE)) {
     const headInfo = await env.IMAGES.head(objectKey)
@@ -125,9 +170,10 @@ export async function GET(
           rawUrl.searchParams.delete(key)
         }
 
+        const resolvedTransform = negotiateImageFormat(transform, req.headers.get('Accept'))
         const transformed = await fetch(rawUrl.toString(), {
           cf: {
-            image: transform,
+            image: resolvedTransform,
           },
         } as RequestInit & { cf: { image: Record<string, unknown> } })
 
@@ -135,6 +181,7 @@ export async function GET(
           const headers = new Headers(transformed.headers)
           headers.set('cache-control', 'public, max-age=31536000, immutable')
           headers.set('Accept-Ranges', 'bytes')
+          if (negotiateFormat) appendVary(headers, 'Accept')
 
           return new Response(transformed.body, {
             status: transformed.status,
@@ -195,6 +242,7 @@ export async function GET(
   headers.set('etag', object.httpEtag)
   headers.set('cache-control', 'public, max-age=31536000, immutable')
   headers.set('Accept-Ranges', 'bytes')
+  if (negotiateFormat) appendVary(headers, 'Accept')
   if (object.size) {
     headers.set('Content-Length', String(object.size))
   }

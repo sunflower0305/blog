@@ -89,6 +89,48 @@ describe('/api/images/[...key] route', () => {
     await expect(response.text()).resolves.toBe('transformed-body')
   })
 
+  it.each([
+    ['image/avif,image/webp,image/*,*/*;q=0.8', 'avif'],
+    ['image/webp,image/*,*/*;q=0.8', 'webp'],
+    ['image/avif;q=0,image/webp;q=1', 'webp'],
+    ['image/png,image/*;q=0.8', undefined],
+  ])('negotiates format=auto for Accept: %s', async (accept, expectedFormat) => {
+    const head = vi.fn(async () => ({ size: 1024, httpMetadata: { contentType: 'image/png' } }))
+    mocks.getAppCloudflareEnv.mockResolvedValue({
+      IMAGES: { head, get: vi.fn() },
+      ENABLE_CF_IMAGE_PIPELINE: 'true',
+    })
+
+    global.fetch = vi.fn(async () => new Response('transformed-body', {
+      status: 200,
+      headers: {
+        'Content-Type': expectedFormat ? `image/${expectedFormat}` : 'image/png',
+        Vary: 'Accept-Encoding',
+      },
+    })) as unknown as typeof fetch
+
+    const response = await GET(createImageRequest(
+      'http://test.local/api/images/image/diagram.png?w=1600&q=85&format=auto',
+      { headers: { Accept: accept } },
+    ) as never, {
+      params: Promise.resolve({ key: ['image', 'diagram.png'] }),
+    })
+
+    const expectedImageTransform: Record<string, unknown> = {
+      width: 1600,
+      quality: 85,
+    }
+    if (expectedFormat) expectedImageTransform.format = expectedFormat
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('__raw=1'),
+      expect.objectContaining({
+        cf: { image: expectedImageTransform },
+      }),
+    )
+    expect(response.headers.get('vary')).toBe('Accept-Encoding, Accept')
+  })
+
   it('returns partial content for range requests', async () => {
     const head = vi.fn(async () => ({ size: 4096, httpMetadata: { contentType: 'video/mp4' } }))
     const get = vi.fn(async () => createStoredObject({ size: 4096 }))
