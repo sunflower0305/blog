@@ -39,6 +39,7 @@ import {
 } from '@/lib/editor-ui'
 import type { EditorImageActionTarget } from '@/lib/resizable-image'
 import { resizeTextareaHeight, useAutoResizeTextarea } from '@/lib/textarea-autosize'
+import { setEditorHtmlContent } from '@/lib/editor-content'
 
 interface InlineArticleEditorProps {
   slug: string
@@ -167,7 +168,7 @@ export function InlineArticleEditor({
   const handleDiscard = () => {
     const editor = editorRef.current
     if (!editor) return
-    editor.commands.setContent(originalHtmlRef.current)
+    setEditorHtmlContent(editor, originalHtmlRef.current)
     setTitle(originalTitleRef.current)
     setSelectedCategory(originalCategoryRef.current)
     setCoverImage(originalCoverImageRef.current)
@@ -522,7 +523,7 @@ export function InlineArticleEditor({
           editorProps={editorProps}
           onCreate={({ editor }) => {
             editorRef.current = editor
-            editor.commands.setContent(html)
+            setEditorHtmlContent(editor, html)
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const st = editor.storage as any
             setCharCount(st.characterCount?.characters?.() ?? 0)

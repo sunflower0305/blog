@@ -67,6 +67,7 @@ import { resolvePostCoverImage } from '@/lib/default-cover-images'
 import { buildAutoDescription, normalizePostSlug, sanitizePostSlugInput } from '@/lib/post-utils'
 import { getSiteDisplayUrl } from '@/lib/site-config'
 import { resizeTextareaHeight, useAutoResizeTextarea } from '@/lib/textarea-autosize'
+import { setEditorHtmlContent } from '@/lib/editor-content'
 
 type SaveFeedback =
   | { type: 'success' | 'error'; message: string; slug?: string }
@@ -1224,7 +1225,7 @@ export function NovelEditor({ initialData }: NovelEditorProps = {}) {
                       setCharCount(st.characterCount?.characters?.() ?? 0)
                       if (initialData?.html) {
                         skipNextEditorUpdateRef.current = true
-                        editor.commands.setContent(initialData.html)
+                        setEditorHtmlContent(editor, initialData.html)
                       } else {
                         skipNextEditorUpdateRef.current = false
                       }
