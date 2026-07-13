@@ -16,9 +16,9 @@ import { setEditorHtmlContent } from "@/lib/editor-content";
 
 describe("setEditorHtmlContent", () => {
   beforeEach(() => {
-    const container = { innerHTML: "" };
+    const template = { innerHTML: "", content: { nodeType: 11 } };
     vi.stubGlobal("document", {
-      createElement: vi.fn(() => container),
+      createElement: vi.fn(() => template),
     });
     parse.mockReturnValue({
       toJSON: () => ({
@@ -48,8 +48,8 @@ describe("setEditorHtmlContent", () => {
 
     setEditorHtmlContent(editor as never, html);
 
-    expect(document.createElement).toHaveBeenCalledWith("div");
-    expect(parse).toHaveBeenCalledWith(expect.objectContaining({ innerHTML: html }));
+    expect(document.createElement).toHaveBeenCalledWith("template");
+    expect(parse).toHaveBeenCalledWith(expect.objectContaining({ nodeType: 11 }));
     expect(setContent).toHaveBeenCalledWith({
       type: "doc",
       content: [

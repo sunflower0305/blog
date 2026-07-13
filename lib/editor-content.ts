@@ -2,10 +2,13 @@ import { DOMParser as ProseMirrorDOMParser } from "@tiptap/pm/model";
 import type { EditorInstance, JSONContent } from "novel";
 
 export function parseEditorHtml(html: string, editor: EditorInstance): JSONContent {
-  const container = document.createElement("div");
-  container.innerHTML = html;
+  // A normal detached <div> still starts loading image src attributes as soon
+  // as innerHTML is assigned. Template contents stay inert until rendered, so
+  // ProseMirror can read the stored source URLs without downloading them first.
+  const template = document.createElement("template");
+  template.innerHTML = html;
 
-  return ProseMirrorDOMParser.fromSchema(editor.schema).parse(container).toJSON() as JSONContent;
+  return ProseMirrorDOMParser.fromSchema(editor.schema).parse(template.content).toJSON() as JSONContent;
 }
 
 export function setEditorHtmlContent(editor: EditorInstance, html: string): void {
