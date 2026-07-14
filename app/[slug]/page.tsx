@@ -19,6 +19,7 @@ import { getPublicContentCacheNamespace } from "@/lib/cache";
 import { getSiteUrl } from "@/lib/site-config";
 import { resolvePostCoverImage } from "@/lib/default-cover-images";
 import { optimizePostImageUrls } from "@/lib/post-utils";
+import { highlightCodeBlocksInHtml } from "@/lib/code-highlight-html";
 import { PostViewTracker } from "@/components/PostViewTracker";
 
 // Cloudflare Workers 缓存策略
@@ -201,7 +202,8 @@ export default async function PostPage({
       }))
     : { strategy: "fts" as const, source: "rules" as const, results: [] };
   const contentContainerId = `post-content-${post.slug}`;
-  const deliveredHtml = optimizePostImageUrls(post.html, getSiteUrl());
+  const optimizedHtml = optimizePostImageUrls(post.html, getSiteUrl());
+  const deliveredHtml = await highlightCodeBlocksInHtml(optimizedHtml);
 
   return (
     <div className="min-h-screen bg-[var(--background)] flex flex-col">

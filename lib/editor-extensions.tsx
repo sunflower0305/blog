@@ -2,6 +2,7 @@
 
 import {
   CharacterCount,
+  CodeBlockLowlight,
   Color,
   Command as SlashCommand,
   HighlightExtension,
@@ -74,6 +75,7 @@ import {
 } from './editor-events'
 import { shouldShowEditorBubble } from './editor-bubble'
 import { createDefaultTableContent, hasMarkdownTable, normalizeUrl } from './editor-utils'
+import { codeLowlight, DEFAULT_CODE_LANGUAGE } from './code-highlighting'
 
 const md = markdownit({ html: true })
 
@@ -382,7 +384,11 @@ export interface EditorExtensionOptions {
 
 export function createEditorExtensions(options: EditorExtensionOptions = {}) {
   return [
-    StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
+    StarterKit.configure({ heading: { levels: [1, 2, 3] }, codeBlock: false }),
+    CodeBlockLowlight.configure({
+      lowlight: codeLowlight,
+      defaultLanguage: DEFAULT_CODE_LANGUAGE,
+    }),
     TextStyle,
     Color,
     HighlightExtension,

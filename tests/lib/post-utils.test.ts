@@ -35,7 +35,9 @@ describe('optimizePostImageUrls', () => {
   it('applies optimized delivery at the public article rendering boundary', () => {
     const page = readFileSync('app/[slug]/page.tsx', 'utf8')
 
-    expect(page).toContain('const deliveredHtml = optimizePostImageUrls(post.html, getSiteUrl())')
+    expect(page).toContain('const optimizedHtml = optimizePostImageUrls(post.html, getSiteUrl())')
+    expect(page).toContain('const deliveredHtml = await highlightCodeBlocksInHtml(optimizedHtml)')
     expect(page).toContain('dangerouslySetInnerHTML={{ __html: deliveredHtml }}')
+    expect(page).toContain('html={deliveredHtml}')
   })
 })

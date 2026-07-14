@@ -1,7 +1,9 @@
 import { Selection, TextSelection, NodeSelection } from '@tiptap/pm/state'
 import { Schema } from '@tiptap/pm/model'
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { shouldShowEditorBubble } from '@/lib/editor-bubble'
+import { codeLowlight, DEFAULT_CODE_LANGUAGE } from '@/lib/code-highlighting'
 import {
   createDefaultTableContent,
   hasMarkdownTable,
@@ -9,6 +11,17 @@ import {
 } from '@/lib/editor-utils'
 
 describe('editor-extensions helpers', () => {
+  it('uses one TypeScript lowlight code block extension', () => {
+    const source = readFileSync(new URL('../../lib/editor-extensions.tsx', import.meta.url), 'utf8')
+
+    expect(DEFAULT_CODE_LANGUAGE).toBe('typescript')
+    expect(codeLowlight.listLanguages()).toEqual(['typescript'])
+    expect(codeLowlight.registered('ts')).toBe(true)
+    expect(source).toContain('StarterKit.configure({ heading: { levels: [1, 2, 3] }, codeBlock: false })')
+    expect(source).toContain('CodeBlockLowlight.configure({')
+    expect(source.match(/CodeBlockLowlight\.configure\(/g)).toHaveLength(1)
+  })
+
   it('creates a default table with header row and paragraph cells', () => {
     const table = createDefaultTableContent(2, 2)
 
