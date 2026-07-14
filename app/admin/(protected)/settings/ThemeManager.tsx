@@ -1,20 +1,20 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { FONT_PRESETS, THEME_OPTIONS, type BodyFont, type Theme } from '@/lib/appearance'
+import { useState } from "react";
+import { FONT_PRESETS, THEME_OPTIONS, type BodyFont, type Theme } from "@/lib/appearance";
 
 interface Props {
-  initialTheme: Theme
-  initialFont: BodyFont
-  onSave: (values: { theme: Theme; font: BodyFont }) => void | Promise<void>
-  saving: boolean
+  initialTheme: Theme;
+  initialFont: BodyFont;
+  onSave: (values: { theme: Theme; font: BodyFont }) => void | Promise<void>;
+  saving: boolean;
 }
 
 export function ThemeManager({ initialTheme, initialFont, onSave, saving }: Props) {
-  const [selectedTheme, setSelectedTheme] = useState<Theme>(initialTheme)
-  const [selectedFont, setSelectedFont] = useState<BodyFont>(initialFont)
+  const [selectedTheme, setSelectedTheme] = useState<Theme>(initialTheme);
+  const [selectedFont, setSelectedFont] = useState<BodyFont>(initialFont);
 
-  const currentFont = FONT_PRESETS.find((preset) => preset.id === selectedFont) || FONT_PRESETS[0]
+  const currentFont = FONT_PRESETS.find((preset) => preset.id === selectedFont) || FONT_PRESETS[0];
 
   return (
     <div className="space-y-6">
@@ -29,8 +29,8 @@ export function ThemeManager({ initialTheme, initialFont, onSave, saving }: Prop
               key={theme.id}
               className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors ${
                 selectedTheme === theme.id
-                  ? 'border-[var(--editor-accent)] bg-[var(--editor-accent)]/5'
-                  : 'border-[var(--editor-line)] bg-[var(--editor-panel)] hover:border-[var(--editor-soft)]'
+                  ? "border-[var(--editor-accent)] bg-[var(--editor-accent)]/5"
+                  : "border-[var(--editor-line)] bg-[var(--editor-panel)] hover:border-[var(--editor-soft)]"
               }`}
             >
               <input
@@ -43,7 +43,9 @@ export function ThemeManager({ initialTheme, initialFont, onSave, saving }: Prop
               />
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium text-[var(--editor-ink)]">{theme.label}</div>
-                <p className="mt-1 text-sm leading-relaxed text-[var(--editor-muted)]">{theme.description}</p>
+                <p className="mt-1 text-sm leading-relaxed text-[var(--editor-muted)]">
+                  {theme.description}
+                </p>
               </div>
             </label>
           ))}
@@ -61,8 +63,8 @@ export function ThemeManager({ initialTheme, initialFont, onSave, saving }: Prop
               key={preset.id}
               className={`flex items-start gap-3 rounded-lg border p-4 transition-colors ${
                 selectedFont === preset.id
-                  ? 'border-[var(--editor-accent)] bg-[var(--editor-accent)]/5'
-                  : 'border-[var(--editor-line)] bg-[var(--editor-panel)] hover:border-[var(--editor-soft)]'
+                  ? "border-[var(--editor-accent)] bg-[var(--editor-accent)]/5"
+                  : "border-[var(--editor-line)] bg-[var(--editor-panel)] hover:border-[var(--editor-soft)]"
               }`}
             >
               <input
@@ -75,12 +77,14 @@ export function ThemeManager({ initialTheme, initialFont, onSave, saving }: Prop
               />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-[var(--editor-ink)]">{preset.name}</span>
+                  <span className="text-sm font-medium text-[var(--editor-ink)]">
+                    {preset.name}
+                  </span>
                   <span className="text-xs text-[var(--stone-gray)]">{preset.desc}</span>
                 </div>
                 <p
                   className="mt-1 text-sm leading-relaxed text-[var(--editor-muted)]"
-                  style={{ fontFamily: preset.family || 'inherit' }}
+                  style={{ fontFamily: preset.family || "inherit" }}
                 >
                   白日依山尽，黄河入海流。The quick brown fox jumps over the lazy dog.
                 </p>
@@ -101,8 +105,8 @@ export function ThemeManager({ initialTheme, initialFont, onSave, saving }: Prop
         disabled={saving}
         className="rounded-lg bg-[var(--editor-accent)] px-4 py-2 text-sm font-medium text-white hover:brightness-105 disabled:opacity-50"
       >
-        {saving ? '保存中...' : '保存主题管理设置'}
+        {saving ? "保存中..." : "保存主题管理设置"}
       </button>
     </div>
-  )
+  );
 }

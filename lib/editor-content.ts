@@ -8,7 +8,9 @@ export function parseEditorHtml(html: string, editor: EditorInstance): JSONConte
   const template = document.createElement("template");
   template.innerHTML = html;
 
-  return ProseMirrorDOMParser.fromSchema(editor.schema).parse(template.content).toJSON() as JSONContent;
+  return ProseMirrorDOMParser.fromSchema(editor.schema)
+    .parse(template.content)
+    .toJSON() as JSONContent;
 }
 
 export function setEditorHtmlContent(editor: EditorInstance, html: string): void {

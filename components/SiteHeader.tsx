@@ -5,11 +5,7 @@ import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { SearchEntry } from "./SearchEntry";
 import { ThemeDropdown } from "@/components/ThemeDropdown";
-import {
-  getClientThemePreference,
-  subscribeToThemeChange,
-  type Theme,
-} from "@/lib/appearance";
+import { getClientThemePreference, subscribeToThemeChange, type Theme } from "@/lib/appearance";
 import type { SiteCategoryLink, SiteNavLink } from "@/lib/site";
 
 export type NavLink = SiteNavLink;
@@ -55,16 +51,13 @@ export function SiteHeader({
   const theme = useSyncExternalStore(
     subscribeToThemeChange,
     () => getClientThemePreference(initialTheme),
-    () => initialTheme
+    () => initialTheme,
   );
 
   // 点击外部关闭分类下拉
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (
-        categoryRef.current &&
-        !categoryRef.current.contains(e.target as Node)
-      ) {
+      if (categoryRef.current && !categoryRef.current.contains(e.target as Node)) {
         setCategoryOpen(false);
       }
     };
@@ -93,12 +86,7 @@ export function SiteHeader({
     }
 
     return (
-      <Link
-        key={link.label}
-        href={link.url}
-        className={className}
-        onClick={onClick}
-      >
+      <Link key={link.label} href={link.url} className={className} onClick={onClick}>
         {link.label}
       </Link>
     );
@@ -137,10 +125,7 @@ export function SiteHeader({
     if (theme === "editorial") {
       const { vol, month, year } = getIssueInfo();
       return (
-        <div
-          className="flex items-baseline gap-4 flex-shrink-0"
-          suppressHydrationWarning
-        >
+        <div className="flex items-baseline gap-4 flex-shrink-0" suppressHydrationWarning>
           <Link
             href="/"
             className="text-lg tracking-tight text-[var(--editor-ink)] hover:text-[var(--editor-accent)] transition-colors duration-200 font-bold"
@@ -253,11 +238,7 @@ export function SiteHeader({
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label={mobileMenuOpen ? "关闭菜单" : "打开菜单"}
             >
-              {mobileMenuOpen ? (
-                <X className="w-5 h-5" />
-              ) : (
-                <Menu className="w-5 h-5" />
-              )}
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
@@ -310,10 +291,7 @@ export function SiteHeader({
 
           <nav className="flex flex-col text-sm">
             {links.map((link) => (
-              <div
-                key={link.label}
-                className="px-4 py-3 border-b border-[var(--editor-line)]"
-              >
+              <div key={link.label} className="px-4 py-3 border-b border-[var(--editor-line)]">
                 {renderLink(link, () => setMobileMenuOpen(false))}
               </div>
             ))}

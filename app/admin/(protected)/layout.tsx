@@ -6,11 +6,7 @@ import { LogoutButton } from "./LogoutButton";
 import { PenLine, ExternalLink } from "lucide-react";
 import { AdminFooter } from "@/components/AdminFooter";
 
-export default async function AdminProtectedLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function AdminProtectedLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
 
@@ -36,12 +32,8 @@ export default async function AdminProtectedLayout({
             >
               乐扬博客
             </Link>
-            <span className="text-[var(--editor-line)] hidden sm:inline">
-              /
-            </span>
-            <span className="text-[var(--stone-gray)] hidden sm:inline">
-              管理后台
-            </span>
+            <span className="text-[var(--editor-line)] hidden sm:inline">/</span>
+            <span className="text-[var(--stone-gray)] hidden sm:inline">管理后台</span>
           </div>
 
           <nav className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
@@ -77,9 +69,7 @@ export default async function AdminProtectedLayout({
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl w-full px-4 sm:px-6 py-8 flex-1">
-        {children}
-      </main>
+      <main className="mx-auto max-w-6xl w-full px-4 sm:px-6 py-8 flex-1">{children}</main>
 
       <AdminFooter />
     </div>

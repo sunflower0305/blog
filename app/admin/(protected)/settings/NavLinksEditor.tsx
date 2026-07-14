@@ -36,24 +36,16 @@ export function NavLinksEditor({ initialValue, onSave, saving }: Props) {
       })()
     : null;
   const [links, setLinks] = useState<NavLink[]>(
-    parsed && Array.isArray(parsed) ? parsed : defaultLinks
+    parsed && Array.isArray(parsed) ? parsed : defaultLinks,
   );
 
-  const update = (
-    idx: number,
-    field: keyof NavLink,
-    value: string | boolean
-  ) => {
-    setLinks((prev) =>
-      prev.map((l, i) => (i === idx ? { ...l, [field]: value } : l))
-    );
+  const update = (idx: number, field: keyof NavLink, value: string | boolean) => {
+    setLinks((prev) => prev.map((l, i) => (i === idx ? { ...l, [field]: value } : l)));
   };
 
-  const remove = (idx: number) =>
-    setLinks((prev) => prev.filter((_, i) => i !== idx));
+  const remove = (idx: number) => setLinks((prev) => prev.filter((_, i) => i !== idx));
 
-  const add = () =>
-    setLinks((prev) => [...prev, { label: "", url: "", openInNewTab: false }]);
+  const add = () => setLinks((prev) => [...prev, { label: "", url: "", openInNewTab: false }]);
 
   const moveUp = (idx: number) => {
     if (idx <= 0) return;

@@ -1,18 +1,18 @@
-import { getRouteEnvWithDb, jsonError, jsonOk, parseJsonBody } from '@/lib/server/route-helpers'
-import { normalizePostSlug } from '@/lib/post-utils'
-import type { NextRequest } from 'next/server'
+import { getRouteEnvWithDb, jsonError, jsonOk, parseJsonBody } from "@/lib/server/route-helpers";
+import { normalizePostSlug } from "@/lib/post-utils";
+import type { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { slug } = await parseJsonBody<{ slug?: unknown }>(req)
-    const normalizedSlug = typeof slug === 'string' ? normalizePostSlug(slug) : ''
+    const { slug } = await parseJsonBody<{ slug?: unknown }>(req);
+    const normalizedSlug = typeof slug === "string" ? normalizePostSlug(slug) : "";
 
     if (!normalizedSlug || normalizedSlug !== slug) {
-      return jsonError('Invalid slug', 400)
+      return jsonError("Invalid slug", 400);
     }
 
-    const route = await getRouteEnvWithDb('DB unavailable')
-    if (!route.ok) return route.response
+    const route = await getRouteEnvWithDb("DB unavailable");
+    if (!route.ok) return route.response;
 
     await route.db
       .prepare(`
@@ -25,11 +25,11 @@ export async function POST(req: NextRequest) {
           AND deleted_at IS NULL
       `)
       .bind(normalizedSlug)
-      .run()
+      .run();
 
-    return jsonOk({ success: true })
+    return jsonOk({ success: true });
   } catch (error) {
-    console.error('Track view error:', error)
-    return jsonError('浏览量记录失败', 500)
+    console.error("Track view error:", error);
+    return jsonError("浏览量记录失败", 500);
   }
 }

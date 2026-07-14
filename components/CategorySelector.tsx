@@ -1,63 +1,63 @@
-'use client'
+"use client";
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef } from "react";
 
 interface Category {
-  name: string
-  slug: string
+  name: string;
+  slug: string;
 }
 
 interface CategorySelectorProps {
-  value: string
-  onChange: (value: string) => void
-  className?: string
+  value: string;
+  onChange: (value: string) => void;
+  className?: string;
 }
 
 interface CategoriesResponse {
-  categories?: Category[]
+  categories?: Category[];
 }
 
-export function CategorySelector({ value, onChange, className = '' }: CategorySelectorProps) {
-  const [categories, setCategories] = useState<Category[]>([])
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+export function CategorySelector({ value, onChange, className = "" }: CategorySelectorProps) {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch('/api/admin/categories')
+    fetch("/api/admin/categories")
       .then((r) => r.json() as Promise<Category[] | CategoriesResponse>)
       .then((data: Category[] | CategoriesResponse) => {
-        const cats = Array.isArray(data) ? data : data?.categories
-        if (Array.isArray(cats)) setCategories(cats)
+        const cats = Array.isArray(data) ? data : data?.categories;
+        if (Array.isArray(cats)) setCategories(cats);
       })
-      .catch(() => {})
-  }, [])
+      .catch(() => {});
+  }, []);
 
   // 点击外部关闭
   useEffect(() => {
-    if (!open) return
+    if (!open) return;
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false)
+        setOpen(false);
       }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
 
   // 键盘操作
   useEffect(() => {
-    if (!open) return
+    if (!open) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [open])
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [open]);
 
   const allCategories = [
-    { name: '未分类', slug: 'uncategorized' },
-    ...categories.filter((c) => c.name !== '未分类'),
-  ]
+    { name: "未分类", slug: "uncategorized" },
+    ...categories.filter((c) => c.name !== "未分类"),
+  ];
 
   return (
     <div ref={ref} className={`relative ${className}`}>
@@ -66,9 +66,9 @@ export function CategorySelector({ value, onChange, className = '' }: CategorySe
         onClick={() => setOpen(!open)}
         className="h-9 min-w-[120px] text-sm font-medium rounded-lg border border-[var(--editor-line)] bg-[var(--editor-soft)] text-[var(--editor-ink)] pl-3 pr-8 outline-none cursor-pointer hover:bg-[var(--border-warm)] focus:ring-1 focus:ring-[var(--editor-accent)] transition-colors text-left relative"
       >
-        <span className="truncate block">{value || '未分类'}</span>
+        <span className="truncate block">{value || "未分类"}</span>
         <svg
-          className={`absolute right-2.5 top-1/2 -translate-y-1/2 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+          className={`absolute right-2.5 top-1/2 -translate-y-1/2 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
           width="12"
           height="12"
           viewBox="0 0 12 12"
@@ -89,25 +89,23 @@ export function CategorySelector({ value, onChange, className = '' }: CategorySe
               key={cat.slug}
               type="button"
               onClick={() => {
-                onChange(cat.name)
-                setOpen(false)
+                onChange(cat.name);
+                setOpen(false);
               }}
               className={`w-full text-left px-3 py-2 text-sm transition-colors ${
                 cat.name === value
-                  ? 'bg-[var(--editor-accent)]/8 text-[var(--editor-accent)] font-medium'
-                  : 'text-[var(--editor-ink)] hover:bg-[var(--editor-soft)]'
+                  ? "bg-[var(--editor-accent)]/8 text-[var(--editor-accent)] font-medium"
+                  : "text-[var(--editor-ink)] hover:bg-[var(--editor-soft)]"
               }`}
             >
               {cat.name}
             </button>
           ))}
           {allCategories.length === 1 && (
-            <div className="px-3 py-2 text-xs text-[var(--stone-gray)]">
-              暂无其他分类
-            </div>
+            <div className="px-3 py-2 text-xs text-[var(--stone-gray)]">暂无其他分类</div>
           )}
         </div>
       )}
     </div>
-  )
+  );
 }

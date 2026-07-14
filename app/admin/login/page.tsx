@@ -40,8 +40,8 @@ function AdminLoginForm() {
           typeof data?.error === "string"
             ? data.error
             : res.status === 401
-            ? "密码错误，请重试"
-            : "登录服务暂不可用，请稍后重试"
+              ? "密码错误，请重试"
+              : "登录服务暂不可用，请稍后重试",
         );
       }
     } catch {
@@ -59,9 +59,7 @@ function AdminLoginForm() {
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#1f6f59] text-white text-xl font-bold mb-4">
             乐
           </div>
-          <h1 className="text-2xl font-bold text-[var(--editor-ink)]">
-            乐扬博客
-          </h1>
+          <h1 className="text-2xl font-bold text-[var(--editor-ink)]">乐扬博客</h1>
           <p className="text-sm text-[var(--editor-muted)] mt-1">管理后台</p>
         </div>
 
@@ -107,10 +105,7 @@ function AdminLoginForm() {
         </div>
 
         <p className="text-center mt-6 text-xs text-[var(--editor-muted)]">
-          <Link
-            href="/"
-            className="hover:text-[var(--editor-ink)] transition-colors"
-          >
+          <Link href="/" className="hover:text-[var(--editor-ink)] transition-colors">
             ← 返回博客首页
           </Link>
         </p>

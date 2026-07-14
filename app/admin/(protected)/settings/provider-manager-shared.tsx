@@ -1,83 +1,86 @@
-'use client'
+"use client";
 
-import type { ReactNode } from 'react'
-import { Dropdown } from '@/components/Dropdown'
+import type { ReactNode } from "react";
+import { Dropdown } from "@/components/Dropdown";
 
 export interface BaseProviderProfile {
-  id: number
-  name: string
-  provider: string
-  provider_name: string
-  provider_type: string
-  provider_category: string
-  api_key_url: string
-  base_url: string
-  model: string
-  api_key_masked: string
-  is_default: number
-  updated_at?: number
+  id: number;
+  name: string;
+  provider: string;
+  provider_name: string;
+  provider_type: string;
+  provider_category: string;
+  api_key_url: string;
+  base_url: string;
+  model: string;
+  api_key_masked: string;
+  is_default: number;
+  updated_at?: number;
 }
 
 export interface BaseProviderFormState {
-  id?: number
-  name: string
-  provider: string
-  provider_name: string
-  provider_type: string
-  provider_category: string
-  api_key_url: string
-  base_url: string
-  model: string
-  api_key: string
-  is_default: boolean
-  api_key_masked?: string
+  id?: number;
+  name: string;
+  provider: string;
+  provider_name: string;
+  provider_type: string;
+  provider_category: string;
+  api_key_url: string;
+  base_url: string;
+  model: string;
+  api_key: string;
+  is_default: boolean;
+  api_key_masked?: string;
 }
 
 export interface ModelsResponse {
-  models?: Array<{ id: string; name: string }>
-  source?: 'provider' | 'preset'
-  warning?: string
-  error?: string
+  models?: Array<{ id: string; name: string }>;
+  source?: "provider" | "preset";
+  warning?: string;
+  error?: string;
 }
 
 export interface ProviderTemplatePreset {
-  id: string
-  name: string
-  category: string
-  defaultModel: string
-  description: string
-  recommended?: boolean
+  id: string;
+  name: string;
+  category: string;
+  defaultModel: string;
+  description: string;
+  recommended?: boolean;
 }
 
 export interface ProviderTemplateGroup {
-  category: string
-  presets: ProviderTemplatePreset[]
+  category: string;
+  presets: ProviderTemplatePreset[];
 }
 
 export function createModelOptions(
   models: Array<{ id: string; name: string }>,
   currentModel: string,
 ) {
-  const options = models.map((model) => ({ value: model.id, label: model.name }))
-  const normalizedCurrentModel = currentModel.trim()
+  const options = models.map((model) => ({ value: model.id, label: model.name }));
+  const normalizedCurrentModel = currentModel.trim();
 
-  if (!normalizedCurrentModel || options.some((option) => option.value === normalizedCurrentModel)) {
-    return options
+  if (
+    !normalizedCurrentModel ||
+    options.some((option) => option.value === normalizedCurrentModel)
+  ) {
+    return options;
   }
 
   return [
     { value: normalizedCurrentModel, label: `${normalizedCurrentModel}（当前值）` },
     ...options,
-  ]
+  ];
 }
 
 interface ProviderListTableProps<T extends BaseProviderProfile> {
-  profiles: T[]
-  defaultProfileId: number | null
-  emptyText: string
-  onEdit: (profile: T) => void
-  onDelete: (profile: T) => void
-  onSetDefault: (profile: T) => void
+  profiles: T[];
+  defaultProfileId: number | null;
+  emptyText: string;
+  onEdit: (profile: T) => void;
+  onDelete: (profile: T) => void;
+  onSetDefault: (profile: T) => void;
 }
 
 export function ProviderListTable<T extends BaseProviderProfile>({
@@ -94,27 +97,44 @@ export function ProviderListTable<T extends BaseProviderProfile>({
         <thead>
           <tr className="bg-[var(--editor-soft)] text-left">
             <th className="px-3 py-2 font-medium text-[var(--editor-muted)]">名称</th>
-            <th className="hidden px-3 py-2 font-medium text-[var(--editor-muted)] sm:table-cell">平台</th>
-            <th className="hidden px-3 py-2 font-medium text-[var(--editor-muted)] md:table-cell">模型</th>
-            <th className="hidden px-3 py-2 font-medium text-[var(--editor-muted)] lg:table-cell">更新时间</th>
-            <th className="w-36 px-3 py-2 text-right font-medium text-[var(--editor-muted)]">操作</th>
+            <th className="hidden px-3 py-2 font-medium text-[var(--editor-muted)] sm:table-cell">
+              平台
+            </th>
+            <th className="hidden px-3 py-2 font-medium text-[var(--editor-muted)] md:table-cell">
+              模型
+            </th>
+            <th className="hidden px-3 py-2 font-medium text-[var(--editor-muted)] lg:table-cell">
+              更新时间
+            </th>
+            <th className="w-36 px-3 py-2 text-right font-medium text-[var(--editor-muted)]">
+              操作
+            </th>
           </tr>
         </thead>
         <tbody>
           {profiles.map((profile) => (
-            <tr key={profile.id} className="border-t border-[var(--editor-line)] hover:bg-[var(--editor-panel)]">
+            <tr
+              key={profile.id}
+              className="border-t border-[var(--editor-line)] hover:bg-[var(--editor-panel)]"
+            >
               <td className="px-3 py-2 font-medium text-[var(--editor-ink)]">
                 {profile.name}
                 {profile.id === defaultProfileId || profile.is_default === 1 ? (
-                  <span className="ml-2 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] text-emerald-600">默认</span>
+                  <span className="ml-2 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] text-emerald-600">
+                    默认
+                  </span>
                 ) : null}
               </td>
               <td className="hidden px-3 py-2 text-[var(--editor-muted)] sm:table-cell">
-                {profile.provider_name || profile.provider || '-'}
+                {profile.provider_name || profile.provider || "-"}
               </td>
-              <td className="hidden px-3 py-2 text-[var(--editor-muted)] md:table-cell">{profile.model}</td>
+              <td className="hidden px-3 py-2 text-[var(--editor-muted)] md:table-cell">
+                {profile.model}
+              </td>
               <td className="hidden px-3 py-2 text-[var(--editor-muted)] lg:table-cell">
-                {profile.updated_at ? new Date(profile.updated_at * 1000).toLocaleString('zh-CN') : '-'}
+                {profile.updated_at
+                  ? new Date(profile.updated_at * 1000).toLocaleString("zh-CN")
+                  : "-"}
               </td>
               <td className="px-3 py-2 text-right">
                 {profile.id !== defaultProfileId && profile.is_default !== 1 ? (
@@ -153,19 +173,22 @@ export function ProviderListTable<T extends BaseProviderProfile>({
         </tbody>
       </table>
     </div>
-  )
+  );
 }
 
 interface ProviderDialogProps {
-  title: string
-  onClose: () => void
-  headerAction?: ReactNode
-  children: ReactNode
+  title: string;
+  onClose: () => void;
+  headerAction?: ReactNode;
+  children: ReactNode;
 }
 
 export function ProviderDialog({ title, onClose, headerAction, children }: ProviderDialogProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+      onClick={onClose}
+    >
       <div
         className="mx-4 w-full max-w-2xl rounded-xl border border-[var(--editor-line)] bg-[var(--editor-panel)] p-6 shadow-xl"
         onClick={(event) => event.stopPropagation()}
@@ -177,15 +200,15 @@ export function ProviderDialog({ title, onClose, headerAction, children }: Provi
         {children}
       </div>
     </div>
-  )
+  );
 }
 
 interface ProviderTemplateModalProps {
-  groups: ProviderTemplateGroup[]
-  customOptionLabel: string
-  customOptionDescription: string
-  onClose: () => void
-  onSelect: (presetId: string) => void
+  groups: ProviderTemplateGroup[];
+  customOptionLabel: string;
+  customOptionDescription: string;
+  onClose: () => void;
+  onSelect: (presetId: string) => void;
 }
 
 export function ProviderTemplateModal({
@@ -196,7 +219,10 @@ export function ProviderTemplateModal({
   onSelect,
 }: ProviderTemplateModalProps) {
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30"
+      onClick={onClose}
+    >
       <div
         className="mx-4 w-full max-w-xl rounded-xl border border-[var(--editor-line)] bg-[var(--editor-panel)] p-6 shadow-xl"
         onClick={(event) => event.stopPropagation()}
@@ -219,11 +245,17 @@ export function ProviderTemplateModal({
                     <div className="text-sm font-semibold text-[var(--editor-ink)]">
                       {preset.name}
                       {preset.recommended ? (
-                        <span className="ml-2 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] text-emerald-600">推荐</span>
+                        <span className="ml-2 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] text-emerald-600">
+                          推荐
+                        </span>
                       ) : null}
                     </div>
-                    <div className="mt-1 text-xs text-[var(--editor-muted)]">{preset.description}</div>
-                    <div className="mt-1 text-xs text-[var(--editor-muted)]">{preset.defaultModel}</div>
+                    <div className="mt-1 text-xs text-[var(--editor-muted)]">
+                      {preset.description}
+                    </div>
+                    <div className="mt-1 text-xs text-[var(--editor-muted)]">
+                      {preset.defaultModel}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -231,28 +263,30 @@ export function ProviderTemplateModal({
           ))}
           <button
             type="button"
-            onClick={() => onSelect('custom')}
+            onClick={() => onSelect("custom")}
             className="w-full rounded-lg border border-dashed border-[var(--editor-line)] px-4 py-3 text-left hover:bg-[var(--editor-soft)]"
           >
-            <div className="text-sm font-semibold text-[var(--editor-ink)]">{customOptionLabel}</div>
+            <div className="text-sm font-semibold text-[var(--editor-ink)]">
+              {customOptionLabel}
+            </div>
             <div className="mt-1 text-xs text-[var(--editor-muted)]">{customOptionDescription}</div>
           </button>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 interface ProviderBasicFieldsProps<T extends BaseProviderFormState> {
-  editing: T
-  modelOptions: Array<{ value: string; label: string }>
-  loadingModels: boolean
-  models: Array<{ id: string; name: string }>
-  modelsSource: 'provider' | 'preset' | null
-  modelsWarning: string
-  onChange: (patch: Partial<T>) => void
-  onFetchModels: () => void
-  fetchModelsLabel?: string
+  editing: T;
+  modelOptions: Array<{ value: string; label: string }>;
+  loadingModels: boolean;
+  models: Array<{ id: string; name: string }>;
+  modelsSource: "provider" | "preset" | null;
+  modelsWarning: string;
+  onChange: (patch: Partial<T>) => void;
+  onFetchModels: () => void;
+  fetchModelsLabel?: string;
 }
 
 export function ProviderBasicFields<T extends BaseProviderFormState>({
@@ -264,7 +298,7 @@ export function ProviderBasicFields<T extends BaseProviderFormState>({
   modelsWarning,
   onChange,
   onFetchModels,
-  fetchModelsLabel = '拉取模型列表',
+  fetchModelsLabel = "拉取模型列表",
 }: ProviderBasicFieldsProps<T>) {
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -318,7 +352,9 @@ export function ProviderBasicFields<T extends BaseProviderFormState>({
           className="w-full rounded-lg border border-[var(--editor-line)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--editor-ink)] outline-none focus:border-[var(--editor-accent)]"
         />
         {editing.api_key_masked ? (
-          <div className="mt-1 text-xs text-[var(--editor-muted)]">已保存：{editing.api_key_masked}</div>
+          <div className="mt-1 text-xs text-[var(--editor-muted)]">
+            已保存：{editing.api_key_masked}
+          </div>
         ) : null}
       </div>
 
@@ -331,7 +367,7 @@ export function ProviderBasicFields<T extends BaseProviderFormState>({
             disabled={loadingModels}
             className="rounded-md border border-[var(--editor-line)] px-2.5 py-1 text-xs text-[var(--editor-ink)] hover:bg-[var(--editor-soft)] disabled:opacity-50"
           >
-            {loadingModels ? '拉取中…' : fetchModelsLabel}
+            {loadingModels ? "拉取中…" : fetchModelsLabel}
           </button>
         </div>
         <input
@@ -355,11 +391,15 @@ export function ProviderBasicFields<T extends BaseProviderFormState>({
         ) : null}
         {modelsSource || modelsWarning ? (
           <div className="mt-1 text-xs text-[var(--editor-muted)]">
-            {modelsSource === 'provider' ? '来源：服务商接口' : modelsSource === 'preset' ? '来源：模板回退' : ''}
-            {modelsWarning ? ` · ${modelsWarning}` : ''}
+            {modelsSource === "provider"
+              ? "来源：服务商接口"
+              : modelsSource === "preset"
+                ? "来源：模板回退"
+                : ""}
+            {modelsWarning ? ` · ${modelsWarning}` : ""}
           </div>
         ) : null}
       </div>
     </div>
-  )
+  );
 }

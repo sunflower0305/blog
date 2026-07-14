@@ -57,20 +57,14 @@ export function absolutizeSiteAssetUrl(input: string, baseUrl?: string) {
   }
 }
 
-export function resolvePostCoverImage(
-  input: CoverImageInput,
-  options: { baseUrl?: string } = {},
-) {
+export function resolvePostCoverImage(input: CoverImageInput, options: { baseUrl?: string } = {}) {
   const explicitCover = absolutizeSiteAssetUrl(
     normalizeSeedValue(input.cover_image),
     options.baseUrl,
   );
   if (explicitCover) return explicitCover;
 
-  return absolutizeSiteAssetUrl(
-    pickDefaultPostCoverPath(input),
-    options.baseUrl,
-  );
+  return absolutizeSiteAssetUrl(pickDefaultPostCoverPath(input), options.baseUrl);
 }
 
 export function resolveDefaultSiteCoverImage(baseUrl?: string) {

@@ -1,88 +1,88 @@
-'use client'
+"use client";
 
-import { useSyncExternalStore } from 'react'
+import { useSyncExternalStore } from "react";
 
 interface AdminSessionSnapshot {
-  authenticated: boolean
-  checked: boolean
+  authenticated: boolean;
+  checked: boolean;
 }
 
-const listeners = new Set<() => void>()
+const listeners = new Set<() => void>();
 let snapshot: AdminSessionSnapshot = {
   authenticated: false,
   checked: false,
-}
-let inflight: Promise<void> | null = null
+};
+let inflight: Promise<void> | null = null;
 
 function emitChange() {
   for (const listener of listeners) {
-    listener()
+    listener();
   }
 }
 
 async function loadAdminSession(force = false) {
   if (!force && inflight) {
-    return inflight
+    return inflight;
   }
 
   const request = (async () => {
     try {
-      const response = await fetch('/api/admin/session', {
-        cache: 'no-store',
-        credentials: 'include',
-      })
+      const response = await fetch("/api/admin/session", {
+        cache: "no-store",
+        credentials: "include",
+      });
       const data = (await response.json().catch(() => ({}))) as {
-        authenticated?: boolean
-      }
+        authenticated?: boolean;
+      };
 
       snapshot = {
         authenticated: Boolean(response.ok && data.authenticated),
         checked: true,
-      }
+      };
     } catch {
       snapshot = {
         authenticated: false,
         checked: true,
-      }
+      };
     } finally {
-      emitChange()
+      emitChange();
     }
-  })()
+  })();
 
   inflight = request.finally(() => {
     if (inflight === request) {
-      inflight = null
+      inflight = null;
     }
-  })
+  });
 
-  return inflight
+  return inflight;
 }
 
 function subscribe(onStoreChange: () => void) {
-  listeners.add(onStoreChange)
+  listeners.add(onStoreChange);
 
   if (!snapshot.checked && !inflight) {
-    void loadAdminSession()
+    void loadAdminSession();
   }
 
   return () => {
-    listeners.delete(onStoreChange)
-  }
+    listeners.delete(onStoreChange);
+  };
 }
 
 function getSnapshot() {
-  return snapshot
+  return snapshot;
 }
 
 export async function refreshAdminSession() {
-  await loadAdminSession(true)
+  await loadAdminSession(true);
 }
 
 export function useAdminSession() {
-  const state = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
+  const state = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
   return {
     ...state,
     refresh: refreshAdminSession,
-  }
+  };
 }

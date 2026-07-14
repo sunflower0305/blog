@@ -144,16 +144,16 @@ pnpm run preview
 
 ## 常用命令
 
-| 命令                    | 说明                                                           |
-| ----------------------- | -------------------------------------------------------------- |
-| `pnpm run dev`          | Vinext 本地开发                                                |
-| `pnpm run dev:remote`   | 使用 `wrangler.local.toml` 的远程 Cloudflare bindings 本地开发 |
-| `pnpm run build`        | 构建应用                                                       |
-| `pnpm run test:run`     | 通过 Vite+ / Vitest 跑测试                                     |
-| `pnpm run verify:quick` | 跑 lint、test、build                                           |
-| `pnpm run verify`       | 跑完整验证链路                                                 |
-| `pnpm run config:generate` | 根据环境变量契约生成 `.env.example`                         |
-| `pnpm run config:check` | 检查环境变量配置是否与契约一致                                 |
-| `pnpm run cf:init`      | 初始化 DB、IMAGES、CACHE 和模板默认设置                        |
-| `pnpm run preview`      | Worker 运行时预览                                              |
-| `pnpm run deploy`       | 部署到 Cloudflare Workers                                      |
+| 命令                       | 说明                                                           |
+| -------------------------- | -------------------------------------------------------------- |
+| `pnpm run dev`             | Vinext 本地开发                                                |
+| `pnpm run dev:remote`      | 使用 `wrangler.local.toml` 的远程 Cloudflare bindings 本地开发 |
+| `pnpm run build`           | 构建应用                                                       |
+| `pnpm run test:run`        | 通过 Vite+ / Vitest 跑测试                                     |
+| `pnpm run verify:quick`    | 跑 lint、test、build                                           |
+| `pnpm run verify`          | 跑完整验证链路                                                 |
+| `pnpm run config:generate` | 根据环境变量契约生成 `.env.example`                            |
+| `pnpm run config:check`    | 检查环境变量配置是否与契约一致                                 |
+| `pnpm run cf:init`         | 初始化 DB、IMAGES、CACHE 和模板默认设置                        |
+| `pnpm run preview`         | Worker 运行时预览                                              |
+| `pnpm run deploy`          | 部署到 Cloudflare Workers                                      |

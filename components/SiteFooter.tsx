@@ -14,10 +14,7 @@ export function SiteFooter() {
     if (!wechatOpen) return;
 
     const handlePointerDown = (event: PointerEvent) => {
-      if (
-        wechatRef.current &&
-        !wechatRef.current.contains(event.target as Node)
-      ) {
+      if (wechatRef.current && !wechatRef.current.contains(event.target as Node)) {
         setWechatOpen(false);
       }
     };

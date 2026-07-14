@@ -1,199 +1,210 @@
-'use client'
+"use client";
 
-import { useToast } from '@/components/Toast'
-import { mergeAttributes } from '@tiptap/core'
-import Image, { type ImageOptions } from '@tiptap/extension-image'
-import { ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react'
-import { AlignCenter, AlignLeft, Copy, Crop, Download, ImagePlus, MoreHorizontal, WandSparkles } from 'lucide-react'
-import { UploadImagesPlugin } from 'novel'
-import { createPortal } from 'react-dom'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { copyEditorImage, downloadEditorImage, getEditorImagePreviewUrl } from './editor-file-upload'
-import { getSiteUrl } from './site-config'
+import { useToast } from "@/components/Toast";
+import { mergeAttributes } from "@tiptap/core";
+import Image, { type ImageOptions } from "@tiptap/extension-image";
+import { ReactNodeViewRenderer, NodeViewWrapper } from "@tiptap/react";
+import {
+  AlignCenter,
+  AlignLeft,
+  Copy,
+  Crop,
+  Download,
+  ImagePlus,
+  MoreHorizontal,
+  WandSparkles,
+} from "lucide-react";
+import { UploadImagesPlugin } from "novel";
+import { createPortal } from "react-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  copyEditorImage,
+  downloadEditorImage,
+  getEditorImagePreviewUrl,
+} from "./editor-file-upload";
+import { getSiteUrl } from "./site-config";
 
-export type EditorImageAlignment = 'left' | 'center'
+export type EditorImageAlignment = "left" | "center";
 
 export interface EditorImageActionTarget {
-  alt: string
-  pos: number | null
-  src: string
+  alt: string;
+  pos: number | null;
+  src: string;
 }
 
 export interface ResizableImageActionHandlers {
-  onOpenCrop?: (target: EditorImageActionTarget) => void
-  onOpenReferenceImage?: (target: EditorImageActionTarget) => void
-  onSetCover?: (target: EditorImageActionTarget) => void
+  onOpenCrop?: (target: EditorImageActionTarget) => void;
+  onOpenReferenceImage?: (target: EditorImageActionTarget) => void;
+  onSetCover?: (target: EditorImageActionTarget) => void;
 }
 
-declare module '@tiptap/extension-image' {
+declare module "@tiptap/extension-image" {
   interface ImageOptions {
-    imageActions: ResizableImageActionHandlers
+    imageActions: ResizableImageActionHandlers;
   }
 }
 
 type ResizableImageNode = {
   attrs: {
-    align?: EditorImageAlignment
-    alt?: string
-    src: string
-    title?: string
-    width?: number | string | null
-  }
-}
+    align?: EditorImageAlignment;
+    alt?: string;
+    src: string;
+    title?: string;
+    width?: number | string | null;
+  };
+};
 
-const CONTEXT_MENU_WIDTH = 220
-const EDITOR_SITE_URL = getSiteUrl()
+const CONTEXT_MENU_WIDTH = 220;
+const EDITOR_SITE_URL = getSiteUrl();
 
 function normalizeAlignment(value: unknown): EditorImageAlignment {
-  return value === 'left' ? 'left' : 'center'
+  return value === "left" ? "left" : "center";
 }
 
 function buildWidthStyle(width: number | string | null | undefined) {
-  if (!width) return ''
-  return typeof width === 'number' ? `${width}px` : String(width)
+  if (!width) return "";
+  return typeof width === "number" ? `${width}px` : String(width);
 }
 
 function buildImageStyle(width: number | string | null | undefined, align: EditorImageAlignment) {
-  const styles = ['display: block', 'max-width: 100%']
-  const widthStyle = buildWidthStyle(width)
+  const styles = ["display: block", "max-width: 100%"];
+  const widthStyle = buildWidthStyle(width);
 
   if (widthStyle) {
-    styles.push(`width: ${widthStyle}`)
+    styles.push(`width: ${widthStyle}`);
   }
 
-  if (align === 'left') {
-    styles.push('margin-left: 0', 'margin-right: auto')
+  if (align === "left") {
+    styles.push("margin-left: 0", "margin-right: auto");
   } else {
-    styles.push('margin-left: auto', 'margin-right: auto')
+    styles.push("margin-left: auto", "margin-right: auto");
   }
 
-  return styles.join('; ')
+  return styles.join("; ");
 }
 
 function clampMenuPosition(x: number, y: number) {
-  if (typeof window === 'undefined') return { x, y }
+  if (typeof window === "undefined") return { x, y };
 
   return {
     x: Math.max(12, Math.min(x, window.innerWidth - CONTEXT_MENU_WIDTH - 12)),
     y: Math.max(12, Math.min(y, window.innerHeight - 280)),
-  }
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ResizableImageView(props: any) {
-  const {
-    editor,
-    extension,
-    getPos,
-    node,
-    selected,
-    updateAttributes,
-  } = props as {
+  const { editor, extension, getPos, node, selected, updateAttributes } = props as {
     editor: {
       commands: {
-        setNodeSelection?: (pos: number) => void
-      }
-    }
+        setNodeSelection?: (pos: number) => void;
+      };
+    };
     extension: {
       options?: {
-        imageActions?: ResizableImageActionHandlers
-      }
-    }
-    getPos?: (() => number) | boolean
-    node: ResizableImageNode
-    selected: boolean
-    updateAttributes: (attrs: Record<string, unknown>) => void
-  }
+        imageActions?: ResizableImageActionHandlers;
+      };
+    };
+    getPos?: (() => number) | boolean;
+    node: ResizableImageNode;
+    selected: boolean;
+    updateAttributes: (attrs: Record<string, unknown>) => void;
+  };
   const deliverySrc = useMemo(
     () => getEditorImagePreviewUrl(node.attrs.src, EDITOR_SITE_URL),
     [node.attrs.src],
-  )
+  );
 
-  const imgRef = useRef<HTMLImageElement>(null)
-  const menuRef = useRef<HTMLDivElement>(null)
-  const [resizing, setResizing] = useState(false)
-  const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null)
-  const align = normalizeAlignment(node.attrs.align)
-  const imageActions = extension.options?.imageActions
-  const toast = useToast()
+  const imgRef = useRef<HTMLImageElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [resizing, setResizing] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<{ x: number; y: number } | null>(null);
+  const align = normalizeAlignment(node.attrs.align);
+  const imageActions = extension.options?.imageActions;
+  const toast = useToast();
 
   const imageTarget = useMemo<EditorImageActionTarget>(() => {
-    const position = typeof getPos === 'function' ? getPos() : null
+    const position = typeof getPos === "function" ? getPos() : null;
     return {
       src: node.attrs.src,
-      alt: node.attrs.alt || node.attrs.title || '',
+      alt: node.attrs.alt || node.attrs.title || "",
       pos: Number.isFinite(position) ? Number(position) : null,
-    }
-  }, [getPos, node.attrs.alt, node.attrs.src, node.attrs.title])
+    };
+  }, [getPos, node.attrs.alt, node.attrs.src, node.attrs.title]);
 
   const closeMenu = useCallback(() => {
-    setMenuPosition(null)
-  }, [])
+    setMenuPosition(null);
+  }, []);
 
-  const openMenu = useCallback((clientX: number, clientY: number) => {
-    if (typeof getPos === 'function') {
-      const pos = getPos()
-      if (Number.isFinite(pos) && typeof editor.commands.setNodeSelection === 'function') {
-        editor.commands.setNodeSelection(Number(pos))
+  const openMenu = useCallback(
+    (clientX: number, clientY: number) => {
+      if (typeof getPos === "function") {
+        const pos = getPos();
+        if (Number.isFinite(pos) && typeof editor.commands.setNodeSelection === "function") {
+          editor.commands.setNodeSelection(Number(pos));
+        }
       }
-    }
 
-    setMenuPosition(clampMenuPosition(clientX, clientY))
-  }, [editor.commands, getPos])
+      setMenuPosition(clampMenuPosition(clientX, clientY));
+    },
+    [editor.commands, getPos],
+  );
 
   useEffect(() => {
-    if (!menuPosition) return
+    if (!menuPosition) return;
 
     const handlePointerDown = (event: MouseEvent) => {
-      if (menuRef.current?.contains(event.target as Node)) return
-      closeMenu()
-    }
+      if (menuRef.current?.contains(event.target as Node)) return;
+      closeMenu();
+    };
 
-    const handleWindowChange = () => closeMenu()
+    const handleWindowChange = () => closeMenu();
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') closeMenu()
-    }
+      if (event.key === "Escape") closeMenu();
+    };
 
-    window.addEventListener('mousedown', handlePointerDown)
-    window.addEventListener('resize', handleWindowChange)
-    window.addEventListener('scroll', handleWindowChange, true)
-    window.addEventListener('contextmenu', handleWindowChange)
-    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener("mousedown", handlePointerDown);
+    window.addEventListener("resize", handleWindowChange);
+    window.addEventListener("scroll", handleWindowChange, true);
+    window.addEventListener("contextmenu", handleWindowChange);
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      window.removeEventListener('mousedown', handlePointerDown)
-      window.removeEventListener('resize', handleWindowChange)
-      window.removeEventListener('scroll', handleWindowChange, true)
-      window.removeEventListener('contextmenu', handleWindowChange)
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [closeMenu, menuPosition])
+      window.removeEventListener("mousedown", handlePointerDown);
+      window.removeEventListener("resize", handleWindowChange);
+      window.removeEventListener("scroll", handleWindowChange, true);
+      window.removeEventListener("contextmenu", handleWindowChange);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [closeMenu, menuPosition]);
 
-  const handleMouseDown = useCallback((event: React.MouseEvent, direction: 'right' | 'left') => {
-    event.preventDefault()
-    event.stopPropagation()
-    setResizing(true)
+  const handleMouseDown = useCallback(
+    (event: React.MouseEvent, direction: "right" | "left") => {
+      event.preventDefault();
+      event.stopPropagation();
+      setResizing(true);
 
-    const startX = event.clientX
-    const startWidth = imgRef.current?.offsetWidth || 300
+      const startX = event.clientX;
+      const startWidth = imgRef.current?.offsetWidth || 300;
 
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const diff = direction === 'right'
-        ? moveEvent.clientX - startX
-        : startX - moveEvent.clientX
-      const newWidth = Math.max(100, startWidth + diff)
-      updateAttributes({ width: newWidth })
-    }
+      const handleMouseMove = (moveEvent: MouseEvent) => {
+        const diff =
+          direction === "right" ? moveEvent.clientX - startX : startX - moveEvent.clientX;
+        const newWidth = Math.max(100, startWidth + diff);
+        updateAttributes({ width: newWidth });
+      };
 
-    const handleMouseUp = () => {
-      setResizing(false)
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-    }
+      const handleMouseUp = () => {
+        setResizing(false);
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
 
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
-  }, [updateAttributes])
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    },
+    [updateAttributes],
+  );
 
   const menu = menuPosition
     ? createPortal(
@@ -206,8 +217,8 @@ function ResizableImageView(props: any) {
           <button
             type="button"
             onClick={() => {
-              downloadEditorImage(imageTarget.src, imageTarget.alt || 'image')
-              closeMenu()
+              downloadEditorImage(imageTarget.src, imageTarget.alt || "image");
+              closeMenu();
             }}
             className="editor-image-menu-item"
           >
@@ -218,12 +229,12 @@ function ResizableImageView(props: any) {
             type="button"
             onClick={async () => {
               try {
-                await copyEditorImage(imageTarget.src)
-                toast.success('已复制图片')
+                await copyEditorImage(imageTarget.src);
+                toast.success("已复制图片");
               } catch (error) {
-                toast.error(error instanceof Error ? error.message : '复制图片失败')
+                toast.error(error instanceof Error ? error.message : "复制图片失败");
               } finally {
-                closeMenu()
+                closeMenu();
               }
             }}
             className="editor-image-menu-item"
@@ -234,8 +245,8 @@ function ResizableImageView(props: any) {
           <button
             type="button"
             onClick={() => {
-              imageActions?.onSetCover?.(imageTarget)
-              closeMenu()
+              imageActions?.onSetCover?.(imageTarget);
+              closeMenu();
             }}
             className="editor-image-menu-item"
           >
@@ -246,10 +257,10 @@ function ResizableImageView(props: any) {
           <button
             type="button"
             onClick={() => {
-              updateAttributes({ align: 'left' })
-              closeMenu()
+              updateAttributes({ align: "left" });
+              closeMenu();
             }}
-            className={`editor-image-menu-item ${align === 'left' ? 'editor-image-menu-item-active' : ''}`}
+            className={`editor-image-menu-item ${align === "left" ? "editor-image-menu-item-active" : ""}`}
           >
             <AlignLeft className="h-4 w-4" />
             <span>左对齐</span>
@@ -257,10 +268,10 @@ function ResizableImageView(props: any) {
           <button
             type="button"
             onClick={() => {
-              updateAttributes({ align: 'center' })
-              closeMenu()
+              updateAttributes({ align: "center" });
+              closeMenu();
             }}
-            className={`editor-image-menu-item ${align === 'center' ? 'editor-image-menu-item-active' : ''}`}
+            className={`editor-image-menu-item ${align === "center" ? "editor-image-menu-item-active" : ""}`}
           >
             <AlignCenter className="h-4 w-4" />
             <span>居中对齐</span>
@@ -269,8 +280,8 @@ function ResizableImageView(props: any) {
           <button
             type="button"
             onClick={() => {
-              imageActions?.onOpenReferenceImage?.(imageTarget)
-              closeMenu()
+              imageActions?.onOpenReferenceImage?.(imageTarget);
+              closeMenu();
             }}
             className="editor-image-menu-item"
           >
@@ -280,8 +291,8 @@ function ResizableImageView(props: any) {
           <button
             type="button"
             onClick={() => {
-              imageActions?.onOpenCrop?.(imageTarget)
-              closeMenu()
+              imageActions?.onOpenCrop?.(imageTarget);
+              closeMenu();
             }}
             className="editor-image-menu-item"
           >
@@ -291,29 +302,34 @@ function ResizableImageView(props: any) {
         </div>,
         document.body,
       )
-    : null
+    : null;
 
   return (
     <NodeViewWrapper
       className="resizable-image-wrapper"
-      style={{ display: 'flex', justifyContent: align === 'left' ? 'flex-start' : 'center' }}
+      style={{ display: "flex", justifyContent: align === "left" ? "flex-start" : "center" }}
       onContextMenu={(event: React.MouseEvent) => {
-        event.preventDefault()
-        event.stopPropagation()
-        openMenu(event.clientX, event.clientY)
+        event.preventDefault();
+        event.stopPropagation();
+        openMenu(event.clientX, event.clientY);
       }}
     >
       <div
-        className={`resizable-image ${selected ? 'selected' : ''} ${resizing ? 'resizing' : ''}`}
-        style={{ position: 'relative', display: 'inline-block', width: buildWidthStyle(node.attrs.width) || undefined, maxWidth: '100%' }}
+        className={`resizable-image ${selected ? "selected" : ""} ${resizing ? "resizing" : ""}`}
+        style={{
+          position: "relative",
+          display: "inline-block",
+          width: buildWidthStyle(node.attrs.width) || undefined,
+          maxWidth: "100%",
+        }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           ref={imgRef}
           src={deliverySrc}
-          alt={node.attrs.alt || ''}
-          title={node.attrs.title || ''}
-          style={{ width: '100%', display: 'block' }}
+          alt={node.attrs.alt || ""}
+          title={node.attrs.title || ""}
+          style={{ width: "100%", display: "block" }}
           draggable={false}
         />
 
@@ -321,14 +337,14 @@ function ResizableImageView(props: any) {
           <button
             type="button"
             onMouseDown={(event) => {
-              event.preventDefault()
-              event.stopPropagation()
+              event.preventDefault();
+              event.stopPropagation();
             }}
             onClick={(event) => {
-              event.preventDefault()
-              event.stopPropagation()
-              const rect = event.currentTarget.getBoundingClientRect()
-              openMenu(rect.left, rect.bottom + 8)
+              event.preventDefault();
+              event.stopPropagation();
+              const rect = event.currentTarget.getBoundingClientRect();
+              openMenu(rect.left, rect.bottom + 8);
             }}
             className="editor-floating-menu absolute -right-2 -top-2 inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--editor-line)] bg-white text-[var(--editor-muted)] shadow-sm transition hover:text-[var(--editor-ink)]"
             aria-label="打开图片菜单"
@@ -342,23 +358,23 @@ function ResizableImageView(props: any) {
           <>
             <div
               className="resize-handle resize-handle-left"
-              onMouseDown={(event) => handleMouseDown(event, 'left')}
+              onMouseDown={(event) => handleMouseDown(event, "left")}
             />
             <div
               className="resize-handle resize-handle-right"
-              onMouseDown={(event) => handleMouseDown(event, 'right')}
+              onMouseDown={(event) => handleMouseDown(event, "right")}
             />
           </>
         )}
       </div>
       {menu}
     </NodeViewWrapper>
-  )
+  );
 }
 
 export const ResizableImage = Image.extend({
   addOptions() {
-    const parentOptions = this.parent?.() as ImageOptions | undefined
+    const parentOptions = this.parent?.() as ImageOptions | undefined;
 
     return {
       inline: parentOptions?.inline ?? false,
@@ -366,7 +382,7 @@ export const ResizableImage = Image.extend({
       HTMLAttributes: parentOptions?.HTMLAttributes ?? {},
       resize: parentOptions?.resize ?? false,
       imageActions: {} as ResizableImageActionHandlers,
-    }
+    };
   },
 
   addAttributes() {
@@ -374,52 +390,49 @@ export const ResizableImage = Image.extend({
       ...this.parent?.(),
       width: {
         default: null,
-        parseHTML: (element: HTMLElement) => element.getAttribute('width') || element.style.width || null,
+        parseHTML: (element: HTMLElement) =>
+          element.getAttribute("width") || element.style.width || null,
       },
       align: {
-        default: 'center',
+        default: "center",
         parseHTML: (element: HTMLElement) => {
-          const attr = element.getAttribute('data-align')
-          if (attr === 'left') return 'left'
+          const attr = element.getAttribute("data-align");
+          if (attr === "left") return "left";
 
-          const style = element.getAttribute('style') || ''
+          const style = element.getAttribute("style") || "";
           return /margin-right:\s*auto/i.test(style) && /margin-left:\s*0/i.test(style)
-            ? 'left'
-            : 'center'
+            ? "left"
+            : "center";
         },
       },
-    }
+    };
   },
 
   renderHTML({ HTMLAttributes }) {
-    const {
-      align,
-      width,
-      ...rest
-    } = HTMLAttributes as Record<string, unknown> & {
-      align?: EditorImageAlignment
-      width?: number | string | null
-    }
+    const { align, width, ...rest } = HTMLAttributes as Record<string, unknown> & {
+      align?: EditorImageAlignment;
+      width?: number | string | null;
+    };
 
     return [
-      'img',
+      "img",
       mergeAttributes(this.options.HTMLAttributes, rest, {
         width: width ? String(width) : undefined,
-        'data-align': normalizeAlignment(align),
+        "data-align": normalizeAlignment(align),
         style: buildImageStyle(width, normalizeAlignment(align)),
       }),
-    ]
+    ];
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(ResizableImageView)
+    return ReactNodeViewRenderer(ResizableImageView);
   },
 
   addProseMirrorPlugins() {
     return [
       UploadImagesPlugin({
-        imageClass: 'opacity-40 rounded-lg border border-[var(--editor-line)]',
+        imageClass: "opacity-40 rounded-lg border border-[var(--editor-line)]",
       }),
-    ]
+    ];
   },
-})
+});

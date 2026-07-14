@@ -49,9 +49,7 @@ export function WeChatBridgeManager() {
       setAccounts(data.accounts || []);
     } catch (error) {
       setAccounts([]);
-      toast.error(
-        error instanceof Error ? error.message : "加载公众号账号失败",
-      );
+      toast.error(error instanceof Error ? error.message : "加载公众号账号失败");
     } finally {
       setRefreshingAccounts(false);
     }
@@ -78,9 +76,7 @@ export function WeChatBridgeManager() {
         setAccounts([]);
       }
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "加载 bridge 配置失败",
-      );
+      toast.error(error instanceof Error ? error.message : "加载 bridge 配置失败");
     } finally {
       setLoading(false);
     }
@@ -125,9 +121,7 @@ export function WeChatBridgeManager() {
         setAccounts([]);
       }
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "保存 bridge 配置失败",
-      );
+      toast.error(error instanceof Error ? error.message : "保存 bridge 配置失败");
     } finally {
       setSaving(false);
     }
@@ -160,8 +154,7 @@ export function WeChatBridgeManager() {
       setTestMessage(`连接成功，可用公众号 ${nextAccounts.length} 个`);
       toast.success("Bridge 连接正常");
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Bridge 连接测试失败";
+      const message = error instanceof Error ? error.message : "Bridge 连接测试失败";
       setTestMessage(message);
       toast.error(message);
     } finally {
@@ -182,12 +175,10 @@ export function WeChatBridgeManager() {
       <section className="rounded-2xl border border-[var(--editor-line)] bg-[var(--editor-panel)] p-5">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="space-y-1">
-            <h3 className="text-base font-semibold text-[var(--editor-ink)]">
-              Bridge 连接
-            </h3>
+            <h3 className="text-base font-semibold text-[var(--editor-ink)]">Bridge 连接</h3>
             <p className="text-sm text-[var(--editor-muted)]">
-              `blog` 只保存 bridge 地址和鉴权 token。多个公众号的 `AppID/Secret`
-              全部保存在 VPS bridge 上。
+              `blog` 只保存 bridge 地址和鉴权 token。多个公众号的 `AppID/Secret` 全部保存在 VPS
+              bridge 上。
             </p>
           </div>
 
@@ -237,8 +228,7 @@ export function WeChatBridgeManager() {
               className="w-full rounded-lg border border-[var(--editor-line)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--editor-ink)] outline-none focus:border-[var(--editor-accent)]"
             />
             <p className="text-xs text-[var(--editor-muted)]">
-              这里不保存公众号密钥。后续新增公众号，只需要更新 VPS 上的 bridge
-              账号清单。
+              这里不保存公众号密钥。后续新增公众号，只需要更新 VPS 上的 bridge 账号清单。
             </p>
           </div>
         </div>
@@ -272,9 +262,7 @@ export function WeChatBridgeManager() {
       <section className="rounded-2xl border border-[var(--editor-line)] bg-[var(--editor-panel)] p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h3 className="text-base font-semibold text-[var(--editor-ink)]">
-              可用公众号
-            </h3>
+            <h3 className="text-base font-semibold text-[var(--editor-ink)]">可用公众号</h3>
             <p className="mt-1 text-sm text-[var(--editor-muted)]">
               这里展示 bridge 当前可切换的公众号账号列表。
             </p>
@@ -283,9 +271,7 @@ export function WeChatBridgeManager() {
           <button
             type="button"
             onClick={() => void loadAccounts()}
-            disabled={
-              refreshingAccounts || !config.enabled || !config.configured
-            }
+            disabled={refreshingAccounts || !config.enabled || !config.configured}
             className="rounded-lg border border-[var(--editor-line)] px-3 py-2 text-sm text-[var(--editor-ink)] transition hover:bg-[var(--editor-soft)] disabled:opacity-50"
           >
             {refreshingAccounts ? "刷新中…" : "刷新列表"}
@@ -296,17 +282,12 @@ export function WeChatBridgeManager() {
           {accounts.length > 0 ? (
             <ul className="divide-y divide-[var(--editor-line)]">
               {accounts.map((account) => (
-                <li
-                  key={account.id}
-                  className="flex items-center justify-between gap-3 px-4 py-3"
-                >
+                <li key={account.id} className="flex items-center justify-between gap-3 px-4 py-3">
                   <div className="min-w-0">
                     <div className="truncate text-sm font-medium text-[var(--editor-ink)]">
                       {account.name}
                     </div>
-                    <div className="mt-1 text-xs text-[var(--editor-muted)]">
-                      {account.id}
-                    </div>
+                    <div className="mt-1 text-xs text-[var(--editor-muted)]">{account.id}</div>
                   </div>
                 </li>
               ))}

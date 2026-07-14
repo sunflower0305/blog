@@ -1,26 +1,26 @@
-'use client'
+"use client";
 
-import { Node, mergeAttributes } from '@tiptap/core'
-import { ReactNodeViewRenderer, NodeViewWrapper, type ReactNodeViewProps } from '@tiptap/react'
-import { useState, useEffect, useRef } from 'react'
-import katex from 'katex'
+import { Node, mergeAttributes } from "@tiptap/core";
+import { ReactNodeViewRenderer, NodeViewWrapper, type ReactNodeViewProps } from "@tiptap/react";
+import { useState, useEffect, useRef } from "react";
+import katex from "katex";
 
-declare module '@tiptap/core' {
+declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     mathBlock: {
-      setMathBlock: (options: { latex?: string; displayMode?: boolean }) => ReturnType
-    }
+      setMathBlock: (options: { latex?: string; displayMode?: boolean }) => ReturnType;
+    };
   }
 }
 
 // ── React 组件：数学公式渲染 ──
 function MathComponent(props: ReactNodeViewProps) {
-  const { node, updateAttributes, selected } = props
-  const latex = (node.attrs.latex as string) || ''
-  const displayMode = (node.attrs.displayMode as boolean) ?? false
-  const [editing, setEditing] = useState(!latex)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
-  const renderRef = useRef<HTMLDivElement>(null)
+  const { node, updateAttributes, selected } = props;
+  const latex = (node.attrs.latex as string) || "";
+  const displayMode = (node.attrs.displayMode as boolean) ?? false;
+  const [editing, setEditing] = useState(!latex);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const renderRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!editing && latex && renderRef.current) {
@@ -28,27 +28,27 @@ function MathComponent(props: ReactNodeViewProps) {
         katex.render(latex, renderRef.current, {
           displayMode,
           throwOnError: false,
-          output: 'html',
-        })
+          output: "html",
+        });
       } catch {
-        renderRef.current.textContent = latex
+        renderRef.current.textContent = latex;
       }
     }
-  }, [latex, displayMode, editing])
+  }, [latex, displayMode, editing]);
 
   useEffect(() => {
     if (editing && inputRef.current) {
-      inputRef.current.focus()
-      inputRef.current.select()
+      inputRef.current.focus();
+      inputRef.current.select();
     }
-  }, [editing])
+  }, [editing]);
 
   if (editing) {
     return (
       <NodeViewWrapper className="math-node-editing" data-type="math">
         <div className="math-editor-container">
           <label className="math-editor-label">
-            {displayMode ? '块级公式 (LaTeX)' : '行内公式 (LaTeX)'}
+            {displayMode ? "块级公式 (LaTeX)" : "行内公式 (LaTeX)"}
           </label>
           <textarea
             ref={inputRef}
@@ -57,82 +57,86 @@ function MathComponent(props: ReactNodeViewProps) {
             rows={displayMode ? 3 : 1}
             className="math-editor-input"
             onBlur={(e) => {
-              const val = e.target.value.trim()
+              const val = e.target.value.trim();
               if (val) {
-                updateAttributes({ latex: val })
-                setEditing(false)
+                updateAttributes({ latex: val });
+                setEditing(false);
               }
             }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
-                const val = (e.target as HTMLTextAreaElement).value.trim()
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                const val = (e.target as HTMLTextAreaElement).value.trim();
                 if (val) {
-                  updateAttributes({ latex: val })
-                  setEditing(false)
+                  updateAttributes({ latex: val });
+                  setEditing(false);
                 }
               }
-              if (e.key === 'Escape') {
-                setEditing(false)
+              if (e.key === "Escape") {
+                setEditing(false);
               }
             }}
           />
         </div>
       </NodeViewWrapper>
-    )
+    );
   }
 
   return (
     <NodeViewWrapper
-      className={`math-node-rendered ${selected ? 'math-selected' : ''}`}
+      className={`math-node-rendered ${selected ? "math-selected" : ""}`}
       data-type="math"
       onClick={() => setEditing(true)}
       title="点击编辑公式"
     >
-      <div ref={renderRef} className={displayMode ? 'math-display' : 'math-inline'} />
+      <div ref={renderRef} className={displayMode ? "math-display" : "math-inline"} />
     </NodeViewWrapper>
-  )
+  );
 }
 
 // ── Tiptap Node 扩展 ──
 export const MathNode = Node.create({
-  name: 'mathBlock',
-  group: 'block',
+  name: "mathBlock",
+  group: "block",
   atom: true,
   draggable: true,
 
   addAttributes() {
     return {
-      latex: { default: '' },
+      latex: { default: "" },
       displayMode: { default: true },
-    }
+    };
   },
 
   parseHTML() {
-    return [{ tag: 'div[data-math-latex]' }]
+    return [{ tag: "div[data-math-latex]" }];
   },
 
   renderHTML({ HTMLAttributes }) {
-    const latex = HTMLAttributes.latex || ''
-    const displayMode = HTMLAttributes.displayMode !== false
-    let rendered = ''
+    const latex = HTMLAttributes.latex || "";
+    const displayMode = HTMLAttributes.displayMode !== false;
+    let rendered = "";
     try {
-      rendered = katex.renderToString(latex, { displayMode, throwOnError: false })
+      rendered = katex.renderToString(latex, { displayMode, throwOnError: false });
     } catch {
-      rendered = `<code>${latex}</code>`
+      rendered = `<code>${latex}</code>`;
     }
     return [
-      'div',
+      "div",
       mergeAttributes(
-        { 'data-math-latex': latex, 'data-display-mode': String(displayMode), class: 'math-block-wrapper' },
-        HTMLAttributes
+        {
+          "data-math-latex": latex,
+          "data-display-mode": String(displayMode),
+          class: "math-block-wrapper",
+        },
+        HTMLAttributes,
       ),
       rendered,
-    ]
+    ];
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(MathComponent)
+    return ReactNodeViewRenderer(MathComponent);
   },
 
   addCommands() {
@@ -142,9 +146,9 @@ export const MathNode = Node.create({
         ({ commands }) => {
           return commands.insertContent({
             type: this.name,
-            attrs: { latex: options.latex ?? '', displayMode: options.displayMode ?? true },
-          })
+            attrs: { latex: options.latex ?? "", displayMode: options.displayMode ?? true },
+          });
         },
-    }
+    };
   },
-})
+});

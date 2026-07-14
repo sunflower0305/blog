@@ -82,10 +82,7 @@ function TerminalHeader({
       </div>
 
       {/* Right: nav + theme + search */}
-      <div
-        className="terminal-home-nav"
-        style={{ display: "flex", gap: 16, alignItems: "center" }}
-      >
+      <div className="terminal-home-nav" style={{ display: "flex", gap: 16, alignItems: "center" }}>
         {links.map((link) =>
           link.url.startsWith("http") ? (
             <a
@@ -104,14 +101,10 @@ function TerminalHeader({
               {link.label}
             </a>
           ) : (
-            <Link
-              key={link.label}
-              href={link.url}
-              style={{ color: MUTED, textDecoration: "none" }}
-            >
+            <Link key={link.label} href={link.url} style={{ color: MUTED, textDecoration: "none" }}>
               {link.label}
             </Link>
-          )
+          ),
         )}
 
         {/* Theme dropdown — terminal style, self-contained */}
@@ -174,7 +167,7 @@ export function HomeVariantC({
         (p) =>
           p.title.includes(query) ||
           (p.category ?? "").includes(query) ||
-          (p.description ?? "").includes(query)
+          (p.description ?? "").includes(query),
       )
     : posts;
 
@@ -187,8 +180,7 @@ export function HomeVariantC({
         background: BG,
         color: FG,
         minHeight: "100vh",
-        fontFamily:
-          '"JetBrains Mono", "SF Mono", ui-monospace, "PingFang SC", monospace',
+        fontFamily: '"JetBrains Mono", "SF Mono", ui-monospace, "PingFang SC", monospace',
         backgroundImage: `radial-gradient(circle at 20% 0%, rgba(74,222,128,0.06) 0%, transparent 50%), radial-gradient(circle at 80% 100%, rgba(251,191,36,0.05) 0%, transparent 50%)`,
         position: "relative",
       }}
@@ -248,9 +240,7 @@ export function HomeVariantC({
             <span style={{ color: MUTED }}>{"//"}</span>
             <span style={{ color: MUTED }}>
               {typed}
-              <span style={{ opacity: cursorOn ? 1 : 0, color: ACCENT }}>
-                ▊
-              </span>
+              <span style={{ opacity: cursorOn ? 1 : 0, color: ACCENT }}>▊</span>
             </span>
           </div>
         </div>
@@ -279,11 +269,7 @@ export function HomeVariantC({
                 background: "rgba(255,255,255,0.02)",
               }}
             >
-              <div
-                style={{ color: MUTED, fontSize: 10, letterSpacing: "0.1em" }}
-              >
-                [{s.k}]
-              </div>
+              <div style={{ color: MUTED, fontSize: 10, letterSpacing: "0.1em" }}>[{s.k}]</div>
               <div
                 style={{
                   color: s.c,
@@ -329,9 +315,7 @@ export function HomeVariantC({
               caretColor: ACCENT,
             }}
           />
-          <span style={{ color: MUTED, fontSize: 11 }}>
-            {filtered.length} match
-          </span>
+          <span style={{ color: MUTED, fontSize: 11 }}>{filtered.length} match</span>
         </div>
 
         {/* Directory listing header */}
@@ -378,24 +362,15 @@ export function HomeVariantC({
                   alignItems: "baseline",
                   textDecoration: "none",
                   transition: "background .15s",
-                  background:
-                    hoverId === post.slug
-                      ? "rgba(74,222,128,0.05)"
-                      : "transparent",
+                  background: hoverId === post.slug ? "rgba(74,222,128,0.05)" : "transparent",
                 }}
                 onMouseEnter={() => setHoverId(post.slug)}
                 onMouseLeave={() => setHoverId(null)}
               >
-                <span
-                  className="terminal-post-date"
-                  style={{ color: MUTED, fontSize: 12 }}
-                >
+                <span className="terminal-post-date" style={{ color: MUTED, fontSize: 12 }}>
                   {formatDateCompact(post.published_at)}
                 </span>
-                <span
-                  className="terminal-post-category"
-                  style={{ color: ACCENT2, fontSize: 11 }}
-                >
+                <span className="terminal-post-category" style={{ color: ACCENT2, fontSize: 11 }}>
                   [{post.category || "misc"}]
                 </span>
                 <div className="terminal-post-body">
@@ -436,14 +411,7 @@ export function HomeVariantC({
                         strokeLinejoin="round"
                         style={{ color: MUTED, flexShrink: 0 }}
                       >
-                        <rect
-                          x="3"
-                          y="11"
-                          width="18"
-                          height="11"
-                          rx="2"
-                          ry="2"
-                        ></rect>
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                         <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                       </svg>
                     )}
@@ -489,11 +457,7 @@ export function HomeVariantC({
         </div>
 
         <div style={{ paddingBottom: 80 }}>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            basePath="/"
-          />
+          <Pagination currentPage={currentPage} totalPages={totalPages} basePath="/" />
         </div>
       </div>
 

@@ -330,38 +330,36 @@ body {
   color: #c9d1d9;
 }
 
-:is(.novel-prose, .rich-content) :is(
-  .hljs-doctag,
-  .hljs-keyword,
-  .hljs-template-tag,
-  .hljs-template-variable,
-  .hljs-type,
-  .hljs-variable.language_
-) {
+:is(.novel-prose, .rich-content)
+  :is(
+    .hljs-doctag,
+    .hljs-keyword,
+    .hljs-template-tag,
+    .hljs-template-variable,
+    .hljs-type,
+    .hljs-variable.language_
+  ) {
   color: #ff7b72;
 }
 
-:is(.novel-prose, .rich-content) :is(
-  .hljs-title,
-  .hljs-title.class_,
-  .hljs-title.class_.inherited__,
-  .hljs-title.function_
-) {
+:is(.novel-prose, .rich-content)
+  :is(.hljs-title, .hljs-title.class_, .hljs-title.class_.inherited__, .hljs-title.function_) {
   color: #d2a8ff;
 }
 
-:is(.novel-prose, .rich-content) :is(
-  .hljs-attr,
-  .hljs-attribute,
-  .hljs-literal,
-  .hljs-meta,
-  .hljs-number,
-  .hljs-operator,
-  .hljs-variable,
-  .hljs-selector-attr,
-  .hljs-selector-class,
-  .hljs-selector-id
-) {
+:is(.novel-prose, .rich-content)
+  :is(
+    .hljs-attr,
+    .hljs-attribute,
+    .hljs-literal,
+    .hljs-meta,
+    .hljs-number,
+    .hljs-operator,
+    .hljs-variable,
+    .hljs-selector-attr,
+    .hljs-selector-class,
+    .hljs-selector-id
+  ) {
   color: #79c0ff;
 }
 
@@ -377,12 +375,8 @@ body {
   color: #8b949e;
 }
 
-:is(.novel-prose, .rich-content) :is(
-  .hljs-name,
-  .hljs-quote,
-  .hljs-selector-tag,
-  .hljs-selector-pseudo
-) {
+:is(.novel-prose, .rich-content)
+  :is(.hljs-name, .hljs-quote, .hljs-selector-tag, .hljs-selector-pseudo) {
   color: #7ee787;
 }
 
@@ -461,7 +455,7 @@ body {
   background: var(--editor-soft);
 }
 .drag-handle::after {
-  content: '';
+  content: "";
   display: block;
   width: 10px;
   height: 14px;
@@ -534,7 +528,9 @@ body {
   padding: 0.65rem 0.8rem;
   font-size: 0.92rem;
   color: var(--editor-ink);
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .editor-image-menu-item:hover {
@@ -632,7 +628,6 @@ body {
     font-size: 0.92rem;
   }
 }
-
 
 /* 内联编辑器：去掉全页编辑器的 padding 和 min-height，融入文章详情页 */
 .inline-editor .novel-prose {
@@ -740,7 +735,7 @@ body {
 }
 .math-editor-input {
   width: 100%;
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.9rem;
   border: 1px solid var(--editor-line);
   border-radius: 4px;

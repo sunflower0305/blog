@@ -1,57 +1,53 @@
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import { getPostsByCategory, getPostsCountByCategory, getPublicCategories } from '@/lib/db'
-import { getAppCloudflareEnv } from '@/lib/cloudflare'
-import { SiteHeader } from '@/components/SiteHeader'
-import { SiteFooter } from '@/components/SiteFooter'
-import { Pagination } from '@/components/Pagination'
-import { getSiteHeaderData } from '@/lib/site'
-import { getSiteUrl } from '@/lib/site-config'
-import { getPublicContentCached } from '@/lib/cache'
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { getPostsByCategory, getPostsCountByCategory, getPublicCategories } from "@/lib/db";
+import { getAppCloudflareEnv } from "@/lib/cloudflare";
+import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
+import { Pagination } from "@/components/Pagination";
+import { getSiteHeaderData } from "@/lib/site";
+import { getSiteUrl } from "@/lib/site-config";
+import { getPublicContentCached } from "@/lib/cache";
 
-const PAGE_SIZE = 25
-const BASE_URL = getSiteUrl()
+const PAGE_SIZE = 25;
+const BASE_URL = getSiteUrl();
 
-export const dynamicParams = true
-export const revalidate = 3600
+export const dynamicParams = true;
+export const revalidate = 3600;
 
 function formatDate(ts: number) {
-  return new Date(ts * 1000).toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
+  return new Date(ts * 1000).toLocaleDateString("zh-CN", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>
-}) {
-  const { slug } = await params
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
 
   try {
-    const env = await getAppCloudflareEnv()
-    if (!env?.DB) return {}
-    const db = env.DB
+    const env = await getAppCloudflareEnv();
+    if (!env?.DB) return {};
+    const db = env.DB;
 
     const categories = await getPublicContentCached(
       env,
-      'categories:public',
+      "categories:public",
       () => getPublicCategories(db),
       3600,
-    )
-    const category = categories.find((item) => item.slug === slug)
-    if (!category) return {}
+    );
+    const category = categories.find((item) => item.slug === slug);
+    if (!category) return {};
 
     return {
       title: `${category.name}`,
       alternates: {
         canonical: `${BASE_URL}/category/${slug}`,
       },
-    }
+    };
   } catch {
-    return {}
+    return {};
   }
 }
 
@@ -59,25 +55,25 @@ export default async function CategoryPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ slug: string }>
-  searchParams: Promise<{ page?: string }>
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
-  const { slug } = await params
-  const { page: pageStr } = await searchParams
-  const currentPage = Math.max(1, parseInt(pageStr ?? '1', 10) || 1)
+  const { slug } = await params;
+  const { page: pageStr } = await searchParams;
+  const currentPage = Math.max(1, parseInt(pageStr ?? "1", 10) || 1);
 
-  const env = await getAppCloudflareEnv()
-  if (!env?.DB) notFound()
-  const db = env.DB
+  const env = await getAppCloudflareEnv();
+  if (!env?.DB) notFound();
+  const db = env.DB;
 
   const categories = await getPublicContentCached(
     env,
-    'categories:public',
+    "categories:public",
     () => getPublicCategories(db),
     3600,
-  )
-  const category = categories.find((item) => item.slug === slug)
-  if (!category) notFound()
+  );
+  const category = categories.find((item) => item.slug === slug);
+  if (!category) notFound();
 
   const [posts, totalCount, headerData] = await Promise.all([
     getPublicContentCached(
@@ -92,15 +88,10 @@ export default async function CategoryPage({
       () => getPostsCountByCategory(db, category.name),
       900,
     ),
-    getPublicContentCached(
-      env,
-      'site:header',
-      () => getSiteHeaderData(db),
-      3600,
-    ),
-  ])
+    getPublicContentCached(env, "site:header", () => getSiteHeaderData(db), 3600),
+  ]);
 
-  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   return (
     <div className="min-h-full flex flex-col bg-[var(--background)]">
@@ -119,9 +110,7 @@ export default async function CategoryPage({
           <h1 className="article-display-title text-3xl sm:text-4xl font-bold text-[var(--editor-ink)] leading-tight">
             {category.name}
           </h1>
-          <p className="mt-3 text-sm text-[var(--editor-muted)]">
-            共 {totalCount} 篇文章
-          </p>
+          <p className="mt-3 text-sm text-[var(--editor-muted)]">共 {totalCount} 篇文章</p>
         </div>
 
         {posts.length === 0 ? (
@@ -178,5 +167,5 @@ export default async function CategoryPage({
 
       <SiteFooter />
     </div>
-  )
+  );
 }

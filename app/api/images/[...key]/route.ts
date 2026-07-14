@@ -1,86 +1,91 @@
-import { NextRequest } from 'next/server'
-import { getAppCloudflareEnv } from '@/lib/cloudflare'
+import { NextRequest } from "next/server";
+import { getAppCloudflareEnv } from "@/lib/cloudflare";
 
 type StoredObject = {
-  body: ReadableStream | null
-  httpEtag: string
-  size: number
-  writeHttpMetadata: (headers: Headers) => void
-  range?: (range: { offset: number; length?: number }) => ReadableStream
-  slice?: (start: number, end: number) => ReadableStream
-}
+  body: ReadableStream | null;
+  httpEtag: string;
+  size: number;
+  writeHttpMetadata: (headers: Headers) => void;
+  range?: (range: { offset: number; length?: number }) => ReadableStream;
+  slice?: (start: number, end: number) => ReadableStream;
+};
 
 type ImageBucket = {
-  get: (key: string, options?: { range?: { offset: number; length: number } }) => Promise<StoredObject | null>
-  head: (key: string) => Promise<{ size: number; httpMetadata?: { contentType?: string } } | null>
-}
+  get: (
+    key: string,
+    options?: { range?: { offset: number; length: number } },
+  ) => Promise<StoredObject | null>;
+  head: (key: string) => Promise<{ size: number; httpMetadata?: { contentType?: string } } | null>;
+};
 
 type RuntimeEnv = {
-  IMAGES?: ImageBucket
-  ENABLE_CF_IMAGE_PIPELINE?: string
-}
+  IMAGES?: ImageBucket;
+  ENABLE_CF_IMAGE_PIPELINE?: string;
+};
 
-type CloudflareImageFit = 'scale-down' | 'contain' | 'cover' | 'crop' | 'pad'
-type CloudflareImageFormat = 'auto' | 'avif' | 'webp' | 'json' | 'jpeg' | 'png'
+type CloudflareImageFit = "scale-down" | "contain" | "cover" | "crop" | "pad";
+type CloudflareImageFormat = "auto" | "avif" | "webp" | "json" | "jpeg" | "png";
 type CloudflareImageTransform = {
-  width?: number
-  height?: number
-  quality?: number
-  fit?: CloudflareImageFit
-  format?: CloudflareImageFormat
-}
+  width?: number;
+  height?: number;
+  quality?: number;
+  fit?: CloudflareImageFit;
+  format?: CloudflareImageFormat;
+};
 
-const TRANSFORM_QUERY_KEYS = ['w', 'width', 'h', 'height', 'q', 'quality', 'fit', 'format']
+const TRANSFORM_QUERY_KEYS = ["w", "width", "h", "height", "q", "quality", "fit", "format"];
 
 function readFlag(value: unknown): boolean {
-  return typeof value === 'string' && ['1', 'true', 'yes', 'on'].includes(value.trim().toLowerCase())
+  return (
+    typeof value === "string" && ["1", "true", "yes", "on"].includes(value.trim().toLowerCase())
+  );
 }
 
 function parseBoundedInt(value: string | null, min: number, max: number): number | undefined {
-  if (!value) return undefined
+  if (!value) return undefined;
 
-  const parsed = Number.parseInt(value, 10)
-  if (!Number.isFinite(parsed)) return undefined
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed)) return undefined;
 
-  return Math.min(max, Math.max(min, parsed))
+  return Math.min(max, Math.max(min, parsed));
 }
 
 function parseFit(value: string | null): CloudflareImageFit | undefined {
   switch (value) {
-    case 'scale-down':
-    case 'contain':
-    case 'cover':
-    case 'crop':
-    case 'pad':
-      return value
+    case "scale-down":
+    case "contain":
+    case "cover":
+    case "crop":
+    case "pad":
+      return value;
     default:
-      return undefined
+      return undefined;
   }
 }
 
 function parseFormat(value: string | null): CloudflareImageFormat | undefined {
   switch (value) {
-    case 'auto':
-    case 'avif':
-    case 'webp':
-    case 'json':
-    case 'jpeg':
-    case 'png':
-      return value
+    case "auto":
+    case "avif":
+    case "webp":
+    case "json":
+    case "jpeg":
+    case "png":
+      return value;
     default:
-      return undefined
+      return undefined;
   }
 }
 
 function getImageTransform(searchParams: URLSearchParams): CloudflareImageTransform | null {
-  const width = parseBoundedInt(searchParams.get('w') || searchParams.get('width'), 16, 4096)
-  const height = parseBoundedInt(searchParams.get('h') || searchParams.get('height'), 16, 4096)
-  const quality = parseBoundedInt(searchParams.get('q') || searchParams.get('quality'), 30, 100)
-  const fit = parseFit(searchParams.get('fit'))
-  const format = parseFormat(searchParams.get('format'))
+  const width = parseBoundedInt(searchParams.get("w") || searchParams.get("width"), 16, 4096);
+  const height = parseBoundedInt(searchParams.get("h") || searchParams.get("height"), 16, 4096);
+  const quality = parseBoundedInt(searchParams.get("q") || searchParams.get("quality"), 30, 100);
+  const fit = parseFit(searchParams.get("fit"));
+  const format = parseFormat(searchParams.get("format"));
 
   if (!width && !height && !quality && !fit && !format) {
-    return null
+    return null;
   }
 
   return {
@@ -89,163 +94,167 @@ function getImageTransform(searchParams: URLSearchParams): CloudflareImageTransf
     ...(quality ? { quality } : {}),
     ...(fit ? { fit } : {}),
     ...(format ? { format } : {}),
-  }
+  };
 }
 
 function acceptsImageFormat(accept: string | null, mimeType: string): boolean {
-  if (!accept) return false
+  if (!accept) return false;
 
-  return accept.split(',').some((entry) => {
-    const [type, ...parameters] = entry.trim().toLowerCase().split(';')
-    if (type !== mimeType) return false
+  return accept.split(",").some((entry) => {
+    const [type, ...parameters] = entry.trim().toLowerCase().split(";");
+    if (type !== mimeType) return false;
 
     const quality = parameters
       .map((parameter) => parameter.trim())
-      .find((parameter) => parameter.startsWith('q='))
-    return quality ? Number.parseFloat(quality.slice(2)) > 0 : true
-  })
+      .find((parameter) => parameter.startsWith("q="));
+    return quality ? Number.parseFloat(quality.slice(2)) > 0 : true;
+  });
 }
 
 function negotiateImageFormat(
   transform: CloudflareImageTransform,
   accept: string | null,
 ): CloudflareImageTransform {
-  if (transform.format !== 'auto') return transform
+  if (transform.format !== "auto") return transform;
 
-  const { format: _auto, ...negotiated } = transform
-  if (acceptsImageFormat(accept, 'image/avif')) return { ...negotiated, format: 'avif' }
-  if (acceptsImageFormat(accept, 'image/webp')) return { ...negotiated, format: 'webp' }
-  return negotiated
+  const { format: _auto, ...negotiated } = transform;
+  if (acceptsImageFormat(accept, "image/avif")) return { ...negotiated, format: "avif" };
+  if (acceptsImageFormat(accept, "image/webp")) return { ...negotiated, format: "webp" };
+  return negotiated;
 }
 
 function appendVary(headers: Headers, value: string) {
-  const current = headers.get('vary')
+  const current = headers.get("vary");
   const values = current
-    ? current.split(',').map((item) => item.trim()).filter(Boolean)
-    : []
+    ? current
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : [];
   if (!values.some((item) => item.toLowerCase() === value.toLowerCase())) {
-    values.push(value)
+    values.push(value);
   }
-  headers.set('vary', values.join(', '))
+  headers.set("vary", values.join(", "));
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ key: string[] }> }
-) {
-  const { key } = await params
-  const requestPath = key?.join('/') || ''
+export async function GET(req: NextRequest, { params }: { params: Promise<{ key: string[] }> }) {
+  const { key } = await params;
+  const requestPath = key?.join("/") || "";
   const objectKey = requestPath
-    .split('/')
+    .split("/")
     .map((segment) => decodeURIComponent(segment))
-    .join('/')
+    .join("/");
 
-  const env = (await getAppCloudflareEnv()) as RuntimeEnv
+  const env = (await getAppCloudflareEnv()) as RuntimeEnv;
 
   if (!env?.IMAGES) {
-    return new Response('Image storage is not configured', { status: 500 })
+    return new Response("Image storage is not configured", { status: 500 });
   }
 
   // Check for Range header (required for iOS Safari video playback)
-  const rangeHeader = req.headers.get('Range')
-  const isRawRequest = req.nextUrl.searchParams.get('__raw') === '1'
-  const transform = !rangeHeader && !isRawRequest ? getImageTransform(req.nextUrl.searchParams) : null
-  const negotiateFormat = transform?.format === 'auto'
+  const rangeHeader = req.headers.get("Range");
+  const isRawRequest = req.nextUrl.searchParams.get("__raw") === "1";
+  const transform =
+    !rangeHeader && !isRawRequest ? getImageTransform(req.nextUrl.searchParams) : null;
+  const negotiateFormat = transform?.format === "auto";
 
   if (transform && readFlag(env.ENABLE_CF_IMAGE_PIPELINE)) {
-    const headInfo = await env.IMAGES.head(objectKey)
+    const headInfo = await env.IMAGES.head(objectKey);
 
     if (!headInfo) {
-      return new Response('Not found', { status: 404 })
+      return new Response("Not found", { status: 404 });
     }
 
-    const contentType = headInfo.httpMetadata?.contentType || ''
-    const canTransform = contentType.startsWith('image/') && contentType !== 'image/gif' && contentType !== 'image/svg+xml'
+    const contentType = headInfo.httpMetadata?.contentType || "";
+    const canTransform =
+      contentType.startsWith("image/") &&
+      contentType !== "image/gif" &&
+      contentType !== "image/svg+xml";
 
     if (canTransform) {
       try {
-        const rawUrl = new URL(req.url)
-        rawUrl.searchParams.set('__raw', '1')
+        const rawUrl = new URL(req.url);
+        rawUrl.searchParams.set("__raw", "1");
         for (const key of TRANSFORM_QUERY_KEYS) {
-          rawUrl.searchParams.delete(key)
+          rawUrl.searchParams.delete(key);
         }
 
-        const resolvedTransform = negotiateImageFormat(transform, req.headers.get('Accept'))
+        const resolvedTransform = negotiateImageFormat(transform, req.headers.get("Accept"));
         const transformed = await fetch(rawUrl.toString(), {
           cf: {
             image: resolvedTransform,
           },
-        } as RequestInit & { cf: { image: Record<string, unknown> } })
+        } as RequestInit & { cf: { image: Record<string, unknown> } });
 
         if (transformed.ok) {
-          const headers = new Headers(transformed.headers)
-          headers.set('cache-control', 'public, max-age=31536000, immutable')
-          headers.set('Accept-Ranges', 'bytes')
-          if (negotiateFormat) appendVary(headers, 'Accept')
+          const headers = new Headers(transformed.headers);
+          headers.set("cache-control", "public, max-age=31536000, immutable");
+          headers.set("Accept-Ranges", "bytes");
+          if (negotiateFormat) appendVary(headers, "Accept");
 
           return new Response(transformed.body, {
             status: transformed.status,
             headers,
-          })
+          });
         }
       } catch (error) {
-        console.warn('Cloudflare image transform failed, falling back to original asset:', error)
+        console.warn("Cloudflare image transform failed, falling back to original asset:", error);
       }
     }
   }
 
   if (rangeHeader) {
     // Parse Range: bytes=0-1023
-    const match = rangeHeader.match(/bytes=(\d+)-(\d*)/)
+    const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
     if (match) {
-      const start = parseInt(match[1], 10)
-      const endStr = match[2]
+      const start = parseInt(match[1], 10);
+      const endStr = match[2];
 
       // Get object with range
-      const headInfo = await env.IMAGES.head(objectKey)
+      const headInfo = await env.IMAGES.head(objectKey);
       if (!headInfo) {
-        return new Response('Not found', { status: 404 })
+        return new Response("Not found", { status: 404 });
       }
 
-      const totalSize = headInfo.size
-      const end = endStr ? Math.min(parseInt(endStr, 10), totalSize - 1) : totalSize - 1
-      const length = end - start + 1
+      const totalSize = headInfo.size;
+      const end = endStr ? Math.min(parseInt(endStr, 10), totalSize - 1) : totalSize - 1;
+      const length = end - start + 1;
 
       const object = await env.IMAGES.get(objectKey, {
         range: { offset: start, length },
-      })
+      });
 
       if (!object) {
-        return new Response('Not found', { status: 404 })
+        return new Response("Not found", { status: 404 });
       }
 
-      const headers = new Headers()
-      object.writeHttpMetadata(headers)
-      headers.set('Content-Range', `bytes ${start}-${end}/${totalSize}`)
-      headers.set('Content-Length', String(length))
-      headers.set('Accept-Ranges', 'bytes')
-      headers.set('cache-control', 'public, max-age=31536000, immutable')
+      const headers = new Headers();
+      object.writeHttpMetadata(headers);
+      headers.set("Content-Range", `bytes ${start}-${end}/${totalSize}`);
+      headers.set("Content-Length", String(length));
+      headers.set("Accept-Ranges", "bytes");
+      headers.set("cache-control", "public, max-age=31536000, immutable");
 
-      return new Response(object.body, { status: 206, headers })
+      return new Response(object.body, { status: 206, headers });
     }
   }
 
   // Normal full request
-  const object = await env.IMAGES.get(objectKey)
+  const object = await env.IMAGES.get(objectKey);
 
   if (!object) {
-    return new Response('Not found', { status: 404 })
+    return new Response("Not found", { status: 404 });
   }
 
-  const headers = new Headers()
-  object.writeHttpMetadata(headers)
-  headers.set('etag', object.httpEtag)
-  headers.set('cache-control', 'public, max-age=31536000, immutable')
-  headers.set('Accept-Ranges', 'bytes')
-  if (negotiateFormat) appendVary(headers, 'Accept')
+  const headers = new Headers();
+  object.writeHttpMetadata(headers);
+  headers.set("etag", object.httpEtag);
+  headers.set("cache-control", "public, max-age=31536000, immutable");
+  headers.set("Accept-Ranges", "bytes");
+  if (negotiateFormat) appendVary(headers, "Accept");
   if (object.size) {
-    headers.set('Content-Length', String(object.size))
+    headers.set("Content-Length", String(object.size));
   }
 
-  return new Response(object.body, { headers })
+  return new Response(object.body, { headers });
 }

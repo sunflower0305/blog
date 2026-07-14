@@ -82,27 +82,22 @@ function buildModelOptions(models: string[], currentModel: string) {
 export function AiPostGeneratorsManager() {
   const toast = useToast();
   const [loading, setLoading] = useState(true);
-  const [savingTarget, setSavingTarget] = useState<GeneratorTarget | null>(
-    null,
-  );
-  const [items, setItems] = useState<Record<
-    GeneratorTarget,
-    GeneratorConfig
-  > | null>(null);
+  const [savingTarget, setSavingTarget] = useState<GeneratorTarget | null>(null);
+  const [items, setItems] = useState<Record<GeneratorTarget, GeneratorConfig> | null>(null);
   const [textProfiles, setTextProfiles] = useState<TextProfile[]>([]);
   const [imageProfiles, setImageProfiles] = useState<ImageProfile[]>([]);
   const [workersTextModels, setWorkersTextModels] = useState<string[]>([]);
   const [workersImageModels, setWorkersImageModels] = useState<string[]>([]);
   const [loadingWorkersModelsTarget, setLoadingWorkersModelsTarget] =
     useState<GeneratorTarget | null>(null);
-  const [workersModelsWarning, setWorkersModelsWarning] = useState<
-    Record<GeneratorTarget, string>
-  >({
-    summary: "",
-    tags: "",
-    slug: "",
-    cover: "",
-  });
+  const [workersModelsWarning, setWorkersModelsWarning] = useState<Record<GeneratorTarget, string>>(
+    {
+      summary: "",
+      tags: "",
+      slug: "",
+      cover: "",
+    },
+  );
 
   const textProfileOptions = useMemo(
     () =>
@@ -125,12 +120,11 @@ export function AiPostGeneratorsManager() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [generatorsRes, textProfilesRes, imageProfilesRes] =
-          await Promise.all([
-            fetch("/api/admin/ai-post-generators"),
-            fetch("/api/admin/ai-provider"),
-            fetch("/api/admin/ai-image-provider"),
-          ]);
+        const [generatorsRes, textProfilesRes, imageProfilesRes] = await Promise.all([
+          fetch("/api/admin/ai-post-generators"),
+          fetch("/api/admin/ai-provider"),
+          fetch("/api/admin/ai-image-provider"),
+        ]);
 
         if (!generatorsRes.ok) throw new Error("加载元数据生成配置失败");
 
@@ -141,9 +135,7 @@ export function AiPostGeneratorsManager() {
             image_models?: string[];
           };
         };
-        const textProfilesData = (await textProfilesRes
-          .json()
-          .catch(() => ({ profiles: [] }))) as {
+        const textProfilesData = (await textProfilesRes.json().catch(() => ({ profiles: [] }))) as {
           profiles?: TextProfile[];
         };
         const imageProfilesData = (await imageProfilesRes
@@ -173,10 +165,7 @@ export function AiPostGeneratorsManager() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const updateItem = (
-    target: GeneratorTarget,
-    patch: Partial<GeneratorConfig>,
-  ) => {
+  const updateItem = (target: GeneratorTarget, patch: Partial<GeneratorConfig>) => {
     setItems((current) => {
       if (!current?.[target]) return current;
       return {
@@ -238,9 +227,7 @@ export function AiPostGeneratorsManager() {
     setWorkersModelsWarning((current) => ({ ...current, [target]: "" }));
     try {
       const res = await fetch(`/api/admin/workers-ai-models?kind=${kind}`);
-      const data = (await res
-        .json()
-        .catch(() => ({}))) as WorkersAiModelsResponse;
+      const data = (await res.json().catch(() => ({}))) as WorkersAiModelsResponse;
       if (!res.ok) {
         throw new Error(data.error || "获取 Workers AI 模型失败");
       }
@@ -262,32 +249,23 @@ export function AiPostGeneratorsManager() {
         toast.success(`已加载 ${ids.length} 个 Workers AI 模型`);
       }
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "获取 Workers AI 模型失败",
-      );
+      toast.error(error instanceof Error ? error.message : "获取 Workers AI 模型失败");
     } finally {
       setLoadingWorkersModelsTarget(null);
     }
   };
 
   if (loading || !items) {
-    return (
-      <div className="py-8 text-center text-sm text-[var(--editor-muted)]">
-        加载中…
-      </div>
-    );
+    return <div className="py-8 text-center text-sm text-[var(--editor-muted)]">加载中…</div>;
   }
 
   return (
     <div className="space-y-5">
       <div className="rounded-2xl border border-[var(--editor-line)] bg-[var(--editor-panel)] p-5">
-        <h3 className="text-base font-semibold text-[var(--editor-ink)]">
-          文章元数据 AI 生成
-        </h3>
+        <h3 className="text-base font-semibold text-[var(--editor-ink)]">文章元数据 AI 生成</h3>
         <p className="mt-2 text-sm leading-6 text-[var(--editor-muted)]">
-          为摘要、标签、slug、封面分别绑定不同模型和提示词。文本字段可选择
-          Workers AI 或后台已配置的文本模型；封面可选择 Workers AI
-          图片模型或后台已配置的图片模型。
+          为摘要、标签、slug、封面分别绑定不同模型和提示词。文本字段可选择 Workers AI
+          或后台已配置的文本模型；封面可选择 Workers AI 图片模型或后台已配置的图片模型。
         </p>
       </div>
 
@@ -307,9 +285,7 @@ export function AiPostGeneratorsManager() {
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
-                <div className="text-base font-semibold text-[var(--editor-ink)]">
-                  {item.label}
-                </div>
+                <div className="text-base font-semibold text-[var(--editor-ink)]">{item.label}</div>
                 <p className="mt-1 text-sm leading-6 text-[var(--editor-muted)]">
                   {item.description}
                 </p>
@@ -338,18 +314,13 @@ export function AiPostGeneratorsManager() {
                   value={item.provider_mode}
                   onChange={(event) =>
                     updateItem(target, {
-                      provider_mode:
-                        event.target.value === "profile"
-                          ? "profile"
-                          : "workers_ai",
+                      provider_mode: event.target.value === "profile" ? "profile" : "workers_ai",
                     })
                   }
                   className="w-full rounded-xl border border-[var(--editor-line)] bg-[var(--background)] px-3 py-2.5 text-sm text-[var(--editor-ink)] outline-none focus:border-[var(--editor-accent)]"
                 >
                   <option value="workers_ai">Workers AI</option>
-                  <option value="profile">
-                    {isCover ? "已配置图片模型" : "已配置文本模型"}
-                  </option>
+                  <option value="profile">{isCover ? "已配置图片模型" : "已配置文本模型"}</option>
                 </select>
               </div>
 
@@ -365,21 +336,15 @@ export function AiPostGeneratorsManager() {
                       disabled={loadingWorkersModelsTarget !== null}
                       className="text-xs font-medium text-[var(--editor-accent)] hover:underline disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {loadingWorkersModelsTarget === target
-                        ? "拉取中…"
-                        : "拉取模型"}
+                      {loadingWorkersModelsTarget === target ? "拉取中…" : "拉取模型"}
                     </button>
                   </div>
                   <input
                     value={item.workers_model}
-                    onChange={(event) =>
-                      updateItem(target, { workers_model: event.target.value })
-                    }
+                    onChange={(event) => updateItem(target, { workers_model: event.target.value })}
                     className="w-full rounded-xl border border-[var(--editor-line)] bg-[var(--background)] px-3 py-2.5 text-sm text-[var(--editor-ink)] outline-none focus:border-[var(--editor-accent)]"
                     placeholder={
-                      isCover
-                        ? "@cf/black-forest-labs/flux-1-schnell"
-                        : "@cf/zai-org/glm-4.7-flash"
+                      isCover ? "@cf/black-forest-labs/flux-1-schnell" : "@cf/zai-org/glm-4.7-flash"
                     }
                   />
                   {workersModelOptions.length > 0 ? (
@@ -387,9 +352,7 @@ export function AiPostGeneratorsManager() {
                       <Dropdown
                         options={workersModelOptions}
                         value={item.workers_model}
-                        onChange={(value) =>
-                          updateItem(target, { workers_model: value })
-                        }
+                        onChange={(value) => updateItem(target, { workers_model: value })}
                         placeholder={`搜索并选择已加载的 ${workersModelOptions.length} 个 Workers AI 模型`}
                       />
                       <div className="text-xs text-[var(--editor-muted)]">
@@ -415,17 +378,13 @@ export function AiPostGeneratorsManager() {
                       ...(isCover ? imageProfileOptions : textProfileOptions),
                     ]}
                     value={String(
-                      isCover
-                        ? item.image_profile_id || ""
-                        : item.text_profile_id || "",
+                      isCover ? item.image_profile_id || "" : item.text_profile_id || "",
                     )}
                     onChange={(value) => {
                       const nextId = value ? Number(value) : null;
                       updateItem(
                         target,
-                        isCover
-                          ? { image_profile_id: nextId }
-                          : { text_profile_id: nextId },
+                        isCover ? { image_profile_id: nextId } : { text_profile_id: nextId },
                       );
                     }}
                     placeholder={`搜索并选择${isCover ? "图片" : "文本"}模型配置`}
@@ -443,8 +402,7 @@ export function AiPostGeneratorsManager() {
                       value={item.aspect_ratio}
                       onChange={(event) =>
                         updateItem(target, {
-                          aspect_ratio: event.target
-                            .value as AIImageAspectRatio,
+                          aspect_ratio: event.target.value as AIImageAspectRatio,
                         })
                       }
                       className="w-full rounded-xl border border-[var(--editor-line)] bg-[var(--background)] px-3 py-2.5 text-sm text-[var(--editor-ink)] outline-none focus:border-[var(--editor-accent)]"
@@ -506,14 +464,9 @@ export function AiPostGeneratorsManager() {
                       inputMode="numeric"
                       value={toNumericInput(item.max_tokens)}
                       onChange={(event) => {
-                        const nextValue = Number(
-                          event.target.value.replace(/[^\d]/g, ""),
-                        );
+                        const nextValue = Number(event.target.value.replace(/[^\d]/g, ""));
                         updateItem(target, {
-                          max_tokens:
-                            Number.isFinite(nextValue) && nextValue > 0
-                              ? nextValue
-                              : 0,
+                          max_tokens: Number.isFinite(nextValue) && nextValue > 0 ? nextValue : 0,
                         });
                       }}
                       className="w-full rounded-xl border border-[var(--editor-line)] bg-[var(--background)] px-3 py-2.5 text-sm text-[var(--editor-ink)] outline-none focus:border-[var(--editor-accent)]"
@@ -530,9 +483,7 @@ export function AiPostGeneratorsManager() {
               <textarea
                 rows={isCover ? 7 : 6}
                 value={item.prompt}
-                onChange={(event) =>
-                  updateItem(target, { prompt: event.target.value })
-                }
+                onChange={(event) => updateItem(target, { prompt: event.target.value })}
                 className="w-full rounded-2xl border border-[var(--editor-line)] bg-[var(--background)] px-3 py-3 text-sm leading-6 text-[var(--editor-ink)] outline-none focus:border-[var(--editor-accent)]"
               />
             </div>

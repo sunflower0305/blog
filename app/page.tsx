@@ -20,11 +20,7 @@ export const metadata = {
   },
 };
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams: Promise<{ page?: string }>;
-}) {
+export default async function Home({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const { page: pageStr } = await searchParams;
   const currentPage = Math.max(1, parseInt(pageStr ?? "1", 10) || 1);
 
@@ -50,12 +46,7 @@ export default async function Home({
           () => getPosts(db, PAGE_SIZE, (currentPage - 1) * PAGE_SIZE),
           900,
         ),
-        getPublicContentCached(
-          env,
-          "home:posts:count",
-          () => getPostsCount(db),
-          900,
-        ),
+        getPublicContentCached(env, "home:posts:count", () => getPostsCount(db), 900),
       ]);
       navLinks = headerData.navLinks;
       categories = headerData.categories;
@@ -67,7 +58,7 @@ export default async function Home({
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
   const categorySlugMap: Record<string, string> = Object.fromEntries(
-    categories.map((cat) => [cat.name, cat.slug])
+    categories.map((cat) => [cat.name, cat.slug]),
   );
 
   return (
@@ -80,8 +71,7 @@ export default async function Home({
             "@type": "WebSite",
             name: "乐扬博客",
             url: BASE_URL,
-            description:
-              "记录思考，分享所学，留住当下。技术、生活、读书笔记的数字花园。",
+            description: "记录思考，分享所学，留住当下。技术、生活、读书笔记的数字花园。",
             potentialAction: {
               "@type": "SearchAction",
               target: {

@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { ApiTokensManager } from './ApiTokensManager'
-import { WeChatBridgeManager } from './WeChatBridgeManager'
+import { ApiTokensManager } from "./ApiTokensManager";
+import { WeChatBridgeManager } from "./WeChatBridgeManager";
 
 export function ThirdPartyPublishingManager() {
   return (
@@ -28,5 +28,5 @@ export function ThirdPartyPublishingManager() {
         <WeChatBridgeManager />
       </section>
     </div>
-  )
+  );
 }

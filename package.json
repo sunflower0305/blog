@@ -2,8 +2,17 @@
   "name": "leyang-blog",
   "version": "0.1.0",
   "private": false,
+  "description": "Open-source blog with Next.js 16, Cloudflare D1, R2, built-in themes, and AI provider presets.",
+  "homepage": "https://github.com/sunflower0305/blog",
+  "bugs": {
+    "url": "https://github.com/sunflower0305/blog/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sunflower0305/blog.git"
+  },
   "type": "module",
-  "packageManager": "pnpm@11.10.0",
   "scripts": {
     "dev": "CLOUDFLARE_VITE_FORCE_LOCAL=true vp exec vinext dev",
     "dev:remote": "bash scripts/cf-dev-remote-vinext.sh",
@@ -76,16 +85,7 @@
     "vitest": "4.1.9",
     "wrangler": "^4.110.0"
   },
-  "description": "Open-source blog with Next.js 16, Cloudflare D1, R2, built-in themes, and AI provider presets.",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/sunflower0305/blog.git"
-  },
-  "homepage": "https://github.com/sunflower0305/blog",
-  "bugs": {
-    "url": "https://github.com/sunflower0305/blog/issues"
-  },
+  "packageManager": "pnpm@11.10.0",
   "cloudflare": {
     "bindings": {
       "NEXT_PUBLIC_SITE_URL": {

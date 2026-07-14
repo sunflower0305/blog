@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import dynamic from 'next/dynamic'
-import Link from 'next/link'
-import { Search } from 'lucide-react'
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import { Search } from "lucide-react";
 
 const SearchBar = dynamic(
-  () => import('@/components/SearchBar').then((module) => module.SearchBar),
+  () => import("@/components/SearchBar").then((module) => module.SearchBar),
   {
     ssr: false,
     loading: () => (
@@ -19,8 +19,8 @@ const SearchBar = dynamic(
       </Link>
     ),
   },
-)
+);
 
 export function SearchEntry() {
-  return <SearchBar />
+  return <SearchBar />;
 }

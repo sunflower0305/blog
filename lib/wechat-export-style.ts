@@ -1,34 +1,40 @@
 export interface WechatExportStyleTokens {
-  background: string
-  panelBackground: string
-  softBackground: string
-  lineColor: string
-  inkColor: string
-  mutedColor: string
-  accentColor: string
-  linkColor: string
-  codeBackground: string
-  codeBorderColor: string
-  quoteBackground: string
-  articleHeadingColor: string
-  articleBodyColor: string
-  articleQuoteColor: string
-  articleQuoteBorderColor: string
-  articleQuoteNestedBorderColor: string
-  articleQuoteNestedBackground: string
-  bodyFontFamily: string
-  monoFontFamily: string
-  titleFontFamily: string
+  background: string;
+  panelBackground: string;
+  softBackground: string;
+  lineColor: string;
+  inkColor: string;
+  mutedColor: string;
+  accentColor: string;
+  linkColor: string;
+  codeBackground: string;
+  codeBorderColor: string;
+  quoteBackground: string;
+  articleHeadingColor: string;
+  articleBodyColor: string;
+  articleQuoteColor: string;
+  articleQuoteBorderColor: string;
+  articleQuoteNestedBorderColor: string;
+  articleQuoteNestedBackground: string;
+  bodyFontFamily: string;
+  monoFontFamily: string;
+  titleFontFamily: string;
 }
 
 function stripEditorOnlyBreaks(html: string) {
-  return html.replace(/\s*<br\b[^>]*class="[^"]*ProseMirror-trailingBreak[^"]*"[^>]*>\s*/gi, '')
+  return html.replace(/\s*<br\b[^>]*class="[^"]*ProseMirror-trailingBreak[^"]*"[^>]*>\s*/gi, "");
 }
 
 export function normalizeWechatExportHtml(html: string) {
   return stripEditorOnlyBreaks(html)
-    .replace(/<p(?:\s[^>]*)?>\s*(?:<br\b[^>]*>)?\s*<\/p>/gi, '<p data-wechat-empty="true">&nbsp;</p>')
-    .replace(/<p(?![^>]*data-wechat-empty="true")([^>]*)>\s*&nbsp;\s*<\/p>/gi, '<p$1 data-wechat-empty="true">&nbsp;</p>')
+    .replace(
+      /<p(?:\s[^>]*)?>\s*(?:<br\b[^>]*>)?\s*<\/p>/gi,
+      '<p data-wechat-empty="true">&nbsp;</p>',
+    )
+    .replace(
+      /<p(?![^>]*data-wechat-empty="true")([^>]*)>\s*&nbsp;\s*<\/p>/gi,
+      '<p$1 data-wechat-empty="true">&nbsp;</p>',
+    );
 }
 
 export function buildWechatExportCss(tokens: WechatExportStyleTokens) {
@@ -383,5 +389,5 @@ export function buildWechatExportCss(tokens: WechatExportStyleTokens) {
   height: 1rem;
   accent-color: ${tokens.accentColor};
 }
-`.trim()
+`.trim();
 }

@@ -144,16 +144,16 @@ No API keys are committed to the repository. Add them during the first deploymen
 
 ## Common Commands
 
-| Command | Description |
-| ------- | ----------- |
-| `pnpm run dev` | Local Vinext development |
-| `pnpm run dev:remote` | Local development using remote Cloudflare bindings from `wrangler.local.toml` |
-| `pnpm run build` | Build the application |
-| `pnpm run test:run` | Run tests with Vite+ / Vitest |
-| `pnpm run verify:quick` | Run lint, tests, and build |
-| `pnpm run verify` | Run the full verification pipeline |
-| `pnpm run config:generate` | Generate `.env.example` from the environment variable contract |
-| `pnpm run config:check` | Validate that environment variable configuration matches the contract |
-| `pnpm run cf:init` | Initialize DB, IMAGES, CACHE, and template defaults |
-| `pnpm run preview` | Preview with the Worker runtime |
-| `pnpm run deploy` | Deploy to Cloudflare Workers |
+| Command                    | Description                                                                   |
+| -------------------------- | ----------------------------------------------------------------------------- |
+| `pnpm run dev`             | Local Vinext development                                                      |
+| `pnpm run dev:remote`      | Local development using remote Cloudflare bindings from `wrangler.local.toml` |
+| `pnpm run build`           | Build the application                                                         |
+| `pnpm run test:run`        | Run tests with Vite+ / Vitest                                                 |
+| `pnpm run verify:quick`    | Run lint, tests, and build                                                    |
+| `pnpm run verify`          | Run the full verification pipeline                                            |
+| `pnpm run config:generate` | Generate `.env.example` from the environment variable contract                |
+| `pnpm run config:check`    | Validate that environment variable configuration matches the contract         |
+| `pnpm run cf:init`         | Initialize DB, IMAGES, CACHE, and template defaults                           |
+| `pnpm run preview`         | Preview with the Worker runtime                                               |
+| `pnpm run deploy`          | Deploy to Cloudflare Workers                                                  |

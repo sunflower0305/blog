@@ -1,29 +1,39 @@
-import { execFileSync } from 'node:child_process'
-import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, statSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { execFileSync } from "node:child_process";
+import {
+  chmodSync,
+  copyFileSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
 
-describe('cf-vinext-config', () => {
-  it('copies only allowed local secrets into the generated preview bindings', () => {
-    const repo = mkdtempSync(join(tmpdir(), 'cf-vinext-config-'))
-    const scripts = join(repo, 'scripts')
-    const configDirectory = join(repo, 'config')
-    mkdirSync(scripts)
-    mkdirSync(configDirectory)
+describe("cf-vinext-config", () => {
+  it("copies only allowed local secrets into the generated preview bindings", () => {
+    const repo = mkdtempSync(join(tmpdir(), "cf-vinext-config-"));
+    const scripts = join(repo, "scripts");
+    const configDirectory = join(repo, "config");
+    mkdirSync(scripts);
+    mkdirSync(configDirectory);
 
-    for (const name of ['cf-vinext-config.sh', 'cf-config.sh']) {
-      const source = join(process.cwd(), 'scripts', name)
-      const target = join(scripts, name)
-      copyFileSync(source, target)
-      chmodSync(target, 0o755)
+    for (const name of ["cf-vinext-config.sh", "cf-config.sh"]) {
+      const source = join(process.cwd(), "scripts", name);
+      const target = join(scripts, name);
+      copyFileSync(source, target);
+      chmodSync(target, 0o755);
     }
     copyFileSync(
-      join(process.cwd(), 'config/runtime-env.json'),
-      join(configDirectory, 'runtime-env.json'),
-    )
+      join(process.cwd(), "config/runtime-env.json"),
+      join(configDirectory, "runtime-env.json"),
+    );
 
-    writeFileSync(join(repo, 'wrangler.toml'), `
+    writeFileSync(
+      join(repo, "wrangler.toml"),
+      `
 name = "test-worker"
 main = "vinext/server/app-router-entry"
 compatibility_date = "2026-04-14"
@@ -32,16 +42,22 @@ compatibility_date = "2026-04-14"
 NEXT_PUBLIC_SITE_URL = "https://example.com"
 AI_BASE_URL = "https://api.openai.com/v1"
 AI_MODEL = "gpt-4o-mini"
-`)
-    writeFileSync(join(repo, 'wrangler.local.toml'), `
+`,
+    );
+    writeFileSync(
+      join(repo, "wrangler.local.toml"),
+      `
 name = "test-worker"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "test-db"
 database_id = "00000000-0000-0000-0000-000000000000"
-`)
-    writeFileSync(join(repo, '.env.local'), `
+`,
+    );
+    writeFileSync(
+      join(repo, ".env.local"),
+      `
 ADMIN_PASSWORD="local password"
 ADMIN_TOKEN_SALT=local-salt
 AI_CONFIG_ENCRYPTION_SECRET='local-encryption-secret'
@@ -51,34 +67,35 @@ AI_MODEL=deepseek-v4-flash
 WORKERS_AI_MODEL=@cf/zai-org/glm-4.7-flash
 ENABLE_WORKERS_AI=true
 UNRELATED_SECRET=must-not-be-copied
-`)
+`,
+    );
 
-    const script = join(scripts, 'cf-vinext-config.sh')
-    const productionOutputPath = execFileSync('bash', [script], {
+    const script = join(scripts, "cf-vinext-config.sh");
+    const productionOutputPath = execFileSync("bash", [script], {
       cwd: repo,
-      encoding: 'utf8',
-    }).trim()
-    const productionConfig = JSON.parse(readFileSync(productionOutputPath, 'utf8'))
-    expect(productionConfig.vars.ADMIN_PASSWORD).toBeUndefined()
+      encoding: "utf8",
+    }).trim();
+    const productionConfig = JSON.parse(readFileSync(productionOutputPath, "utf8"));
+    expect(productionConfig.vars.ADMIN_PASSWORD).toBeUndefined();
 
-    const outputPath = execFileSync('bash', [script], {
+    const outputPath = execFileSync("bash", [script], {
       cwd: repo,
-      encoding: 'utf8',
-      env: { ...process.env, VINEXT_INCLUDE_LOCAL_SECRETS: '1' },
-    }).trim()
-    const config = JSON.parse(readFileSync(outputPath, 'utf8'))
+      encoding: "utf8",
+      env: { ...process.env, VINEXT_INCLUDE_LOCAL_SECRETS: "1" },
+    }).trim();
+    const config = JSON.parse(readFileSync(outputPath, "utf8"));
 
     expect(config.vars).toMatchObject({
-      ADMIN_PASSWORD: 'local password',
-      ADMIN_TOKEN_SALT: 'local-salt',
-      AI_CONFIG_ENCRYPTION_SECRET: 'local-encryption-secret',
-      AI_API_KEY: 'local-api-key',
-      AI_BASE_URL: 'https://zenmux.ai/api/v1',
-      AI_MODEL: 'deepseek-v4-flash',
-      WORKERS_AI_MODEL: '@cf/zai-org/glm-4.7-flash',
-      ENABLE_WORKERS_AI: 'true',
-    })
-    expect(config.vars.UNRELATED_SECRET).toBeUndefined()
-    expect(statSync(outputPath).mode & 0o777).toBe(0o600)
-  })
-})
+      ADMIN_PASSWORD: "local password",
+      ADMIN_TOKEN_SALT: "local-salt",
+      AI_CONFIG_ENCRYPTION_SECRET: "local-encryption-secret",
+      AI_API_KEY: "local-api-key",
+      AI_BASE_URL: "https://zenmux.ai/api/v1",
+      AI_MODEL: "deepseek-v4-flash",
+      WORKERS_AI_MODEL: "@cf/zai-org/glm-4.7-flash",
+      ENABLE_WORKERS_AI: "true",
+    });
+    expect(config.vars.UNRELATED_SECRET).toBeUndefined();
+    expect(statSync(outputPath).mode & 0o777).toBe(0o600);
+  });
+});

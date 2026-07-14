@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   createPost: vi.fn(),
@@ -8,123 +8,135 @@ const mocks = vi.hoisted(() => ({
   parseJsonBody: vi.fn(),
   invalidatePublicContentCache: vi.fn(),
   enqueueBackgroundJob: vi.fn(),
-  nanoid: vi.fn(() => 'abc123'),
-}))
+  nanoid: vi.fn(() => "abc123"),
+}));
 
-vi.mock('@/lib/db', () => ({
+vi.mock("@/lib/db", () => ({
   createPost: mocks.createPost,
   updatePostBySlug: mocks.updatePostBySlug,
-}))
+}));
 
-vi.mock('@/lib/server/route-helpers', () => ({
+vi.mock("@/lib/server/route-helpers", () => ({
   ensureAuthenticatedRequest: mocks.ensureAuthenticatedRequest,
   getRouteContextWithDb: mocks.getRouteContextWithDb,
   jsonError: (message: string, status = 500) => Response.json({ error: message }, { status }),
   jsonOk: (data: unknown, status = 200) => Response.json(data, { status }),
   parseJsonBody: mocks.parseJsonBody,
-}))
+}));
 
-vi.mock('@/lib/cache', () => ({
+vi.mock("@/lib/cache", () => ({
   invalidatePublicContentCache: mocks.invalidatePublicContentCache,
-}))
+}));
 
-vi.mock('@/lib/background-jobs', () => ({
+vi.mock("@/lib/background-jobs", () => ({
   enqueueBackgroundJob: mocks.enqueueBackgroundJob,
-}))
+}));
 
-vi.mock('nanoid', () => ({
+vi.mock("nanoid", () => ({
   nanoid: mocks.nanoid,
-}))
+}));
 
-import { PATCH, POST } from '@/app/api/posts/route'
+import { PATCH, POST } from "@/app/api/posts/route";
 
-describe('/api/posts route', () => {
+describe("/api/posts route", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.clearAllMocks();
     mocks.getRouteContextWithDb.mockResolvedValue({
       ok: true,
       env: { AI_QUEUE: {} },
-      db: { kind: 'db' },
+      db: { kind: "db" },
       ctx: { waitUntil: vi.fn() },
-    })
-    mocks.ensureAuthenticatedRequest.mockResolvedValue(null)
-    mocks.invalidatePublicContentCache.mockResolvedValue(undefined)
-    mocks.enqueueBackgroundJob.mockResolvedValue(undefined)
-  })
+    });
+    mocks.ensureAuthenticatedRequest.mockResolvedValue(null);
+    mocks.invalidatePublicContentCache.mockResolvedValue(undefined);
+    mocks.enqueueBackgroundJob.mockResolvedValue(undefined);
+  });
 
-  it('creates a post with normalized payload fields and enqueues follow-up jobs', async () => {
+  it("creates a post with normalized payload fields and enqueues follow-up jobs", async () => {
     mocks.parseJsonBody.mockResolvedValue({
-      title: '  Ask AI 标题  ',
-      content: '  正文内容  ',
-      html: '<p>正文</p>',
-      category: '  AI  ',
-      tags: [' AI ', '', '提示词', '编辑器', '产品', '设计', '测试', '额外', '更多', '仍然', '超出'],
-      description: '',
-      cover_image: ' /covers/test.webp ',
-      slug: 'custom_slug',
-      status: 'draft',
-      password: ' secret ',
+      title: "  Ask AI 标题  ",
+      content: "  正文内容  ",
+      html: "<p>正文</p>",
+      category: "  AI  ",
+      tags: [
+        " AI ",
+        "",
+        "提示词",
+        "编辑器",
+        "产品",
+        "设计",
+        "测试",
+        "额外",
+        "更多",
+        "仍然",
+        "超出",
+      ],
+      description: "",
+      cover_image: " /covers/test.webp ",
+      slug: "custom_slug",
+      status: "draft",
+      password: " secret ",
       is_hidden: 1,
-    })
-    mocks.createPost.mockResolvedValue(42)
+    });
+    mocks.createPost.mockResolvedValue(42);
 
-    const response = await POST({} as never)
-    const body = await response.json()
+    const response = await POST({} as never);
+    const body = await response.json();
 
     expect(mocks.createPost).toHaveBeenCalledWith(
-      { kind: 'db' },
+      { kind: "db" },
       expect.objectContaining({
-        slug: 'custom_slug',
-        title: 'Ask AI 标题',
-        content: '正文内容',
-        html: '<p>正文</p>',
-        category: 'AI',
-        status: 'draft',
-        password: 'secret',
+        slug: "custom_slug",
+        title: "Ask AI 标题",
+        content: "正文内容",
+        html: "<p>正文</p>",
+        category: "AI",
+        status: "draft",
+        password: "secret",
         is_hidden: 1,
-        description: '正文内容',
-        tags: ['AI', '提示词', '编辑器', '产品', '设计', '测试', '额外', '更多', '仍然', '超出'],
-        cover_image: '/covers/test.webp',
+        description: "正文内容",
+        tags: ["AI", "提示词", "编辑器", "产品", "设计", "测试", "额外", "更多", "仍然", "超出"],
+        cover_image: "/covers/test.webp",
       }),
-    )
-    expect(mocks.invalidatePublicContentCache).toHaveBeenCalled()
-    expect(mocks.enqueueBackgroundJob).toHaveBeenCalledTimes(2)
+    );
+    expect(mocks.invalidatePublicContentCache).toHaveBeenCalled();
+    expect(mocks.enqueueBackgroundJob).toHaveBeenCalledTimes(2);
     expect(body).toEqual(
       expect.objectContaining({
         success: true,
         id: 42,
-        slug: 'custom_slug',
-        category: 'AI',
+        slug: "custom_slug",
+        category: "AI",
       }),
-    )
-  })
+    );
+  });
 
-  it('patches a post with fallback description and normalized next slug', async () => {
+  it("patches a post with fallback description and normalized next slug", async () => {
     mocks.parseJsonBody.mockResolvedValue({
-      current_slug: 'old-slug',
-      new_slug: 'new_slug',
-      title: '  新标题  ',
-      content: '  新正文  ',
-      description: '   ',
-      status: 'draft',
-      cover_image: '/covers/next.webp',
-    })
+      current_slug: "old-slug",
+      new_slug: "new_slug",
+      title: "  新标题  ",
+      content: "  新正文  ",
+      description: "   ",
+      status: "draft",
+      cover_image: "/covers/next.webp",
+    });
 
-    const response = await PATCH({} as never)
-    const body = await response.json()
+    const response = await PATCH({} as never);
+    const body = await response.json();
 
     expect(mocks.updatePostBySlug).toHaveBeenCalledWith(
-      { kind: 'db' },
-      'old-slug',
+      { kind: "db" },
+      "old-slug",
       expect.objectContaining({
-        slug: 'new_slug',
-        title: '  新标题  ',
-        content: '  新正文  ',
-        description: '新正文',
-        status: 'draft',
-        cover_image: '/covers/next.webp',
+        slug: "new_slug",
+        title: "  新标题  ",
+        content: "  新正文  ",
+        description: "新正文",
+        status: "draft",
+        cover_image: "/covers/next.webp",
       }),
-    )
-    expect(body).toEqual({ success: true, slug: 'new_slug' })
-  })
-})
+    );
+    expect(body).toEqual({ success: true, slug: "new_slug" });
+  });
+});

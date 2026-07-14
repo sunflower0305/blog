@@ -101,14 +101,10 @@ function EditorialNavBar({
               {link.label}
             </a>
           ) : (
-            <Link
-              key={link.label}
-              href={link.url}
-              style={{ color: FG, textDecoration: "none" }}
-            >
+            <Link key={link.label} href={link.url} style={{ color: FG, textDecoration: "none" }}>
               {link.label}
             </Link>
-          )
+          ),
         )}
         {/* Theme dropdown — editorial style, self-contained */}
         <ThemeDropdown
@@ -177,8 +173,7 @@ export function HomeVariantB({
               fontWeight: 900,
               lineHeight: 0.88,
               letterSpacing: "-0.04em",
-              fontFamily:
-                '"Noto Serif SC", "Source Han Serif SC", Georgia, serif',
+              fontFamily: '"Noto Serif SC", "Source Han Serif SC", Georgia, serif',
               color: FG,
             }}
           >
@@ -208,10 +203,7 @@ export function HomeVariantB({
           className="editorial-featured"
           style={{ padding: "44px 48px", borderBottom: `1px solid ${BORDER}` }}
         >
-          <Link
-            href={`/${featured.slug}`}
-            style={{ textDecoration: "none", color: "inherit" }}
-          >
+          <Link href={`/${featured.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
             <div
               className="editorial-featured-grid"
               style={{
@@ -241,8 +233,7 @@ export function HomeVariantB({
                     fontWeight: 800,
                     lineHeight: 1.1,
                     letterSpacing: "-0.02em",
-                    fontFamily:
-                      '"Noto Serif SC", "Source Han Serif SC", Georgia, serif',
+                    fontFamily: '"Noto Serif SC", "Source Han Serif SC", Georgia, serif',
                     color: hoverId === featured.slug ? ACCENT : FG,
                     transition: "color .2s",
                   }}
@@ -252,11 +243,7 @@ export function HomeVariantB({
                   {featured.title}
                   {featured.password && " 🔒"}
                   {featured.is_pinned === 1 && (
-                    <span
-                      style={{ fontSize: "0.5em", color: MUTED, marginLeft: 8 }}
-                    >
-                      置顶
-                    </span>
+                    <span style={{ fontSize: "0.5em", color: MUTED, marginLeft: 8 }}>置顶</span>
                   )}
                 </h2>
                 {featured.description && (
@@ -341,10 +328,7 @@ export function HomeVariantB({
 
       {/* Article index grid */}
       {rest.length > 0 && (
-        <section
-          className="editorial-index"
-          style={{ padding: "44px 48px", paddingBottom: 80 }}
-        >
+        <section className="editorial-index" style={{ padding: "44px 48px", paddingBottom: 80 }}>
           <div
             className="editorial-index-head"
             style={{
@@ -464,14 +448,7 @@ export function HomeVariantB({
                         strokeLinejoin="round"
                         style={{ color: MUTED, flexShrink: 0 }}
                       >
-                        <rect
-                          x="3"
-                          y="11"
-                          width="18"
-                          height="11"
-                          rx="2"
-                          ry="2"
-                        ></rect>
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                         <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                       </svg>
                     )}
@@ -524,11 +501,7 @@ export function HomeVariantB({
           </div>
 
           <div style={{ paddingTop: 40 }}>
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              basePath="/"
-            />
+            <Pagination currentPage={currentPage} totalPages={totalPages} basePath="/" />
           </div>
         </section>
       )}

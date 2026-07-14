@@ -1,44 +1,44 @@
-'use client'
+"use client";
 
-import dynamic from 'next/dynamic'
-import { useEffect, useSyncExternalStore } from 'react'
-import { getClientThemePreference, subscribeToThemeChange, type Theme } from '@/lib/appearance'
-import type { PostWithTags } from '@/lib/db'
-import type { SiteCategoryLink, SiteNavLink } from '@/lib/site'
-import { HomeDefault } from '@/components/themes/HomeDefault'
+import dynamic from "next/dynamic";
+import { useEffect, useSyncExternalStore } from "react";
+import { getClientThemePreference, subscribeToThemeChange, type Theme } from "@/lib/appearance";
+import type { PostWithTags } from "@/lib/db";
+import type { SiteCategoryLink, SiteNavLink } from "@/lib/site";
+import { HomeDefault } from "@/components/themes/HomeDefault";
 
-export type { Theme }
+export type { Theme };
 
 export interface HomeProps {
-  initialTheme: Theme
-  posts: PostWithTags[]
-  categories: SiteCategoryLink[]
-  navLinks: SiteNavLink[]
-  currentPage: number
-  totalPages: number
-  categorySlugMap: Record<string, string>
+  initialTheme: Theme;
+  posts: PostWithTags[];
+  categories: SiteCategoryLink[];
+  navLinks: SiteNavLink[];
+  currentPage: number;
+  totalPages: number;
+  categorySlugMap: Record<string, string>;
 }
 
 const HomeVariantA = dynamic<HomeProps>(() =>
-  import('@/components/themes/HomeVariantA').then((module) => module.HomeVariantA)
-)
+  import("@/components/themes/HomeVariantA").then((module) => module.HomeVariantA),
+);
 
 const HomeVariantB = dynamic<HomeProps>(() =>
-  import('@/components/themes/HomeVariantB').then((module) => module.HomeVariantB)
-)
+  import("@/components/themes/HomeVariantB").then((module) => module.HomeVariantB),
+);
 
 const HomeVariantC = dynamic<HomeProps>(() =>
-  import('@/components/themes/HomeVariantC').then((module) => module.HomeVariantC)
-)
+  import("@/components/themes/HomeVariantC").then((module) => module.HomeVariantC),
+);
 
 function injectFont(id: string, href: string) {
-  if (typeof document === 'undefined') return
+  if (typeof document === "undefined") return;
   if (!document.getElementById(id)) {
-    const link = document.createElement('link')
-    link.id = id
-    link.rel = 'stylesheet'
-    link.href = href
-    document.head.appendChild(link)
+    const link = document.createElement("link");
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href = href;
+    document.head.appendChild(link);
   }
 }
 
@@ -47,32 +47,32 @@ export function HomeClient(props: HomeProps) {
     subscribeToThemeChange,
     () => getClientThemePreference(props.initialTheme),
     () => props.initialTheme,
-  )
+  );
 
   // Inject fonts on demand
   useEffect(() => {
-    if (theme === 'refined' || theme === 'terminal' || theme === 'editorial') {
+    if (theme === "refined" || theme === "terminal" || theme === "editorial") {
       injectFont(
-        'jetbrains-mono',
-        'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap',
-      )
+        "jetbrains-mono",
+        "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap",
+      );
     }
-    if (theme === 'editorial') {
+    if (theme === "editorial") {
       injectFont(
-        'noto-serif-sc',
-        'https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap',
-      )
+        "noto-serif-sc",
+        "https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap",
+      );
     }
-  }, [theme])
+  }, [theme]);
 
   const ThemeComponent =
-    theme === 'refined'
+    theme === "refined"
       ? HomeVariantA
-      : theme === 'editorial'
+      : theme === "editorial"
         ? HomeVariantB
-        : theme === 'terminal'
+        : theme === "terminal"
           ? HomeVariantC
-          : HomeDefault
+          : HomeDefault;
 
-  return <ThemeComponent {...props} />
+  return <ThemeComponent {...props} />;
 }

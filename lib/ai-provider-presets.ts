@@ -1,8 +1,4 @@
-export type AIProviderCategory =
-  | "海外大模型"
-  | "海外聚合"
-  | "国内大模型"
-  | "国内聚合";
+export type AIProviderCategory = "海外大模型" | "海外聚合" | "国内大模型" | "国内聚合";
 
 export interface AIProviderPreset {
   id: string;
@@ -92,10 +88,7 @@ export const AI_PROVIDER_PRESETS: AIProviderPreset[] = [
     category: "海外聚合",
     baseUrl: "https://api.together.xyz/v1",
     defaultModel: "deepseek-ai/DeepSeek-R1-0528",
-    quickModels: [
-      "deepseek-ai/DeepSeek-R1-0528",
-      "meta-llama/Llama-3.3-70B-Instruct-Turbo",
-    ],
+    quickModels: ["deepseek-ai/DeepSeek-R1-0528", "meta-llama/Llama-3.3-70B-Instruct-Turbo"],
     apiKeyUrl: "https://api.together.ai/settings/api-keys",
     description: "开源模型聚合",
   },
@@ -174,11 +167,7 @@ export const AI_PROVIDER_PRESETS: AIProviderPreset[] = [
     category: "国内聚合",
     baseUrl: "https://aihubmix.com/v1",
     defaultModel: "claude-sonnet-4-20250514",
-    quickModels: [
-      "claude-sonnet-4-20250514",
-      "o3-mini",
-      "gemini-2.5-pro-search",
-    ],
+    quickModels: ["claude-sonnet-4-20250514", "o3-mini", "gemini-2.5-pro-search"],
     apiKeyUrl: "https://aihubmix.com/token",
     description: "国内聚合平台",
   },

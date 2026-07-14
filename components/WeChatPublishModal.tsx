@@ -1,32 +1,32 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { X } from 'lucide-react'
-import { useToast } from '@/components/Toast'
+import { useEffect, useState } from "react";
+import { X } from "lucide-react";
+import { useToast } from "@/components/Toast";
 import {
   buildWechatBridgeArticleExport,
   buildWechatBridgeCoverImageUrl,
   extractFirstWechatBridgeCoverImageUrl,
-} from '@/lib/wechat-copy'
+} from "@/lib/wechat-copy";
 import {
   WECHAT_DEFAULT_AUTHOR,
   WECHAT_DEFAULT_NEED_OPEN_COMMENT,
   WECHAT_DEFAULT_ONLY_FANS_CAN_COMMENT,
-} from '@/lib/wechat-publish-defaults'
+} from "@/lib/wechat-publish-defaults";
 
 interface BridgeAccount {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 interface WeChatPublishModalProps {
-  isOpen: boolean
-  onClose: () => void
-  title: string
-  html: string
-  defaultDigest?: string
-  defaultSourceUrl?: string
-  defaultCoverImageUrl?: string
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  html: string;
+  defaultDigest?: string;
+  defaultSourceUrl?: string;
+  defaultCoverImageUrl?: string;
 }
 
 export function WeChatPublishModal({
@@ -34,85 +34,90 @@ export function WeChatPublishModal({
   onClose,
   title,
   html,
-  defaultDigest = '',
-  defaultSourceUrl = '',
-  defaultCoverImageUrl = '',
+  defaultDigest = "",
+  defaultSourceUrl = "",
+  defaultCoverImageUrl = "",
 }: WeChatPublishModalProps) {
-  const toast = useToast()
+  const toast = useToast();
 
-  const [loadingAccounts, setLoadingAccounts] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const [accounts, setAccounts] = useState<BridgeAccount[]>([])
-  const [selectedAccountId, setSelectedAccountId] = useState('')
-  const [author, setAuthor] = useState(WECHAT_DEFAULT_AUTHOR)
-  const [digest, setDigest] = useState(defaultDigest)
-  const [sourceUrl, setSourceUrl] = useState(defaultSourceUrl)
-  const [coverImageUrl, setCoverImageUrl] = useState(defaultCoverImageUrl)
-  const [publishNow, setPublishNow] = useState(false)
-  const [needOpenComment, setNeedOpenComment] = useState(WECHAT_DEFAULT_NEED_OPEN_COMMENT)
-  const [onlyFansCanComment, setOnlyFansCanComment] = useState(WECHAT_DEFAULT_ONLY_FANS_CAN_COMMENT)
-  const [loadError, setLoadError] = useState('')
+  const [loadingAccounts, setLoadingAccounts] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [accounts, setAccounts] = useState<BridgeAccount[]>([]);
+  const [selectedAccountId, setSelectedAccountId] = useState("");
+  const [author, setAuthor] = useState(WECHAT_DEFAULT_AUTHOR);
+  const [digest, setDigest] = useState(defaultDigest);
+  const [sourceUrl, setSourceUrl] = useState(defaultSourceUrl);
+  const [coverImageUrl, setCoverImageUrl] = useState(defaultCoverImageUrl);
+  const [publishNow, setPublishNow] = useState(false);
+  const [needOpenComment, setNeedOpenComment] = useState(WECHAT_DEFAULT_NEED_OPEN_COMMENT);
+  const [onlyFansCanComment, setOnlyFansCanComment] = useState(
+    WECHAT_DEFAULT_ONLY_FANS_CAN_COMMENT,
+  );
+  const [loadError, setLoadError] = useState("");
 
   const loadAccounts = async () => {
-    setLoadingAccounts(true)
-    setLoadError('')
+    setLoadingAccounts(true);
+    setLoadError("");
 
     try {
-      const res = await fetch('/api/admin/wechat-bridge/accounts')
-      const data = await res.json().catch(() => ({})) as { accounts?: BridgeAccount[]; error?: string }
-      if (!res.ok) throw new Error(data.error || '加载公众号账号失败')
+      const res = await fetch("/api/admin/wechat-bridge/accounts");
+      const data = (await res.json().catch(() => ({}))) as {
+        accounts?: BridgeAccount[];
+        error?: string;
+      };
+      if (!res.ok) throw new Error(data.error || "加载公众号账号失败");
 
-      const nextAccounts = data.accounts || []
-      setAccounts(nextAccounts)
+      const nextAccounts = data.accounts || [];
+      setAccounts(nextAccounts);
       setSelectedAccountId((current) => {
-        if (current && nextAccounts.some(account => account.id === current)) {
-          return current
+        if (current && nextAccounts.some((account) => account.id === current)) {
+          return current;
         }
-        return nextAccounts[0]?.id || ''
-      })
+        return nextAccounts[0]?.id || "";
+      });
     } catch (error) {
-      const message = error instanceof Error ? error.message : '加载公众号账号失败'
-      setAccounts([])
-      setSelectedAccountId('')
-      setLoadError(message)
+      const message = error instanceof Error ? error.message : "加载公众号账号失败";
+      setAccounts([]);
+      setSelectedAccountId("");
+      setLoadError(message);
     } finally {
-      setLoadingAccounts(false)
+      setLoadingAccounts(false);
     }
-  }
+  };
 
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen) return;
 
-    setAuthor(WECHAT_DEFAULT_AUTHOR)
-    setDigest(defaultDigest)
-    setSourceUrl(defaultSourceUrl)
-    setCoverImageUrl(defaultCoverImageUrl)
-    setPublishNow(false)
-    setNeedOpenComment(WECHAT_DEFAULT_NEED_OPEN_COMMENT)
-    setOnlyFansCanComment(WECHAT_DEFAULT_ONLY_FANS_CAN_COMMENT)
-    void loadAccounts()
-  }, [isOpen, defaultDigest, defaultSourceUrl, defaultCoverImageUrl])
+    setAuthor(WECHAT_DEFAULT_AUTHOR);
+    setDigest(defaultDigest);
+    setSourceUrl(defaultSourceUrl);
+    setCoverImageUrl(defaultCoverImageUrl);
+    setPublishNow(false);
+    setNeedOpenComment(WECHAT_DEFAULT_NEED_OPEN_COMMENT);
+    setOnlyFansCanComment(WECHAT_DEFAULT_ONLY_FANS_CAN_COMMENT);
+    void loadAccounts();
+  }, [isOpen, defaultDigest, defaultSourceUrl, defaultCoverImageUrl]);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   const handleSubmit = async () => {
     if (!selectedAccountId) {
-      toast.error('请先选择公众号账号')
-      return
+      toast.error("请先选择公众号账号");
+      return;
     }
 
-    setSubmitting(true)
+    setSubmitting(true);
 
     try {
-      const { normalizedTitle, exportedHtml } = buildWechatBridgeArticleExport(title, html)
+      const { normalizedTitle, exportedHtml } = buildWechatBridgeArticleExport(title, html);
       const finalCoverUrl =
         buildWechatBridgeCoverImageUrl(coverImageUrl) ||
         buildWechatBridgeCoverImageUrl(defaultCoverImageUrl) ||
-        extractFirstWechatBridgeCoverImageUrl(exportedHtml)
+        extractFirstWechatBridgeCoverImageUrl(exportedHtml);
 
-      const res = await fetch('/api/admin/wechat-publish', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/admin/wechat-publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           account_id: selectedAccountId,
           title: normalizedTitle,
@@ -125,29 +130,29 @@ export function WeChatPublishModal({
           need_open_comment: needOpenComment,
           only_fans_can_comment: needOpenComment && onlyFansCanComment,
         }),
-      })
+      });
 
-      const data = await res.json().catch(() => ({})) as {
-        error?: string
-        media_id?: string
-        publish_id?: string
-      }
-      if (!res.ok) throw new Error(data.error || '提交公众号发布失败')
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        media_id?: string;
+        publish_id?: string;
+      };
+      if (!res.ok) throw new Error(data.error || "提交公众号发布失败");
 
-      toast.success(publishNow ? '公众号发布任务已提交' : '公众号草稿已创建')
-      onClose()
+      toast.success(publishNow ? "公众号发布任务已提交" : "公众号草稿已创建");
+      onClose();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : '提交公众号发布失败')
+      toast.error(error instanceof Error ? error.message : "提交公众号发布失败");
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4"
       onClick={(event) => {
-        if (event.target === event.currentTarget && !submitting) onClose()
+        if (event.target === event.currentTarget && !submitting) onClose();
       }}
     >
       <div className="w-full max-w-2xl rounded-2xl border border-[var(--editor-line)] bg-[var(--editor-panel)] shadow-2xl">
@@ -195,7 +200,7 @@ export function WeChatPublishModal({
                   disabled={loadingAccounts}
                   className="rounded-lg border border-[var(--editor-line)] px-3 py-2 text-sm text-[var(--editor-ink)] transition hover:bg-[var(--editor-soft)] disabled:opacity-50"
                 >
-                  {loadingAccounts ? '刷新中…' : '刷新'}
+                  {loadingAccounts ? "刷新中…" : "刷新"}
                 </button>
               </div>
               {loadError && <p className="text-xs text-rose-600">{loadError}</p>}
@@ -252,7 +257,8 @@ export function WeChatPublishModal({
                 className="w-full rounded-lg border border-[var(--editor-line)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--editor-ink)] outline-none focus:border-[var(--editor-accent)]"
               />
               <p className="text-xs text-[var(--editor-muted)]">
-                同域 `/api/images/...` 链接会自动转换成适合微信封面上传的 JPG 版本；留空时会自动使用默认封面。
+                同域 `/api/images/...` 链接会自动转换成适合微信封面上传的 JPG
+                版本；留空时会自动使用默认封面。
               </p>
             </div>
           </div>
@@ -273,8 +279,8 @@ export function WeChatPublishModal({
                 type="checkbox"
                 checked={needOpenComment}
                 onChange={(event) => {
-                  setNeedOpenComment(event.target.checked)
-                  if (!event.target.checked) setOnlyFansCanComment(false)
+                  setNeedOpenComment(event.target.checked);
+                  if (!event.target.checked) setOnlyFansCanComment(false);
                 }}
                 className="h-4 w-4 rounded border-[var(--editor-line)]"
               />
@@ -309,10 +315,10 @@ export function WeChatPublishModal({
             disabled={submitting || loadingAccounts || accounts.length === 0}
             className="rounded-lg bg-[var(--editor-accent)] px-3 py-2 text-sm font-semibold text-white transition hover:brightness-105 disabled:opacity-50"
           >
-            {submitting ? '提交中…' : publishNow ? '提交发布' : '创建草稿'}
+            {submitting ? "提交中…" : publishNow ? "提交发布" : "创建草稿"}
           </button>
         </div>
       </div>
     </div>
-  )
+  );
 }

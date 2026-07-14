@@ -28,9 +28,7 @@ describe("default cover images", () => {
       { baseUrl: "https://blog.zhangleyang.com" },
     );
 
-    expect(cover).toMatch(
-      /^https:\/\/blog\.zhangleyang\.com\/default-covers\/cover-[1-3]\.jpg$/,
-    );
+    expect(cover).toMatch(/^https:\/\/blog\.zhangleyang\.com\/default-covers\/cover-[1-3]\.jpg$/);
   });
 
   it("prefers the explicit cover image and resolves relative paths", () => {

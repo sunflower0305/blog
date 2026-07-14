@@ -1,18 +1,18 @@
-'use client'
+"use client";
 
-import { useEffect, useRef, useState } from 'react'
-import { X } from 'lucide-react'
+import { useEffect, useRef, useState } from "react";
+import { X } from "lucide-react";
 
 interface ModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onConfirm?: () => void | boolean | Promise<void | boolean>
-  title: string
-  description?: string
-  confirmText?: string
-  cancelText?: string
-  type?: 'danger' | 'warning' | 'info'
-  closeOnConfirm?: boolean
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm?: () => void | boolean | Promise<void | boolean>;
+  title: string;
+  description?: string;
+  confirmText?: string;
+  cancelText?: string;
+  type?: "danger" | "warning" | "info";
+  closeOnConfirm?: boolean;
 }
 
 export function Modal({
@@ -21,58 +21,58 @@ export function Modal({
   onConfirm,
   title,
   description,
-  confirmText = '确认',
-  cancelText = '取消',
-  type = 'info',
+  confirmText = "确认",
+  cancelText = "取消",
+  type = "info",
   closeOnConfirm = true,
 }: ModalProps) {
-  const modalRef = useRef<HTMLDivElement>(null)
-  const [submitting, setSubmitting] = useState(false)
+  const modalRef = useRef<HTMLDivElement>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen) return;
 
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
+      if (e.key === "Escape") onClose();
+    };
 
-    document.addEventListener('keydown', handleEscape)
-    return () => document.removeEventListener('keydown', handleEscape)
-  }, [isOpen, onClose])
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (!isOpen) {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }, [isOpen])
+  }, [isOpen]);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   const buttonColor = {
-    danger: 'bg-rose-500 hover:bg-rose-600 text-white',
-    warning: 'bg-amber-500 hover:bg-amber-600 text-white',
-    info: 'bg-[var(--editor-accent)] hover:brightness-105 text-white',
-  }[type]
+    danger: "bg-rose-500 hover:bg-rose-600 text-white",
+    warning: "bg-amber-500 hover:bg-amber-600 text-white",
+    info: "bg-[var(--editor-accent)] hover:brightness-105 text-white",
+  }[type];
 
   const handleConfirm = async () => {
-    if (!onConfirm || submitting) return
+    if (!onConfirm || submitting) return;
 
-    setSubmitting(true)
+    setSubmitting(true);
     try {
-      const result = await onConfirm()
+      const result = await onConfirm();
       if (result !== false && closeOnConfirm) {
-        onClose()
+        onClose();
       }
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-in fade-in duration-200"
       onClick={(e) => {
-        if (e.target === e.currentTarget && !submitting) onClose()
+        if (e.target === e.currentTarget && !submitting) onClose();
       }}
     >
       <div
@@ -81,9 +81,7 @@ export function Modal({
       >
         {/* Header */}
         <div className="flex items-start justify-between p-6 pb-4">
-          <h3 className="text-lg font-semibold text-[var(--editor-ink)]">
-            {title}
-          </h3>
+          <h3 className="text-lg font-semibold text-[var(--editor-ink)]">{title}</h3>
           <button
             onClick={onClose}
             disabled={submitting}
@@ -97,9 +95,7 @@ export function Modal({
         {/* Body */}
         {description && (
           <div className="px-6 pb-6">
-            <p className="text-sm text-[var(--editor-muted)]">
-              {description}
-            </p>
+            <p className="text-sm text-[var(--editor-muted)]">{description}</p>
           </div>
         )}
 
@@ -118,11 +114,11 @@ export function Modal({
               disabled={submitting}
               className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${buttonColor}`}
             >
-              {submitting ? '处理中…' : confirmText}
+              {submitting ? "处理中…" : confirmText}
             </button>
           )}
         </div>
       </div>
     </div>
-  )
+  );
 }

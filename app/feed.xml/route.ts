@@ -35,7 +35,7 @@ export async function GET() {
            FROM posts
            WHERE status = 'published' AND deleted_at IS NULL AND password IS NULL AND is_hidden = 0
            ORDER BY published_at DESC
-           LIMIT 50`
+           LIMIT 50`,
       ).all();
       posts = results as unknown as RssPost[];
     }

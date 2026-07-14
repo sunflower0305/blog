@@ -65,18 +65,14 @@ type ResolvedConfig =
 
 function readFlag(value: unknown): boolean {
   return (
-    typeof value === "string" &&
-    ["1", "true", "yes", "on"].includes(value.trim().toLowerCase())
+    typeof value === "string" && ["1", "true", "yes", "on"].includes(value.trim().toLowerCase())
   );
 }
 
 function resolveWorkersAiModel(env?: AIEnv): string {
   return (
-    (
-      env?.WORKERS_AI_MODEL ||
-      env?.AI_MODEL ||
-      DEFAULT_WORKERS_AI_MODEL
-    ).trim() || DEFAULT_WORKERS_AI_MODEL
+    (env?.WORKERS_AI_MODEL || env?.AI_MODEL || DEFAULT_WORKERS_AI_MODEL).trim() ||
+    DEFAULT_WORKERS_AI_MODEL
   );
 }
 
@@ -97,20 +93,14 @@ function resolveEnv(env?: AIEnv): ResolvedConfig {
     return {
       strategy: "external-provider",
       apiKey: externalApiKey,
-      baseURL:
-        env?.AI_BASE_URL ||
-        process.env.AI_BASE_URL ||
-        DEFAULT_EXTERNAL_BASE_URL,
+      baseURL: env?.AI_BASE_URL || process.env.AI_BASE_URL || DEFAULT_EXTERNAL_BASE_URL,
       model: env?.AI_MODEL || process.env.AI_MODEL || DEFAULT_EXTERNAL_MODEL,
       temperature: 0.7,
       maxTokens: 2000,
     };
   }
 
-  if (
-    env?.WORKERS_AI &&
-    readFlag(env?.ENABLE_WORKERS_AI || process.env.ENABLE_WORKERS_AI)
-  ) {
+  if (env?.WORKERS_AI && readFlag(env?.ENABLE_WORKERS_AI || process.env.ENABLE_WORKERS_AI)) {
     return {
       strategy: "workers-ai",
       binding: env.WORKERS_AI,
@@ -120,42 +110,37 @@ function resolveEnv(env?: AIEnv): ResolvedConfig {
     };
   }
 
-  return getDisabledConfig(
-    "当前部署未配置 AI 供应商。可配置外部 API Key，或开启 Workers AI。",
-  );
+  return getDisabledConfig("当前部署未配置 AI 供应商。可配置外部 API Key，或开启 Workers AI。");
 }
 
 export function getAiRuntimeEnv(env?: Partial<CloudflareEnv> | null): AIEnv {
   return {
     AI_API_KEY:
-      (env as Record<string, string | undefined> | null | undefined)
-        ?.AI_API_KEY || process.env.AI_API_KEY,
+      (env as Record<string, string | undefined> | null | undefined)?.AI_API_KEY ||
+      process.env.AI_API_KEY,
     AI_BASE_URL:
-      (env as Record<string, string | undefined> | null | undefined)
-        ?.AI_BASE_URL || process.env.AI_BASE_URL,
+      (env as Record<string, string | undefined> | null | undefined)?.AI_BASE_URL ||
+      process.env.AI_BASE_URL,
     AI_MODEL:
-      (env as Record<string, string | undefined> | null | undefined)
-        ?.AI_MODEL || process.env.AI_MODEL,
+      (env as Record<string, string | undefined> | null | undefined)?.AI_MODEL ||
+      process.env.AI_MODEL,
     WORKERS_AI: env?.WORKERS_AI,
     WORKERS_AI_MODEL:
-      (env as Record<string, string | undefined> | null | undefined)
-        ?.WORKERS_AI_MODEL || process.env.WORKERS_AI_MODEL,
+      (env as Record<string, string | undefined> | null | undefined)?.WORKERS_AI_MODEL ||
+      process.env.WORKERS_AI_MODEL,
     ENABLE_WORKERS_AI:
-      (env as Record<string, string | undefined> | null | undefined)
-        ?.ENABLE_WORKERS_AI || process.env.ENABLE_WORKERS_AI,
+      (env as Record<string, string | undefined> | null | undefined)?.ENABLE_WORKERS_AI ||
+      process.env.ENABLE_WORKERS_AI,
     AI_CONFIG_ENCRYPTION_SECRET:
-      (env as Record<string, string | undefined> | null | undefined)
-        ?.AI_CONFIG_ENCRYPTION_SECRET ||
+      (env as Record<string, string | undefined> | null | undefined)?.AI_CONFIG_ENCRYPTION_SECRET ||
       process.env.AI_CONFIG_ENCRYPTION_SECRET,
     ADMIN_TOKEN_SALT:
-      (env as Record<string, string | undefined> | null | undefined)
-        ?.ADMIN_TOKEN_SALT || process.env.ADMIN_TOKEN_SALT,
+      (env as Record<string, string | undefined> | null | undefined)?.ADMIN_TOKEN_SALT ||
+      process.env.ADMIN_TOKEN_SALT,
   };
 }
 
-function getClientFromConfig(
-  config: Extract<ResolvedConfig, { strategy: "external-provider" }>,
-) {
+function getClientFromConfig(config: Extract<ResolvedConfig, { strategy: "external-provider" }>) {
   return new OpenAI({ apiKey: config.apiKey, baseURL: config.baseURL });
 }
 
@@ -168,11 +153,7 @@ function extractWorkersAiPayload(result: unknown): unknown {
     };
 
     if (payload.response !== undefined) return payload.response;
-    if (
-      payload.result &&
-      typeof payload.result === "object" &&
-      "response" in payload.result
-    ) {
+    if (payload.result && typeof payload.result === "object" && "response" in payload.result) {
       return (payload.result as { response?: unknown }).response;
     }
     const firstChoice = payload.choices?.[0]?.message?.content;
@@ -269,9 +250,7 @@ function parseJsonObject(text: string): Record<string, unknown> | null {
   if (!text.trim()) return null;
   try {
     const parsed = JSON.parse(text);
-    return parsed && typeof parsed === "object"
-      ? (parsed as Record<string, unknown>)
-      : null;
+    return parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : null;
   } catch {
     return null;
   }
@@ -285,9 +264,7 @@ export async function resolveConfig(
 ): Promise<ResolvedConfig> {
   if (db) {
     try {
-      const secret = resolveAiConfigSecret(
-        env as Record<string, unknown> | undefined,
-      );
+      const secret = resolveAiConfigSecret(env as Record<string, unknown> | undefined);
       await ensureAiConfigInfrastructure(db, secret);
 
       const selected =
@@ -327,10 +304,7 @@ export async function resolveConfig(
               }>();
 
       if (selected?.base_url && selected.model) {
-        const key = await decryptApiKey(
-          selected.api_key_encrypted || "",
-          secret,
-        );
+        const key = await decryptApiKey(selected.api_key_encrypted || "", secret);
         if (key) {
           return {
             strategy: "external-provider",
@@ -345,14 +319,10 @@ export async function resolveConfig(
 
       const [providerRow, keyRow] = await Promise.all([
         db
-          .prepare(
-            "SELECT value FROM site_settings WHERE key = 'ai_provider_config'",
-          )
+          .prepare("SELECT value FROM site_settings WHERE key = 'ai_provider_config'")
           .first<{ value: string }>(),
         db
-          .prepare(
-            "SELECT value FROM site_settings WHERE key = 'ai_provider_api_key'",
-          )
+          .prepare("SELECT value FROM site_settings WHERE key = 'ai_provider_api_key'")
           .first<{ value: string }>(),
       ]);
 
@@ -401,11 +371,7 @@ export async function transformEditorSelectionStream(
   const trimmed = text.trim();
   if (!trimmed) throw new Error("没有可处理的选中文本");
 
-  const config = await resolveConfig(
-    options.env,
-    options.db,
-    options.profileId,
-  );
+  const config = await resolveConfig(options.env, options.db, options.profileId);
   if (config.strategy === "disabled") {
     throw new Error(config.reason);
   }
@@ -426,9 +392,7 @@ export async function transformEditorSelectionStream(
   }
 
   const userContent =
-    action === "custom"
-      ? `指令：${options.customPrompt}\n\n文字内容：\n${trimmed}`
-      : trimmed;
+    action === "custom" ? `指令：${options.customPrompt}\n\n文字内容：\n${trimmed}` : trimmed;
 
   const messages = [
     { role: "system" as const, content: systemPrompt },
@@ -475,28 +439,23 @@ export async function transformEditorSelectionStream(
       nextMessages: Array<{ role: "system" | "user"; content: string }>,
       nextMaxTokens: number,
     ) => {
-      const response = await fetch(
-        `${normalizeBaseUrl(config.baseURL)}/chat/completions`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${config.apiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: config.model,
-            messages: nextMessages,
-            temperature,
-            max_tokens: nextMaxTokens,
-          }),
+      const response = await fetch(`${normalizeBaseUrl(config.baseURL)}/chat/completions`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${config.apiKey}`,
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          model: config.model,
+          messages: nextMessages,
+          temperature,
+          max_tokens: nextMaxTokens,
+        }),
+      });
 
       const rawBody = await response.text().catch(() => "");
       if (!response.ok) {
-        throw new Error(
-          rawBody.trim() || `AI 请求失败：HTTP ${response.status}`,
-        );
+        throw new Error(rawBody.trim() || `AI 请求失败：HTTP ${response.status}`);
       }
 
       return rawBody ? JSON.parse(rawBody) : null;
@@ -623,9 +582,7 @@ export async function processPost(
 
       return {
         category:
-          typeof result.category === "string" && result.category.trim()
-            ? result.category
-            : "技术",
+          typeof result.category === "string" && result.category.trim() ? result.category : "技术",
         description:
           typeof result.description === "string" && result.description.trim()
             ? result.description
@@ -636,15 +593,10 @@ export async function processPost(
       };
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
-      console.error(
-        `AI processing error (attempt ${attempt + 1}/${retries + 1}):`,
-        lastError,
-      );
+      console.error(`AI processing error (attempt ${attempt + 1}/${retries + 1}):`, lastError);
 
       if (attempt < retries) {
-        await new Promise((resolve) =>
-          setTimeout(resolve, 1000 * (attempt + 1)),
-        );
+        await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
       }
     }
   }

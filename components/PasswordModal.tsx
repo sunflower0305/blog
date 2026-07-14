@@ -1,17 +1,17 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { X } from 'lucide-react'
-import { useToast } from './Toast'
-import { generatePassword } from '@/lib/password'
+import { useState, useEffect } from "react";
+import { X } from "lucide-react";
+import { useToast } from "./Toast";
+import { generatePassword } from "@/lib/password";
 
 interface PasswordModalProps {
-  isOpen: boolean
-  onClose: () => void
-  slug: string
-  currentPassword: string | null
-  articleUrl: string
-  onSuccess: () => void
+  isOpen: boolean;
+  onClose: () => void;
+  slug: string;
+  currentPassword: string | null;
+  articleUrl: string;
+  onSuccess: () => void;
 }
 
 export function PasswordModal({
@@ -22,86 +22,82 @@ export function PasswordModal({
   articleUrl,
   onSuccess,
 }: PasswordModalProps) {
-  const [password, setPassword] = useState(currentPassword || '')
-  const [loading, setLoading] = useState(false)
-  const [copied, setCopied] = useState<'url' | 'password' | null>(null)
-  const toast = useToast()
+  const [password, setPassword] = useState(currentPassword || "");
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState<"url" | "password" | null>(null);
+  const toast = useToast();
 
-  const isEncrypted = !!currentPassword
+  const isEncrypted = !!currentPassword;
 
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen) return;
 
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
+      if (e.key === "Escape") onClose();
+    };
 
-    document.addEventListener('keydown', handleEscape)
-    return () => document.removeEventListener('keydown', handleEscape)
-  }, [isOpen, onClose])
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   const handleToggleEncryption = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const newPassword = isEncrypted ? null : generatePassword()
+      const newPassword = isEncrypted ? null : generatePassword();
 
       const response = await fetch(`/api/admin/posts/${slug}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password: newPassword }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error('密码设置失败')
+        throw new Error("密码设置失败");
       }
 
       if (newPassword) {
-        setPassword(newPassword)
-        toast.success('已启用密码保护')
+        setPassword(newPassword);
+        toast.success("已启用密码保护");
       } else {
-        setPassword('')
-        toast.success('已取消密码保护')
-        onClose()
+        setPassword("");
+        toast.success("已取消密码保护");
+        onClose();
       }
 
-      onSuccess()
+      onSuccess();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : '操作失败')
+      toast.error(error instanceof Error ? error.message : "操作失败");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const copyToClipboard = async (text: string, type: 'url' | 'password') => {
+  const copyToClipboard = async (text: string, type: "url" | "password") => {
     try {
-      await navigator.clipboard.writeText(text)
-      setCopied(type)
-      toast.success('已复制到剪贴板')
-      setTimeout(() => setCopied(null), 2000)
+      await navigator.clipboard.writeText(text);
+      setCopied(type);
+      toast.success("已复制到剪贴板");
+      setTimeout(() => setCopied(null), 2000);
     } catch {
-      toast.error('复制失败')
+      toast.error("复制失败");
     }
-  }
+  };
 
-  const fullUrl = password
-    ? `${articleUrl}?pwd=${encodeURIComponent(password)}`
-    : articleUrl
+  const fullUrl = password ? `${articleUrl}?pwd=${encodeURIComponent(password)}` : articleUrl;
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-in fade-in duration-200"
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
+        if (e.target === e.currentTarget) onClose();
       }}
     >
       <div className="bg-[var(--editor-panel)] rounded-lg shadow-xl max-w-md w-full animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-start justify-between p-6 pb-4">
-          <h3 className="text-lg font-semibold text-[var(--editor-ink)]">
-            密码保护
-          </h3>
+          <h3 className="text-lg font-semibold text-[var(--editor-ink)]">密码保护</h3>
           <button
             onClick={onClose}
             className="text-[var(--stone-gray)] hover:text-[var(--editor-ink)] transition-colors"
@@ -128,10 +124,10 @@ export function PasswordModal({
                   />
                   <button
                     type="button"
-                    onClick={() => copyToClipboard(password, 'password')}
+                    onClick={() => copyToClipboard(password, "password")}
                     className="px-3 py-2 text-sm rounded-md border border-[var(--editor-line)] bg-[var(--background)] text-[var(--editor-ink)] hover:bg-[var(--editor-soft)] transition-colors"
                   >
-                    {copied === 'password' ? '✓' : '复制'}
+                    {copied === "password" ? "✓" : "复制"}
                   </button>
                 </div>
               </div>
@@ -149,10 +145,10 @@ export function PasswordModal({
                   />
                   <button
                     type="button"
-                    onClick={() => copyToClipboard(fullUrl, 'url')}
+                    onClick={() => copyToClipboard(fullUrl, "url")}
                     className="px-3 py-2 text-sm rounded-md border border-[var(--editor-line)] bg-[var(--background)] text-[var(--editor-ink)] hover:bg-[var(--editor-soft)] transition-colors"
                   >
-                    {copied === 'url' ? '✓' : '复制'}
+                    {copied === "url" ? "✓" : "复制"}
                   </button>
                 </div>
                 <p className="mt-2 text-xs text-[var(--stone-gray)]">
@@ -166,7 +162,7 @@ export function PasswordModal({
                 disabled={loading}
                 className="w-full px-4 py-2 text-sm font-medium text-rose-600 border border-rose-200 rounded-lg hover:bg-rose-50 transition-colors disabled:opacity-50"
               >
-                {loading ? '处理中...' : '取消密码保护'}
+                {loading ? "处理中..." : "取消密码保护"}
               </button>
             </>
           ) : (
@@ -180,12 +176,12 @@ export function PasswordModal({
                 disabled={loading}
                 className="w-full px-4 py-2 text-sm font-semibold bg-[var(--editor-accent)] text-white rounded-lg hover:brightness-105 transition-all disabled:opacity-50"
               >
-                {loading ? '处理中...' : '启用密码保护'}
+                {loading ? "处理中..." : "启用密码保护"}
               </button>
             </>
           )}
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,77 +1,85 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useToast } from '@/components/Toast'
-import { Modal } from '@/components/Modal'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/components/Toast";
+import { Modal } from "@/components/Modal";
 
-export function DeleteButton({ slug, title, status }: { slug: string; title: string; status: string }) {
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [showPermanentModal, setShowPermanentModal] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const router = useRouter()
-  const toast = useToast()
+export function DeleteButton({
+  slug,
+  title,
+  status,
+}: {
+  slug: string;
+  title: string;
+  status: string;
+}) {
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showPermanentModal, setShowPermanentModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const toast = useToast();
 
-  const isDeleted = status === 'deleted'
+  const isDeleted = status === "deleted";
 
   const handleSoftDelete = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
       const res = await fetch(`/api/admin/posts/${slug}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'deleted' }),
-      })
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "deleted" }),
+      });
       if (res.ok) {
-        toast.success('文章已删除（可恢复）')
-        router.refresh()
+        toast.success("文章已删除（可恢复）");
+        router.refresh();
       } else {
-        toast.error('删除失败，请重试')
+        toast.error("删除失败，请重试");
       }
     } catch {
-      toast.error('网络错误，请重试')
+      toast.error("网络错误，请重试");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleRestore = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
       const res = await fetch(`/api/admin/posts/${slug}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'draft' }),
-      })
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "draft" }),
+      });
       if (res.ok) {
-        toast.success('文章已恢复为草稿')
-        router.refresh()
+        toast.success("文章已恢复为草稿");
+        router.refresh();
       } else {
-        toast.error('恢复失败，请重试')
+        toast.error("恢复失败，请重试");
       }
     } catch {
-      toast.error('网络错误，请重试')
+      toast.error("网络错误，请重试");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handlePermanentDelete = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const res = await fetch(`/api/admin/posts/${slug}`, { method: 'DELETE' })
+      const res = await fetch(`/api/admin/posts/${slug}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success('文章已永久删除')
-        router.refresh()
+        toast.success("文章已永久删除");
+        router.refresh();
       } else {
-        toast.error('删除失败，请重试')
+        toast.error("删除失败，请重试");
       }
     } catch {
-      toast.error('网络错误，请重试')
+      toast.error("网络错误，请重试");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (isDeleted) {
     return (
@@ -82,7 +90,7 @@ export function DeleteButton({ slug, title, status }: { slug: string; title: str
           disabled={loading}
           className="text-xs text-emerald-600 hover:text-emerald-700 hover:underline underline-offset-2 transition-colors disabled:opacity-50"
         >
-          {loading ? '恢复中...' : '恢复'}
+          {loading ? "恢复中..." : "恢复"}
         </button>
         <button
           type="button"
@@ -103,7 +111,7 @@ export function DeleteButton({ slug, title, status }: { slug: string; title: str
           type="danger"
         />
       </>
-    )
+    );
   }
 
   return (
@@ -127,5 +135,5 @@ export function DeleteButton({ slug, title, status }: { slug: string; title: str
         type="warning"
       />
     </>
-  )
+  );
 }

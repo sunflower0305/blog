@@ -1,83 +1,83 @@
-'use client'
+"use client";
 
-import { useState, useRef, useEffect } from 'react'
-import { ChevronDown, Check } from 'lucide-react'
+import { useState, useRef, useEffect } from "react";
+import { ChevronDown, Check } from "lucide-react";
 
 interface DropdownOption {
-  value: string
-  label: string
-  title?: string
-  searchText?: string
+  value: string;
+  label: string;
+  title?: string;
+  searchText?: string;
 }
 
 interface DropdownProps {
-  options: DropdownOption[]
-  value: string
-  onChange: (value: string) => void
-  placeholder?: string
-  className?: string
-  disabled?: boolean
-  menuPlacement?: 'top' | 'bottom'
+  options: DropdownOption[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  className?: string;
+  disabled?: boolean;
+  menuPlacement?: "top" | "bottom";
 }
 
 export function Dropdown({
   options,
   value,
   onChange,
-  placeholder = '请选择',
-  className = '',
+  placeholder = "请选择",
+  className = "",
   disabled = false,
-  menuPlacement = 'bottom',
+  menuPlacement = "bottom",
 }: DropdownProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const searchInputRef = useRef<HTMLInputElement>(null)
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const selectedOption = options.find(opt => opt.value === value)
+  const selectedOption = options.find((opt) => opt.value === value);
 
-  const filteredOptions = options.filter(opt =>
-    `${opt.label} ${opt.searchText || ''}`.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredOptions = options.filter((opt) =>
+    `${opt.label} ${opt.searchText || ""}`.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   // 点击外部关闭
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
-        setSearchQuery('')
+        setIsOpen(false);
+        setSearchQuery("");
       }
-    }
+    };
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener("mousedown", handleClickOutside);
       // 自动聚焦搜索框
-      setTimeout(() => searchInputRef.current?.focus(), 0)
+      setTimeout(() => searchInputRef.current?.focus(), 0);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [isOpen])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
 
   // ESC 键关闭
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        setIsOpen(false)
-        setSearchQuery('')
+      if (e.key === "Escape" && isOpen) {
+        setIsOpen(false);
+        setSearchQuery("");
       }
-    }
+    };
 
-    document.addEventListener('keydown', handleEscape)
-    return () => document.removeEventListener('keydown', handleEscape)
-  }, [isOpen])
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen]);
 
   const handleSelect = (optionValue: string) => {
-    onChange(optionValue)
-    setIsOpen(false)
-    setSearchQuery('')
-  }
+    onChange(optionValue);
+    setIsOpen(false);
+    setSearchQuery("");
+  };
 
   return (
     <div ref={dropdownRef} className={`relative ${className}`}>
@@ -90,21 +90,22 @@ export function Dropdown({
           w-full px-3 py-2 rounded-lg border text-sm text-left
           flex items-center justify-between gap-2
           transition-colors
-          ${disabled
-            ? 'bg-[var(--editor-soft)] text-[var(--stone-gray)] cursor-not-allowed'
-            : 'bg-[var(--background)] border-[var(--editor-line)] text-[var(--editor-ink)] hover:border-[var(--editor-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--editor-accent)]/20'
+          ${
+            disabled
+              ? "bg-[var(--editor-soft)] text-[var(--stone-gray)] cursor-not-allowed"
+              : "bg-[var(--background)] border-[var(--editor-line)] text-[var(--editor-ink)] hover:border-[var(--editor-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--editor-accent)]/20"
           }
         `}
       >
         <span
-          className={selectedOption ? '' : 'text-[var(--editor-muted)]'}
+          className={selectedOption ? "" : "text-[var(--editor-muted)]"}
           title={selectedOption?.title}
         >
           {selectedOption?.label || placeholder}
         </span>
         <ChevronDown
           className={`w-4 h-4 text-[var(--stone-gray)] transition-transform ${
-            isOpen ? 'rotate-180' : ''
+            isOpen ? "rotate-180" : ""
           }`}
         />
       </button>
@@ -113,7 +114,7 @@ export function Dropdown({
       {isOpen && (
         <div
           className={`absolute z-50 w-full overflow-hidden rounded-lg border border-[var(--editor-line)] bg-[var(--editor-panel)] shadow-lg ${
-            menuPlacement === 'top' ? 'bottom-full mb-1' : 'mt-1'
+            menuPlacement === "top" ? "bottom-full mb-1" : "mt-1"
           }`}
         >
           {/* 搜索框 */}
@@ -147,9 +148,10 @@ export function Dropdown({
                     w-full px-3 py-2 text-sm text-left
                     flex items-center justify-between gap-2
                     transition-colors
-                    ${option.value === value
-                      ? 'bg-[var(--editor-accent)]/10 text-[var(--editor-accent)]'
-                      : 'text-[var(--editor-ink)] hover:bg-[var(--editor-soft)]'
+                    ${
+                      option.value === value
+                        ? "bg-[var(--editor-accent)]/10 text-[var(--editor-accent)]"
+                        : "text-[var(--editor-ink)] hover:bg-[var(--editor-soft)]"
                     }
                   `}
                 >
@@ -164,5 +166,5 @@ export function Dropdown({
         </div>
       )}
     </div>
-  )
+  );
 }

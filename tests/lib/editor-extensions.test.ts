@@ -1,93 +1,94 @@
-import { Selection, TextSelection, NodeSelection } from '@tiptap/pm/state'
-import { Schema } from '@tiptap/pm/model'
-import { readFileSync } from 'node:fs'
-import { describe, expect, it } from 'vitest'
-import { shouldShowEditorBubble } from '@/lib/editor-bubble'
-import { codeLowlight, DEFAULT_CODE_LANGUAGE } from '@/lib/code-highlighting'
-import {
-  createDefaultTableContent,
-  hasMarkdownTable,
-  normalizeUrl,
-} from '@/lib/editor-utils'
+import { Selection, TextSelection, NodeSelection } from "@tiptap/pm/state";
+import { Schema } from "@tiptap/pm/model";
+import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+import { shouldShowEditorBubble } from "@/lib/editor-bubble";
+import { codeLowlight, DEFAULT_CODE_LANGUAGE } from "@/lib/code-highlighting";
+import { createDefaultTableContent, hasMarkdownTable, normalizeUrl } from "@/lib/editor-utils";
 
-describe('editor-extensions helpers', () => {
-  it('uses one TypeScript lowlight code block extension', () => {
-    const source = readFileSync(new URL('../../lib/editor-extensions.tsx', import.meta.url), 'utf8')
+describe("editor-extensions helpers", () => {
+  it("uses one TypeScript lowlight code block extension", () => {
+    const source = readFileSync(
+      new URL("../../lib/editor-extensions.tsx", import.meta.url),
+      "utf8",
+    );
 
-    expect(DEFAULT_CODE_LANGUAGE).toBe('typescript')
-    expect(codeLowlight.listLanguages()).toEqual(['typescript'])
-    expect(codeLowlight.registered('ts')).toBe(true)
-    expect(source).toContain('StarterKit.configure({ heading: { levels: [1, 2, 3] }, codeBlock: false })')
-    expect(source).toContain('CodeBlockLowlight.configure({')
-    expect(source.match(/CodeBlockLowlight\.configure\(/g)).toHaveLength(1)
-  })
+    expect(DEFAULT_CODE_LANGUAGE).toBe("typescript");
+    expect(codeLowlight.listLanguages()).toEqual(["typescript"]);
+    expect(codeLowlight.registered("ts")).toBe(true);
+    expect(source).toContain(
+      "StarterKit.configure({ heading: { levels: [1, 2, 3] }, codeBlock: false })",
+    );
+    expect(source).toContain("CodeBlockLowlight.configure({");
+    expect(source.match(/CodeBlockLowlight\.configure\(/g)).toHaveLength(1);
+  });
 
-  it('creates a default table with header row and paragraph cells', () => {
-    const table = createDefaultTableContent(2, 2)
+  it("creates a default table with header row and paragraph cells", () => {
+    const table = createDefaultTableContent(2, 2);
 
     expect(table).toEqual({
-      type: 'table',
+      type: "table",
       content: [
         {
-          type: 'tableRow',
+          type: "tableRow",
           content: [
-            { type: 'tableHeader', content: [{ type: 'paragraph' }] },
-            { type: 'tableHeader', content: [{ type: 'paragraph' }] },
+            { type: "tableHeader", content: [{ type: "paragraph" }] },
+            { type: "tableHeader", content: [{ type: "paragraph" }] },
           ],
         },
         {
-          type: 'tableRow',
+          type: "tableRow",
           content: [
-            { type: 'tableCell', content: [{ type: 'paragraph' }] },
-            { type: 'tableCell', content: [{ type: 'paragraph' }] },
+            { type: "tableCell", content: [{ type: "paragraph" }] },
+            { type: "tableCell", content: [{ type: "paragraph" }] },
           ],
         },
       ],
-    })
-  })
+    });
+  });
 
-  it('detects markdown tables but ignores ordinary pipe text', () => {
-    expect(hasMarkdownTable('| 列1 | 列2 |\n| --- | --- |\n| 值1 | 值2 |')).toBe(true)
-    expect(hasMarkdownTable('普通文本 | 只是一个竖线，不是表格')).toBe(false)
-  })
+  it("detects markdown tables but ignores ordinary pipe text", () => {
+    expect(hasMarkdownTable("| 列1 | 列2 |\n| --- | --- |\n| 值1 | 值2 |")).toBe(true);
+    expect(hasMarkdownTable("普通文本 | 只是一个竖线，不是表格")).toBe(false);
+  });
 
-  it('normalizes URLs by preserving http(s) links and prefixing bare domains', () => {
-    expect(normalizeUrl('https://example.com')).toBe('https://example.com')
-    expect(normalizeUrl('example.com/path')).toBe('https://example.com/path')
-  })
+  it("normalizes URLs by preserving http(s) links and prefixing bare domains", () => {
+    expect(normalizeUrl("https://example.com")).toBe("https://example.com");
+    expect(normalizeUrl("example.com/path")).toBe("https://example.com/path");
+  });
 
-  it('shows the bubble menu only for editable text selections, not image node selections', () => {
+  it("shows the bubble menu only for editable text selections, not image node selections", () => {
     const schema = new Schema({
       nodes: {
-        doc: { content: 'block+' },
+        doc: { content: "block+" },
         paragraph: {
-          group: 'block',
-          content: 'text*',
-          toDOM: () => ['p', 0],
+          group: "block",
+          content: "text*",
+          toDOM: () => ["p", 0],
         },
         image: {
-          group: 'block',
+          group: "block",
           inline: false,
           attrs: { src: {} },
           selectable: true,
-          toDOM: (node) => ['img', { src: node.attrs.src }],
+          toDOM: (node) => ["img", { src: node.attrs.src }],
         },
-        text: { group: 'inline' },
+        text: { group: "inline" },
       },
-    })
+    });
 
-    const doc = schema.node('doc', null, [
-      schema.node('paragraph', null, [schema.text('hello world')]),
-      schema.node('image', { src: '/demo.png' }),
-    ])
+    const doc = schema.node("doc", null, [
+      schema.node("paragraph", null, [schema.text("hello world")]),
+      schema.node("image", { src: "/demo.png" }),
+    ]);
 
-    const textSelection = TextSelection.create(doc, 1, 6)
-    const imageSelection = NodeSelection.create(doc, 13)
-    const cursorSelection = Selection.near(doc.resolve(1))
+    const textSelection = TextSelection.create(doc, 1, 6);
+    const imageSelection = NodeSelection.create(doc, 13);
+    const cursorSelection = Selection.near(doc.resolve(1));
 
-    expect(shouldShowEditorBubble(textSelection, true)).toBe(true)
-    expect(shouldShowEditorBubble(imageSelection, true)).toBe(false)
-    expect(shouldShowEditorBubble(cursorSelection, true)).toBe(false)
-    expect(shouldShowEditorBubble(textSelection, false)).toBe(false)
-  })
-})
+    expect(shouldShowEditorBubble(textSelection, true)).toBe(true);
+    expect(shouldShowEditorBubble(imageSelection, true)).toBe(false);
+    expect(shouldShowEditorBubble(cursorSelection, true)).toBe(false);
+    expect(shouldShowEditorBubble(textSelection, false)).toBe(false);
+  });
+});

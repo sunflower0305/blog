@@ -4,12 +4,7 @@ import "./globals.css";
 import { GlobalShortcuts } from "@/components/GlobalShortcuts";
 import { ToastProvider } from "@/components/Toast";
 import { CustomJsInjector } from "@/components/CustomJsInjector";
-import {
-  FONT_CONFIG,
-  THEME_OPTIONS,
-  THEME_STORAGE_KEY,
-  normalizeTheme,
-} from "@/lib/appearance";
+import { FONT_CONFIG, THEME_OPTIONS, THEME_STORAGE_KEY, normalizeTheme } from "@/lib/appearance";
 import { getAppCloudflareEnv } from "@/lib/cloudflare";
 import { getSetting } from "@/lib/db";
 import { resolveDefaultSiteCoverImage } from "@/lib/default-cover-images";
@@ -76,9 +71,7 @@ export const metadata: Metadata = {
       { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
-    apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
   manifest: "/manifest.json",
   alternates: {
@@ -92,8 +85,7 @@ export const metadata: Metadata = {
     url: SITE_URL,
     siteName: "乐扬博客",
     title: "乐扬博客",
-    description:
-      "记录思考，分享所学，留住当下。技术、生活、读书笔记的数字花园。",
+    description: "记录思考，分享所学，留住当下。技术、生活、读书笔记的数字花园。",
     images: [
       {
         url: DEFAULT_SITE_OG_IMAGE,
@@ -108,8 +100,7 @@ export const metadata: Metadata = {
     site: "@vista8",
     creator: "@vista8",
     title: "乐扬博客",
-    description:
-      "记录思考，分享所学，留住当下。技术、生活、读书笔记的数字花园。",
+    description: "记录思考，分享所学，留住当下。技术、生活、读书笔记的数字花园。",
     images: [DEFAULT_SITE_OG_IMAGE],
   },
 };
@@ -130,12 +121,11 @@ export default async function RootLayout({
         env,
         "site:appearance",
         async () => {
-          const [customJsValue, bodyFontValue, defaultThemeValue] =
-            await Promise.all([
-              getSetting(db, "custom_js"),
-              getSetting(db, "body_font"),
-              getSetting(db, "default_theme"),
-            ]);
+          const [customJsValue, bodyFontValue, defaultThemeValue] = await Promise.all([
+            getSetting(db, "custom_js"),
+            getSetting(db, "body_font"),
+            getSetting(db, "default_theme"),
+          ]);
           return {
             customJs: customJsValue || "",
             bodyFont: bodyFontValue || "",

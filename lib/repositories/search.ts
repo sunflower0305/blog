@@ -1,6 +1,6 @@
-import { mapPostWithTags } from '@/lib/repositories/post-mappers'
-import type { Database } from '@/lib/repositories/schema'
-import type { Post, PostWithTags } from '@/lib/repositories/types'
+import { mapPostWithTags } from "@/lib/repositories/post-mappers";
+import type { Database } from "@/lib/repositories/schema";
+import type { Post, PostWithTags } from "@/lib/repositories/types";
 
 // 全文搜索（FTS5，回退 LIKE）
 export async function searchPosts(
@@ -12,14 +12,14 @@ export async function searchPosts(
   includeHidden = false,
   includeDeleted = false,
 ): Promise<PostWithTags[]> {
-  let results: Post[]
+  let results: Post[];
 
-  const conditions: string[] = []
-  if (!includeDrafts) conditions.push("posts.status = 'published'")
-  if (!includeEncrypted) conditions.push('posts.password IS NULL')
-  if (!includeHidden) conditions.push('posts.is_hidden = 0')
-  if (!includeDeleted) conditions.push('posts.deleted_at IS NULL')
-  const whereClause = conditions.length > 0 ? `AND ${conditions.join(' AND ')}` : ''
+  const conditions: string[] = [];
+  if (!includeDrafts) conditions.push("posts.status = 'published'");
+  if (!includeEncrypted) conditions.push("posts.password IS NULL");
+  if (!includeHidden) conditions.push("posts.is_hidden = 0");
+  if (!includeDeleted) conditions.push("posts.deleted_at IS NULL");
+  const whereClause = conditions.length > 0 ? `AND ${conditions.join(" AND ")}` : "";
 
   try {
     const ftsResult = await db
@@ -32,10 +32,10 @@ export async function searchPosts(
          LIMIT ?`,
       )
       .bind(query, limit)
-      .all<Post>()
-    results = ftsResult.results
+      .all<Post>();
+    results = ftsResult.results;
   } catch {
-    const pattern = `%${query}%`
+    const pattern = `%${query}%`;
     const likeResult = await db
       .prepare(
         `SELECT * FROM posts
@@ -45,9 +45,9 @@ export async function searchPosts(
          LIMIT ?`,
       )
       .bind(pattern, pattern, limit)
-      .all<Post>()
-    results = likeResult.results
+      .all<Post>();
+    results = likeResult.results;
   }
 
-  return results.map(mapPostWithTags)
+  return results.map(mapPostWithTags);
 }
