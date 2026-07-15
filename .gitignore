@@ -55,5 +55,5 @@ worker-configuration.d.ts
 .codex/
 .github/
 article/
-lowlight-plan.md
 review.md
+css-plan.md
