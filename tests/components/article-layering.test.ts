@@ -15,6 +15,8 @@ describe("article page layer ordering", () => {
     const themeDropdown = readFileSync("components/ThemeDropdown.tsx", "utf8");
 
     expect(header).toContain("absolute top-full left-0 mt-2");
-    expect(themeDropdown).toContain("top: inlineMenu ? undefined : 'calc(100% + 8px)'");
+    expect(themeDropdown).toMatch(
+      /top:\s*inlineMenu\s*\?\s*undefined\s*:\s*["']calc\(100% \+ 8px\)["']/,
+    );
   });
 });
