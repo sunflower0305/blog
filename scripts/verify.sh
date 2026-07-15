@@ -17,6 +17,9 @@ pnpm run config:check
 echo "==> pnpm run lint"
 pnpm run lint
 
+echo "==> pnpm run typecheck:editor"
+pnpm run typecheck:editor
+
 echo "==> pnpm run test:run"
 pnpm run test:run
 

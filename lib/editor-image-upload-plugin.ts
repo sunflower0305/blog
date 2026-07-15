@@ -56,6 +56,7 @@ function findUploadPosition(view: EditorView, id: object) {
 
 export interface ImageUploadOptions {
   validateFn?: (file: File) => boolean;
+  onValidationError?: (file: File) => void;
   onUpload: (file: File) => Promise<string>;
 }
 
@@ -69,11 +70,18 @@ export function isValidEditorImage(file: File) {
   return getEditorImageValidationError(file) === null;
 }
 
-export type UploadFn = (file: File, view: EditorView, pos: number) => void;
+export type UploadFn = (file: File, view: EditorView, pos: number) => Promise<number | null>;
 
-export function createImageUpload({ validateFn, onUpload }: ImageUploadOptions): UploadFn {
+export function createImageUpload({
+  validateFn,
+  onValidationError,
+  onUpload,
+}: ImageUploadOptions): UploadFn {
   return (file, view, requestedPos) => {
-    if (validateFn && !validateFn(file)) return;
+    if (validateFn && !validateFn(file)) {
+      onValidationError?.(file);
+      return Promise.resolve(null);
+    }
 
     const id = {};
     const previewUrl = URL.createObjectURL(file);
@@ -83,27 +91,29 @@ export function createImageUpload({ validateFn, onUpload }: ImageUploadOptions):
     transaction.setMeta(uploadImagePluginKey, { add: { id, pos, src: previewUrl } });
     view.dispatch(transaction);
 
-    onUpload(file)
+    return onUpload(file)
       .then(
         (src) => {
-          if (view.isDestroyed) return;
+          if (view.isDestroyed) return null;
           const currentPos = findUploadPosition(view, id);
-          if (currentPos == null) return;
+          if (currentPos == null) return null;
 
           const image = view.state.schema.nodes.image?.create({ src });
           if (!image) {
             view.dispatch(view.state.tr.setMeta(uploadImagePluginKey, { remove: { id } }));
-            return;
+            return null;
           }
           view.dispatch(
             view.state.tr
               .replaceRangeWith(currentPos, currentPos, image)
               .setMeta(uploadImagePluginKey, { remove: { id } }),
           );
+          return currentPos + image.nodeSize;
         },
         () => {
-          if (view.isDestroyed) return;
+          if (view.isDestroyed) return null;
           view.dispatch(view.state.tr.setMeta(uploadImagePluginKey, { remove: { id } }));
+          return null;
         },
       )
       .finally(() => URL.revokeObjectURL(previewUrl));
@@ -115,7 +125,7 @@ export function handleImagePaste(view: EditorView, event: ClipboardEvent, upload
   if (!file) return false;
 
   event.preventDefault();
-  upload(file, view, view.state.selection.from);
+  void upload(file, view, view.state.selection.from);
   return true;
 }
 
@@ -130,6 +140,6 @@ export function handleImageDrop(
 
   event.preventDefault();
   const coordinates = view.posAtCoords({ left: event.clientX, top: event.clientY });
-  upload(file, view, coordinates?.pos ?? view.state.selection.from);
+  void upload(file, view, coordinates?.pos ?? view.state.selection.from);
   return true;
 }

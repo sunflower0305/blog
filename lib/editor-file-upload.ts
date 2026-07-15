@@ -162,7 +162,7 @@ export function getEditorImagePreviewUrl(imageUrl: string, siteUrl: string) {
 }
 
 export function createUploadPlaceholderMarker() {
-  return `⏳upload-${Date.now()}`;
+  return `⏳upload-${Date.now()}-${crypto.randomUUID()}`;
 }
 
 export function buildUploadPlaceholderText(file: File, marker: string) {
@@ -177,15 +177,23 @@ export function buildUploadPlaceholderText(file: File, marker: string) {
   return `📤 ${file.name} 上传中... [${marker}]`;
 }
 
-export function insertUploadPlaceholder(editor: Editor, file: File, marker: string) {
-  editor
-    .chain()
-    .focus()
-    .insertContent({
-      type: "paragraph",
-      content: [{ type: "text", text: buildUploadPlaceholderText(file, marker) }],
-    })
-    .run();
+export function insertUploadPlaceholder(
+  editor: Editor,
+  file: File,
+  marker: string,
+  insertPos?: number,
+) {
+  const content = {
+    type: "paragraph",
+    content: [{ type: "text", text: buildUploadPlaceholderText(file, marker) }],
+  };
+  const chain = editor.chain().focus();
+
+  if (Number.isFinite(insertPos)) {
+    chain.insertContentAt(Number(insertPos), content).run();
+  } else {
+    chain.insertContent(content).run();
+  }
 }
 
 export function removeUploadPlaceholder(editor: Editor, marker: string) {
@@ -202,25 +210,38 @@ export function removeUploadPlaceholder(editor: Editor, marker: string) {
     }
   });
 
-  if (placeholderPos === null) return false;
+  if (placeholderPos === null) return null;
 
   editor.view.dispatch(state.tr.delete(placeholderPos, placeholderPos + placeholderNodeSize));
-  return true;
+  return placeholderPos;
 }
 
 export function insertUploadedFileIntoEditor(
   editor: Editor,
   file: File,
   uploaded: UploadedEditorFile,
+  insertPos?: number,
 ) {
+  if (Number.isFinite(insertPos)) {
+    const pos = Number(insertPos);
+    const content = file.type.startsWith("video/")
+      ? { type: "video", attrs: { src: uploaded.url } }
+      : file.type.startsWith("audio/")
+        ? { type: "audio", attrs: { src: uploaded.url } }
+        : `<p><a href="${uploaded.url}" target="_blank" rel="noopener">📎 ${file.name}</a></p>`;
+
+    editor.chain().focus().insertContentAt(pos, content).run();
+    return pos + (editor.state.doc.nodeAt(pos)?.nodeSize ?? 0);
+  }
+
   if (file.type.startsWith("video/")) {
     editor.chain().focus().setVideo({ src: uploaded.url }).run();
-    return;
+    return null;
   }
 
   if (file.type.startsWith("audio/")) {
     editor.chain().focus().setAudio({ src: uploaded.url }).run();
-    return;
+    return null;
   }
 
   editor
@@ -230,6 +251,7 @@ export function insertUploadedFileIntoEditor(
       `<p><a href="${uploaded.url}" target="_blank" rel="noopener">📎 ${file.name}</a></p>`,
     )
     .run();
+  return null;
 }
 
 export function insertGeneratedImageAtPosition(

@@ -62,9 +62,11 @@ import { createDefaultTableContent, hasMarkdownTable, normalizeUrl } from "./edi
 import { codeLowlight, DEFAULT_CODE_LANGUAGE } from "./code-highlighting";
 import {
   createImageUpload,
+  getEditorImageValidationError,
   handleImageDrop,
   handleImagePaste,
   isValidEditorImage,
+  type UploadFn,
 } from "./editor-image-upload-plugin";
 import {
   createSlashCommand,
@@ -524,8 +526,9 @@ export function getEditorCharacterCount(editor: Editor) {
 
 export function buildEditorProps(
   onImageUpload?: (file: File) => Promise<string>,
-  onNonImageFile?: (file: File) => void,
+  onNonImageFile?: (file: File, pos: number) => Promise<number | null | void> | number | null | void,
   contentClassName = "",
+  onImageValidationError?: (file: File, message: string) => void,
 ) {
   const collectFiles = (listLike: FileList | File[] | null | undefined) => {
     if (!listLike) return [] as File[];
@@ -561,12 +564,38 @@ export function buildEditorProps(
   const uploadFn = onImageUpload
     ? createImageUpload({
         validateFn: isValidEditorImage,
+        onValidationError: (file) => {
+          const message = getEditorImageValidationError(file);
+          if (message) onImageValidationError?.(file, message);
+        },
         onUpload: async (file) => {
           const url = await onImageUpload(file);
           return url;
         },
       })
     : undefined;
+
+  const processFilesInOrder = async (
+    files: File[],
+    view: EditorView,
+    initialPos: number,
+    imageUpload: UploadFn | undefined,
+  ) => {
+    let nextPos = initialPos;
+
+    for (const file of files) {
+      if (file.type.startsWith("image/") && imageUpload) {
+        const insertedEnd = await imageUpload(file, view, nextPos);
+        if (insertedEnd != null) nextPos = insertedEnd;
+        continue;
+      }
+
+      if (onNonImageFile) {
+        const insertedEnd = await onNonImageFile(file, nextPos);
+        if (typeof insertedEnd === "number") nextPos = insertedEnd;
+      }
+    }
+  };
 
   return {
     handlePaste: (view: EditorView, event: ClipboardEvent) => {
@@ -578,13 +607,7 @@ export function buildEditorProps(
           return handleImagePaste(view, event, uploadFn);
         }
 
-        files.forEach((file) => {
-          if (file.type.startsWith("image/") && uploadFn) {
-            uploadFn(file, view, view.state.selection.from);
-          } else {
-            onNonImageFile?.(file);
-          }
-        });
+        void processFilesInOrder(files, view, view.state.selection.from, uploadFn);
         return true;
       }
 
@@ -639,6 +662,7 @@ export function buildEditorProps(
     handleDrop: (view: EditorView, event: DragEvent, _slice: unknown, moved: boolean) => {
       const files = getDroppedFiles(event);
       if (files.length === 0) return false;
+      if (moved) return false;
       event.preventDefault();
       event.stopPropagation();
       if (files.length === 1 && files[0]?.type.startsWith("image/") && uploadFn) {
@@ -646,13 +670,7 @@ export function buildEditorProps(
       }
 
       const dropPos = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos;
-      files.forEach((file) => {
-        if (file.type.startsWith("image/") && uploadFn) {
-          uploadFn(file, view, dropPos ?? view.state.selection.from);
-        } else {
-          onNonImageFile?.(file);
-        }
-      });
+      void processFilesInOrder(files, view, dropPos ?? view.state.selection.from, uploadFn);
       return true;
     },
     handleDOMEvents: {

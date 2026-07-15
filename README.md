@@ -150,7 +150,8 @@ pnpm run preview
 | `pnpm run dev:remote`      | 使用 `wrangler.local.toml` 的远程 Cloudflare bindings 本地开发 |
 | `pnpm run build`           | 构建应用                                                       |
 | `pnpm run test:run`        | 通过 Vite+ / Vitest 跑测试                                     |
-| `pnpm run verify:quick`    | 跑 lint、test、build                                           |
+| `pnpm run typecheck:editor` | 检查编辑器迁移相关 TypeScript 类型                            |
+| `pnpm run verify:quick`    | 跑配置检查、lint、编辑器类型检查、test、build                  |
 | `pnpm run verify`          | 跑完整验证链路                                                 |
 | `pnpm run config:generate` | 根据环境变量契约生成 `.env.example`                            |
 | `pnpm run config:check`    | 检查环境变量配置是否与契约一致                                 |

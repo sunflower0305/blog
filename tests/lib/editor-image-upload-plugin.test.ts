@@ -78,4 +78,21 @@ describe("editor image upload plugin", () => {
     expect(editor.getHTML()).not.toContain("<img");
     editor.destroy();
   });
+
+  it("reports validation failures without starting an upload", async () => {
+    const editor = createEditor();
+    const onUpload = vi.fn().mockResolvedValue("/image.png");
+    const onValidationError = vi.fn();
+    const upload = createImageUpload({
+      validateFn: () => false,
+      onValidationError,
+      onUpload,
+    });
+    const file = new File(["image"], "image.png", { type: "image/png" });
+
+    await expect(upload(file, editor.view, editor.state.selection.from)).resolves.toBeNull();
+    expect(onValidationError).toHaveBeenCalledWith(file);
+    expect(onUpload).not.toHaveBeenCalled();
+    editor.destroy();
+  });
 });

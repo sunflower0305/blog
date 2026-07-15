@@ -264,9 +264,13 @@ export function InlineArticleEditor({
     [checkDirty],
   );
 
+  const handleImageValidationError = useCallback((_file: File, message: string) => {
+    setFeedback({ type: "error", message });
+  }, []);
+
   // Non-image file upload (video, audio, documents) with text placeholder
   const insertNonImageFile = useCallback(
-    async (file: File) => {
+    async (file: File, requestedPos?: number): Promise<number | null> => {
       // Images from file picker route through the image upload path
       if (file.type.startsWith("image/")) {
         try {
@@ -276,14 +280,14 @@ export function InlineArticleEditor({
         } catch {
           /* error already shown via feedback */
         }
-        return;
+        return null;
       }
 
       const editor = editorRef.current;
 
       if (!editor) {
         setFeedback({ type: "error", message: "编辑器还没准备好，请稍后再试。" });
-        return;
+        return null;
       }
 
       setUploadingFile(true);
@@ -291,15 +295,17 @@ export function InlineArticleEditor({
 
       // 插入占位符
       const placeholderMarker = createUploadPlaceholderMarker();
-      insertUploadPlaceholder(editor, file, placeholderMarker);
+      insertUploadPlaceholder(editor, file, placeholderMarker, requestedPos);
 
       try {
         const result = await uploadEditorFile(file);
 
-        removeUploadPlaceholder(editor, placeholderMarker);
-        insertUploadedFileIntoEditor(editor, file, result);
+        const placeholderPos = removeUploadPlaceholder(editor, placeholderMarker);
+        if (placeholderPos == null) return null;
+        const insertedEnd = insertUploadedFileIntoEditor(editor, file, result, placeholderPos);
 
         checkDirty(editor);
+        return insertedEnd;
       } catch (error) {
         console.error(error);
         // 移除占位符
@@ -310,6 +316,7 @@ export function InlineArticleEditor({
           type: "error",
           message: error instanceof Error ? error.message : "文件上传失败",
         });
+        return null;
       } finally {
         setUploadingFile(false);
         if (fileInputRef.current) {
@@ -382,10 +389,11 @@ export function InlineArticleEditor({
     () =>
       buildEditorProps(
         uploadImageAndGetUrl,
-        (file) => void insertNonImageFile(file),
+        insertNonImageFile,
         "inline-main-prose",
+        handleImageValidationError,
       ),
-    [insertNonImageFile, uploadImageAndGetUrl],
+    [handleImageValidationError, insertNonImageFile, uploadImageAndGetUrl],
   );
 
   return (

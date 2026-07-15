@@ -92,11 +92,16 @@ describe("editor-file-upload helpers", () => {
     ).toBe("📤 book.epub 上传中... [marker]");
   });
 
-  it("creates timestamped placeholder markers", () => {
+  it("creates unique placeholder markers even within the same millisecond", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-04-21T12:34:56Z"));
 
-    expect(createUploadPlaceholderMarker()).toBe(`⏳upload-${Date.now()}`);
+    const first = createUploadPlaceholderMarker();
+    const second = createUploadPlaceholderMarker();
+
+    expect(first).toContain(`⏳upload-${Date.now()}-`);
+    expect(second).toContain(`⏳upload-${Date.now()}-`);
+    expect(second).not.toBe(first);
 
     vi.useRealTimers();
   });
@@ -252,7 +257,7 @@ describe("editor-file-upload helpers", () => {
       },
     } as never;
 
-    expect(removeUploadPlaceholder(editor, "marker-1")).toBe(true);
+    expect(removeUploadPlaceholder(editor, "marker-1")).toBe(12);
     expect(deleteMock).toHaveBeenCalledWith(12, 18);
     expect(dispatch).toHaveBeenCalledWith("deleted-transaction");
   });
@@ -290,6 +295,31 @@ describe("editor-file-upload helpers", () => {
       name: "book.epub",
     });
     expect(insertContent).toHaveBeenCalledWith(
+      '<p><a href="/uploads/book.epub" target="_blank" rel="noopener">📎 book.epub</a></p>',
+    );
+  });
+
+  it("inserts an uploaded file at the removed placeholder position", () => {
+    const run = vi.fn();
+    const insertContentAt = vi.fn(() => ({ run }));
+    const focus = vi.fn(() => ({ insertContentAt }));
+    const chain = vi.fn(() => ({ focus }));
+    const editor = {
+      chain,
+      state: { doc: { nodeAt: vi.fn(() => ({ nodeSize: 8 })) } },
+    } as never;
+    const file = createFile("book.epub", "application/epub+zip");
+
+    expect(
+      insertUploadedFileIntoEditor(
+        editor,
+        file,
+        { url: "/uploads/book.epub", type: file.type, name: file.name },
+        12,
+      ),
+    ).toBe(20);
+    expect(insertContentAt).toHaveBeenCalledWith(
+      12,
       '<p><a href="/uploads/book.epub" target="_blank" rel="noopener">📎 book.epub</a></p>',
     );
   });

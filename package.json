@@ -20,6 +20,7 @@
     "check": "vp check",
     "test": "vp test",
     "test:run": "vp test run",
+    "typecheck:editor": "tsc --noEmit -p tsconfig.editor.json",
     "verify": "bash scripts/verify.sh full",
     "verify:quick": "bash scripts/verify.sh quick",
     "preview": "bash scripts/cf-preview-vinext.sh",

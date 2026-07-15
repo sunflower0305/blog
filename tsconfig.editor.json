@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "incremental": false,
+    "plugins": []
+  },
+  "include": [
+    "next-env.d.ts",
+    "components/InlineArticleEditor.tsx",
+    "components/PostEditor.tsx",
+    "components/TiptapEditorSurface.tsx",
+    "lib/editor-*.ts",
+    "lib/editor-*.tsx",
+    "tests/components/tiptap-editor-surface.test.ts",
+    "tests/lib/editor-*.test.ts"
+  ],
+  "exclude": ["node_modules", "vite.config.ts"]
+}

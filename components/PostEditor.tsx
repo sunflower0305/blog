@@ -626,30 +626,36 @@ export function PostEditor({ initialData }: PostEditorProps = {}) {
     [scheduleDraftSave],
   );
 
+  const handleImageValidationError = useCallback((_file: File, message: string) => {
+    setFeedback({ type: "error", message });
+  }, []);
+
   const insertNonImageFile = useCallback(
-    async (file: File) => {
+    async (file: File, requestedPos?: number): Promise<number | null> => {
       if (file.type.startsWith("image/")) {
         try {
           const url = await uploadImageAndGetUrl(file);
           editorRef.current?.chain().focus().setImage({ src: url, alt: file.name }).run();
         } catch {}
-        return;
+        return null;
       }
       const editor = editorRef.current;
       if (!editor) {
         setFeedback({ type: "error", message: "编辑器还没准备好" });
-        return;
+        return null;
       }
       setUploadingImage(true);
       setUploadProgress(0);
       setFeedback(null);
       const marker = createUploadPlaceholderMarker();
-      insertUploadPlaceholder(editor, file, marker);
+      insertUploadPlaceholder(editor, file, marker, requestedPos);
       try {
         const result = await uploadEditorFile(file, (p) => setUploadProgress(p));
-        removeUploadPlaceholder(editor, marker);
-        insertUploadedFileIntoEditor(editor, file, result);
+        const placeholderPos = removeUploadPlaceholder(editor, marker);
+        if (placeholderPos == null) return null;
+        const insertedEnd = insertUploadedFileIntoEditor(editor, file, result, placeholderPos);
         scheduleDraftSave(latestTitleRef.current, editor);
+        return insertedEnd;
       } catch (error) {
         try {
           removeUploadPlaceholder(editor, marker);
@@ -658,6 +664,7 @@ export function PostEditor({ initialData }: PostEditorProps = {}) {
           type: "error",
           message: error instanceof Error ? error.message : "文件上传失败",
         });
+        return null;
       } finally {
         setUploadingImage(false);
         setUploadProgress(0);
@@ -1068,10 +1075,11 @@ export function PostEditor({ initialData }: PostEditorProps = {}) {
     () =>
       buildEditorProps(
         uploadImageAndGetUrl,
-        (file) => void insertNonImageFile(file),
+        insertNonImageFile,
         "editor-main-prose",
+        handleImageValidationError,
       ),
-    [insertNonImageFile, uploadImageAndGetUrl],
+    [handleImageValidationError, insertNonImageFile, uploadImageAndGetUrl],
   );
 
   return (
