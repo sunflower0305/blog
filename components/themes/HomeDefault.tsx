@@ -17,15 +17,10 @@ const CATEGORY_COLORS = [
   "#8b6b47",
 ] as const;
 
-function formatDateShort(ts: number) {
-  const date = new Date(ts * 1000);
+function formatDateShort(date: Date) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${month}.${day}`;
-}
-
-function formatYear(ts: number) {
-  return new Date(ts * 1000).getFullYear();
 }
 
 function getCategoryColor(category: string | null) {
@@ -89,8 +84,8 @@ export function HomeDefault({
                 const categoryColor = getCategoryColor(post.category);
                 const categorySlug = post.category ? categorySlugMap[post.category] : undefined;
                 const publishedDate = new Date(post.published_at * 1000);
-                const dateLabel = formatDateShort(post.published_at);
-                const year = formatYear(post.published_at);
+                const dateLabel = formatDateShort(publishedDate);
+                const year = publishedDate.getFullYear();
 
                 return (
                   <article

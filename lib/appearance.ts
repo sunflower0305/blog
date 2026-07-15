@@ -79,14 +79,9 @@ export function getClientThemePreference(fallback: Theme): Theme {
   if (typeof window === "undefined") return fallback;
 
   const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
-  if (saved === "refined") return "default";
-  if (isTheme(saved)) return saved;
-
   const attr = document.documentElement.getAttribute("data-theme");
-  if (attr === "refined") return "default";
-  if (isTheme(attr)) return attr;
 
-  return fallback;
+  return normalizeTheme(saved, normalizeTheme(attr, fallback));
 }
 
 export function subscribeToThemeChange(onStoreChange: () => void): () => void {
