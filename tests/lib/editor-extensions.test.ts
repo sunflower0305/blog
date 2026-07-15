@@ -1,20 +1,26 @@
+// @vitest-environment happy-dom
+
+import { Editor } from "@tiptap/core";
 import { Selection, TextSelection, NodeSelection } from "@tiptap/pm/state";
 import { Schema } from "@tiptap/pm/model";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { shouldShowEditorBubble } from "@/lib/editor-bubble";
 import { codeLowlight, DEFAULT_CODE_LANGUAGE } from "@/lib/code-highlighting";
 import { createDefaultTableContent, hasMarkdownTable, normalizeUrl } from "@/lib/editor-utils";
-import { createEditorExtensions } from "@/lib/editor-extensions";
+import { buildEditorProps, createEditorExtensions } from "@/lib/editor-extensions";
+import { MAX_EDITOR_IMAGE_SIZE } from "@/lib/editor-image-upload-plugin";
 
 describe("editor-extensions helpers", () => {
   it("uses one TypeScript lowlight code block extension", () => {
-    const extensions = createEditorExtensions();
-    const starterKit = extensions.find((extension) => extension.name === "starterKit");
-    const starterExtensions = starterKit?.config.addExtensions?.call(starterKit) ?? [];
-    const expanded = extensions.flatMap((extension) =>
-      extension === starterKit ? starterExtensions : [extension],
+    const editor = new Editor({
+      element: document.createElement("div"),
+      extensions: createEditorExtensions(),
+      content: { type: "doc", content: [{ type: "paragraph" }] },
+    });
+    const names = editor.extensionManager.extensions.map((extension) => extension.name);
+    const starterKit = editor.extensionManager.extensions.find(
+      (extension) => extension.name === "starterKit",
     );
-    const names = expanded.map((extension) => extension.name);
 
     expect(DEFAULT_CODE_LANGUAGE).toBe("typescript");
     expect(codeLowlight.listLanguages()).toEqual(["typescript"]);
@@ -24,6 +30,7 @@ describe("editor-extensions helpers", () => {
     expect(names.filter((name) => name === "link")).toHaveLength(1);
     expect(names.filter((name) => name === "underline")).toHaveLength(1);
     expect(new Set(names).size).toBe(names.length);
+    editor.destroy();
   });
 
   it("creates a default table with header row and paragraph cells", () => {
@@ -53,6 +60,26 @@ describe("editor-extensions helpers", () => {
   it("detects markdown tables but ignores ordinary pipe text", () => {
     expect(hasMarkdownTable("| 列1 | 列2 |\n| --- | --- |\n| 值1 | 值2 |")).toBe(true);
     expect(hasMarkdownTable("普通文本 | 只是一个竖线，不是表格")).toBe(false);
+  });
+
+  it("blocks a single image larger than 100 MB before upload", () => {
+    const upload = vi.fn().mockResolvedValue("/oversized.png");
+    const props = buildEditorProps(upload);
+    const file = {
+      name: "oversized.png",
+      type: "image/png",
+      size: MAX_EDITOR_IMAGE_SIZE + 1,
+      lastModified: 1,
+    } as File;
+    const event = {
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn(),
+      clipboardData: { items: [], files: [file] },
+    } as unknown as ClipboardEvent;
+    const view = { state: { selection: { from: 1 } } } as never;
+
+    expect(props.handlePaste(view, event)).toBe(true);
+    expect(upload).not.toHaveBeenCalled();
   });
 
   it("normalizes URLs by preserving http(s) links and prefixing bare domains", () => {

@@ -10,6 +10,7 @@ import {
   createEditorExtensions,
   buildEditorProps,
   FormattingBubble,
+  getEditorCharacterCount,
 } from "@/lib/editor-extensions";
 import { InputModal } from "@/components/InputModal";
 import { CategorySelector } from "@/components/CategorySelector";
@@ -37,6 +38,7 @@ import {
 import type { EditorImageActionTarget } from "@/lib/resizable-image";
 import { resizeTextareaHeight, useAutoResizeTextarea } from "@/lib/textarea-autosize";
 import { setEditorHtmlContent } from "@/lib/editor-content";
+import { getEditorImageValidationError } from "@/lib/editor-image-upload-plugin";
 
 interface InlineArticleEditorProps {
   slug: string;
@@ -236,82 +238,90 @@ export function InlineArticleEditor({
   );
 
   // Image-only upload: returns the stable source URL for the local placeholder plugin.
-  const uploadImageAndGetUrl = async (file: File): Promise<string> => {
-    setUploadingFile(true);
-    setFeedback(null);
-    try {
-      const optimizedFile = await optimizeImageForUpload(file, EDITOR_IMAGE_OPTIMIZE_OPTIONS);
-      const result = await uploadEditorFile(optimizedFile);
-      const editor = editorRef.current;
-      if (editor) checkDirty(editor);
-      return getEditorImageSourceUrl(result);
-    } catch (error) {
-      setFeedback({
-        type: "error",
-        message: error instanceof Error ? error.message : "图片上传失败",
-      });
-      throw error;
-    } finally {
-      setUploadingFile(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  };
+  const uploadImageAndGetUrl = useCallback(
+    async (file: File): Promise<string> => {
+      setUploadingFile(true);
+      setFeedback(null);
+      try {
+        const validationError = getEditorImageValidationError(file);
+        if (validationError) throw new Error(validationError);
+        const optimizedFile = await optimizeImageForUpload(file, EDITOR_IMAGE_OPTIMIZE_OPTIONS);
+        const result = await uploadEditorFile(optimizedFile);
+        const editor = editorRef.current;
+        if (editor) checkDirty(editor);
+        return getEditorImageSourceUrl(result);
+      } catch (error) {
+        setFeedback({
+          type: "error",
+          message: error instanceof Error ? error.message : "图片上传失败",
+        });
+        throw error;
+      } finally {
+        setUploadingFile(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
+    },
+    [checkDirty],
+  );
 
   // Non-image file upload (video, audio, documents) with text placeholder
-  const insertNonImageFile = async (file: File) => {
-    // Images from file picker route through the image upload path
-    if (file.type.startsWith("image/")) {
-      try {
-        const url = await uploadImageAndGetUrl(file);
-        const editor = editorRef.current;
-        if (editor) editor.chain().focus().setImage({ src: url, alt: file.name }).run();
-      } catch {
-        /* error already shown via feedback */
+  const insertNonImageFile = useCallback(
+    async (file: File) => {
+      // Images from file picker route through the image upload path
+      if (file.type.startsWith("image/")) {
+        try {
+          const url = await uploadImageAndGetUrl(file);
+          const editor = editorRef.current;
+          if (editor) editor.chain().focus().setImage({ src: url, alt: file.name }).run();
+        } catch {
+          /* error already shown via feedback */
+        }
+        return;
       }
-      return;
-    }
 
-    const editor = editorRef.current;
+      const editor = editorRef.current;
 
-    if (!editor) {
-      setFeedback({ type: "error", message: "编辑器还没准备好，请稍后再试。" });
-      return;
-    }
+      if (!editor) {
+        setFeedback({ type: "error", message: "编辑器还没准备好，请稍后再试。" });
+        return;
+      }
 
-    setUploadingFile(true);
-    setFeedback(null);
+      setUploadingFile(true);
+      setFeedback(null);
 
-    // 插入占位符
-    const placeholderMarker = createUploadPlaceholderMarker();
-    insertUploadPlaceholder(editor, file, placeholderMarker);
+      // 插入占位符
+      const placeholderMarker = createUploadPlaceholderMarker();
+      insertUploadPlaceholder(editor, file, placeholderMarker);
 
-    try {
-      const result = await uploadEditorFile(file);
-
-      removeUploadPlaceholder(editor, placeholderMarker);
-      insertUploadedFileIntoEditor(editor, file, result);
-
-      checkDirty(editor);
-    } catch (error) {
-      console.error(error);
-      // 移除占位符
       try {
+        const result = await uploadEditorFile(file);
+
         removeUploadPlaceholder(editor, placeholderMarker);
-      } catch {}
-      setFeedback({
-        type: "error",
-        message: error instanceof Error ? error.message : "文件上传失败",
-      });
-    } finally {
-      setUploadingFile(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+        insertUploadedFileIntoEditor(editor, file, result);
+
+        checkDirty(editor);
+      } catch (error) {
+        console.error(error);
+        // 移除占位符
+        try {
+          removeUploadPlaceholder(editor, placeholderMarker);
+        } catch {}
+        setFeedback({
+          type: "error",
+          message: error instanceof Error ? error.message : "文件上传失败",
+        });
+      } finally {
+        setUploadingFile(false);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        if (fileUploadRef.current) {
+          fileUploadRef.current.value = "";
+        }
       }
-      if (fileUploadRef.current) {
-        fileUploadRef.current.value = "";
-      }
-    }
-  };
+    },
+    [checkDirty, uploadImageAndGetUrl],
+  );
 
   const insertGeneratedImage = useCallback(
     (imageUrl: string, alt: string) => {
@@ -368,10 +378,14 @@ export function InlineArticleEditor({
     resizeTextareaHeight(titleRef.current);
   }, [title]);
 
-  const editorProps = buildEditorProps(
-    (file) => uploadImageAndGetUrl(file),
-    (file) => void insertNonImageFile(file),
-    "inline-main-prose",
+  const editorProps = useMemo(
+    () =>
+      buildEditorProps(
+        uploadImageAndGetUrl,
+        (file) => void insertNonImageFile(file),
+        "inline-main-prose",
+      ),
+    [insertNonImageFile, uploadImageAndGetUrl],
   );
 
   return (
@@ -563,16 +577,12 @@ export function InlineArticleEditor({
         onCreate={({ editor }) => {
           editorRef.current = editor;
           setEditorHtmlContent(editor, html);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const st = editor.storage as any;
-          setCharCount(st.characterCount?.characters?.() ?? 0);
+          setCharCount(getEditorCharacterCount(editor));
         }}
         onUpdate={({ editor }) => {
           editorRef.current = editor;
           checkDirty(editor);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const st = editor.storage as any;
-          setCharCount(st.characterCount?.characters?.() ?? 0);
+          setCharCount(getEditorCharacterCount(editor));
         }}
         onDestroy={() => {
           editorRef.current = null;

@@ -60,7 +60,12 @@ import {
 import { shouldShowEditorBubble } from "./editor-bubble";
 import { createDefaultTableContent, hasMarkdownTable, normalizeUrl } from "./editor-utils";
 import { codeLowlight, DEFAULT_CODE_LANGUAGE } from "./code-highlighting";
-import { createImageUpload, handleImageDrop, handleImagePaste } from "./editor-image-upload-plugin";
+import {
+  createImageUpload,
+  handleImageDrop,
+  handleImagePaste,
+  isValidEditorImage,
+} from "./editor-image-upload-plugin";
 import {
   createSlashCommand,
   createSuggestionItems,
@@ -513,6 +518,10 @@ export function createEditorExtensions(options: EditorExtensionOptions = {}) {
 
 export const editorExtensions = createEditorExtensions();
 
+export function getEditorCharacterCount(editor: Editor) {
+  return editor.storage.characterCount.characters();
+}
+
 export function buildEditorProps(
   onImageUpload?: (file: File) => Promise<string>,
   onNonImageFile?: (file: File) => void,
@@ -551,6 +560,7 @@ export function buildEditorProps(
 
   const uploadFn = onImageUpload
     ? createImageUpload({
+        validateFn: isValidEditorImage,
         onUpload: async (file) => {
           const url = await onImageUpload(file);
           return url;
@@ -569,7 +579,7 @@ export function buildEditorProps(
         }
 
         files.forEach((file) => {
-          if (file.type.startsWith("image/") && file.size <= 100 * 1024 * 1024 && uploadFn) {
+          if (file.type.startsWith("image/") && uploadFn) {
             uploadFn(file, view, view.state.selection.from);
           } else {
             onNonImageFile?.(file);
@@ -637,7 +647,7 @@ export function buildEditorProps(
 
       const dropPos = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos;
       files.forEach((file) => {
-        if (file.type.startsWith("image/") && file.size <= 100 * 1024 * 1024 && uploadFn) {
+        if (file.type.startsWith("image/") && uploadFn) {
           uploadFn(file, view, dropPos ?? view.state.selection.from);
         } else {
           onNonImageFile?.(file);
@@ -1125,9 +1135,7 @@ export function EditorFooter({ saveStatus }: { saveStatus: DraftSaveStatus }) {
   const { editor } = useCurrentEditor();
   if (!editor) return null;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const storage = editor.storage as any;
-  const chars: number = storage.characterCount?.characters?.() ?? 0;
+  const chars = getEditorCharacterCount(editor);
 
   return (
     <div className="pointer-events-none absolute right-4 top-3 flex items-center gap-2 z-10">

@@ -25,6 +25,7 @@ import {
   createEditorExtensions,
   buildEditorProps,
   FormattingBubble,
+  getEditorCharacterCount,
 } from "@/lib/editor-extensions";
 import { generatePassword } from "@/lib/password";
 import { InputModal } from "@/components/InputModal";
@@ -64,6 +65,7 @@ import { buildAutoDescription, normalizePostSlug, sanitizePostSlugInput } from "
 import { getSiteDisplayUrl, getSiteUrl } from "@/lib/site-config";
 import { resizeTextareaHeight, useAutoResizeTextarea } from "@/lib/textarea-autosize";
 import { setEditorHtmlContent } from "@/lib/editor-content";
+import { getEditorImageValidationError } from "@/lib/editor-image-upload-plugin";
 
 type SaveFeedback = { type: "success" | "error"; message: string; slug?: string } | null;
 
@@ -596,67 +598,75 @@ export function PostEditor({ initialData }: PostEditorProps = {}) {
   );
 
   // ── File upload ──
-  const uploadImageAndGetUrl = async (file: File): Promise<string> => {
-    setUploadingImage(true);
-    setUploadProgress(0);
-    setFeedback(null);
-    try {
-      const optimizedFile = await optimizeImageForUpload(file, EDITOR_IMAGE_OPTIMIZE_OPTIONS);
-      const result = await uploadEditorFile(optimizedFile, (p) => setUploadProgress(p));
-      if (editorRef.current) scheduleDraftSave(latestTitleRef.current, editorRef.current);
-      return getEditorImageSourceUrl(result);
-    } catch (error) {
-      setFeedback({
-        type: "error",
-        message: error instanceof Error ? error.message : "图片上传失败",
-      });
-      throw error;
-    } finally {
-      setUploadingImage(false);
+  const uploadImageAndGetUrl = useCallback(
+    async (file: File): Promise<string> => {
+      setUploadingImage(true);
       setUploadProgress(0);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      if (fileUploadRef.current) fileUploadRef.current.value = "";
-    }
-  };
+      setFeedback(null);
+      try {
+        const validationError = getEditorImageValidationError(file);
+        if (validationError) throw new Error(validationError);
+        const optimizedFile = await optimizeImageForUpload(file, EDITOR_IMAGE_OPTIMIZE_OPTIONS);
+        const result = await uploadEditorFile(optimizedFile, (p) => setUploadProgress(p));
+        if (editorRef.current) scheduleDraftSave(latestTitleRef.current, editorRef.current);
+        return getEditorImageSourceUrl(result);
+      } catch (error) {
+        setFeedback({
+          type: "error",
+          message: error instanceof Error ? error.message : "图片上传失败",
+        });
+        throw error;
+      } finally {
+        setUploadingImage(false);
+        setUploadProgress(0);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        if (fileUploadRef.current) fileUploadRef.current.value = "";
+      }
+    },
+    [scheduleDraftSave],
+  );
 
-  const insertNonImageFile = async (file: File) => {
-    if (file.type.startsWith("image/")) {
-      try {
-        const url = await uploadImageAndGetUrl(file);
-        editorRef.current?.chain().focus().setImage({ src: url, alt: file.name }).run();
-      } catch {}
-      return;
-    }
-    const editor = editorRef.current;
-    if (!editor) {
-      setFeedback({ type: "error", message: "编辑器还没准备好" });
-      return;
-    }
-    setUploadingImage(true);
-    setUploadProgress(0);
-    setFeedback(null);
-    const marker = createUploadPlaceholderMarker();
-    insertUploadPlaceholder(editor, file, marker);
-    try {
-      const result = await uploadEditorFile(file, (p) => setUploadProgress(p));
-      removeUploadPlaceholder(editor, marker);
-      insertUploadedFileIntoEditor(editor, file, result);
-      scheduleDraftSave(latestTitleRef.current, editor);
-    } catch (error) {
-      try {
-        removeUploadPlaceholder(editor, marker);
-      } catch {}
-      setFeedback({
-        type: "error",
-        message: error instanceof Error ? error.message : "文件上传失败",
-      });
-    } finally {
-      setUploadingImage(false);
+  const insertNonImageFile = useCallback(
+    async (file: File) => {
+      if (file.type.startsWith("image/")) {
+        try {
+          const url = await uploadImageAndGetUrl(file);
+          editorRef.current?.chain().focus().setImage({ src: url, alt: file.name }).run();
+        } catch {}
+        return;
+      }
+      const editor = editorRef.current;
+      if (!editor) {
+        setFeedback({ type: "error", message: "编辑器还没准备好" });
+        return;
+      }
+      setUploadingImage(true);
       setUploadProgress(0);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      if (fileUploadRef.current) fileUploadRef.current.value = "";
-    }
-  };
+      setFeedback(null);
+      const marker = createUploadPlaceholderMarker();
+      insertUploadPlaceholder(editor, file, marker);
+      try {
+        const result = await uploadEditorFile(file, (p) => setUploadProgress(p));
+        removeUploadPlaceholder(editor, marker);
+        insertUploadedFileIntoEditor(editor, file, result);
+        scheduleDraftSave(latestTitleRef.current, editor);
+      } catch (error) {
+        try {
+          removeUploadPlaceholder(editor, marker);
+        } catch {}
+        setFeedback({
+          type: "error",
+          message: error instanceof Error ? error.message : "文件上传失败",
+        });
+      } finally {
+        setUploadingImage(false);
+        setUploadProgress(0);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        if (fileUploadRef.current) fileUploadRef.current.value = "";
+      }
+    },
+    [scheduleDraftSave, uploadImageAndGetUrl],
+  );
 
   const handleSelectedFiles = async (files: FileList | File[] | null | undefined) => {
     const queue = files ? Array.from(files) : [];
@@ -1054,6 +1064,15 @@ export function PostEditor({ initialData }: PostEditorProps = {}) {
     const currentSlug = normalizePostSlug(editSlug || slug);
     return currentSlug ? `https://${SITE_DISPLAY_URL}/${currentSlug}` : "";
   }, [editSlug, slug]);
+  const editorProps = useMemo(
+    () =>
+      buildEditorProps(
+        uploadImageAndGetUrl,
+        (file) => void insertNonImageFile(file),
+        "editor-main-prose",
+      ),
+    [insertNonImageFile, uploadImageAndGetUrl],
+  );
 
   return (
     <div className="min-h-screen bg-[var(--editor-app-bg)]">
@@ -1376,16 +1395,10 @@ export function PostEditor({ initialData }: PostEditorProps = {}) {
                   initialContent={initialContent}
                   extensions={imageExtensions}
                   className="editor-surface"
-                  editorProps={buildEditorProps(
-                    (file) => uploadImageAndGetUrl(file),
-                    (file) => void insertNonImageFile(file),
-                    "editor-main-prose",
-                  )}
+                  editorProps={editorProps}
                   onCreate={({ editor }) => {
                     editorRef.current = editor;
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const st = editor.storage as any;
-                    setCharCount(st.characterCount?.characters?.() ?? 0);
+                    setCharCount(getEditorCharacterCount(editor));
                     if (initialData?.html) {
                       skipNextEditorUpdateRef.current = true;
                       setEditorHtmlContent(editor, initialData.html);
@@ -1413,16 +1426,12 @@ export function PostEditor({ initialData }: PostEditorProps = {}) {
 
                     if (skipNextEditorUpdateRef.current) {
                       skipNextEditorUpdateRef.current = false;
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      const st = editor.storage as any;
-                      setCharCount(st.characterCount?.characters?.() ?? 0);
+                      setCharCount(getEditorCharacterCount(editor));
                       return;
                     }
 
                     scheduleDraftSave(latestTitleRef.current, editor);
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const st = editor.storage as any;
-                    setCharCount(st.characterCount?.characters?.() ?? 0);
+                    setCharCount(getEditorCharacterCount(editor));
                   }}
                   onDestroy={() => {
                     editorRef.current = null;

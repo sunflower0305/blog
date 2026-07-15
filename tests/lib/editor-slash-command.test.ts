@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   createSlashCommand,
+  getNextSuggestionTitle,
   isSlashNavigationKey,
   matchesSuggestionItem,
   type SuggestionItem,
@@ -28,6 +29,15 @@ describe("editor slash command", () => {
     expect(isSlashNavigationKey("Enter")).toBe(true);
     expect(isSlashNavigationKey("Escape")).toBe(true);
     expect(isSlashNavigationKey("Tab")).toBe(false);
+  });
+
+  it("loops controlled cmdk selection at both list boundaries", () => {
+    const items = [item, { ...item, title: "表格" }, { ...item, title: "代码块" }];
+
+    expect(getNextSuggestionTitle(items, "生成图片", "previous")).toBe("代码块");
+    expect(getNextSuggestionTitle(items, "代码块", "next")).toBe("生成图片");
+    expect(getNextSuggestionTitle(items, "", "next")).toBe("生成图片");
+    expect(getNextSuggestionTitle([], "", "next")).toBe("");
   });
 
   it("executes the selected item with the current editor and suggestion range", () => {

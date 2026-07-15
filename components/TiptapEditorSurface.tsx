@@ -2,13 +2,16 @@
 
 import type { Content, Editor, EditorOptions, Extensions } from "@tiptap/core";
 import { EditorContent, EditorContext, useEditor, type EditorEvents } from "@tiptap/react";
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useRef, type ReactNode } from "react";
+
+const EMPTY_EDITOR_PROPS: NonNullable<EditorOptions["editorProps"]> = {};
 
 interface TiptapEditorSurfaceProps {
   children?: ReactNode;
   className?: string;
   extensions: Extensions;
   editorProps?: EditorOptions["editorProps"];
+  /** Read once when the editor instance is created; later content changes must use editor commands. */
   initialContent?: Content;
   onCreate?: (props: EditorEvents["create"]) => void;
   onDestroy?: (props: EditorEvents["destroy"]) => void;
@@ -25,10 +28,11 @@ export function TiptapEditorSurface({
   onDestroy,
   onUpdate,
 }: TiptapEditorSurfaceProps) {
+  const initialContentRef = useRef(initialContent);
   const editor = useEditor({
     extensions,
-    editorProps: editorProps ?? {},
-    content: initialContent,
+    editorProps: editorProps ?? EMPTY_EDITOR_PROPS,
+    content: initialContentRef.current,
     immediatelyRender: false,
     onCreate,
     onDestroy,

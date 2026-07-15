@@ -2,6 +2,7 @@ import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet, type EditorView } from "@tiptap/pm/view";
 
 const uploadImagePluginKey = new PluginKey<DecorationSet>("editor-image-upload");
+export const MAX_EDITOR_IMAGE_SIZE = 100 * 1024 * 1024;
 
 type UploadMarker = { id: object; pos: number; src: string };
 
@@ -56,6 +57,16 @@ function findUploadPosition(view: EditorView, id: object) {
 export interface ImageUploadOptions {
   validateFn?: (file: File) => boolean;
   onUpload: (file: File) => Promise<string>;
+}
+
+export function getEditorImageValidationError(file: File) {
+  if (!file.type.startsWith("image/")) return "仅支持图片文件";
+  if (file.size > MAX_EDITOR_IMAGE_SIZE) return "图片太大，最大支持 100MB";
+  return null;
+}
+
+export function isValidEditorImage(file: File) {
+  return getEditorImageValidationError(file) === null;
 }
 
 export type UploadFn = (file: File, view: EditorView, pos: number) => void;

@@ -4,7 +4,13 @@ import { Editor, Extension } from "@tiptap/core";
 import Image from "@tiptap/extension-image";
 import StarterKit from "@tiptap/starter-kit";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createImageUpload, UploadImagesPlugin } from "@/lib/editor-image-upload-plugin";
+import {
+  createImageUpload,
+  getEditorImageValidationError,
+  isValidEditorImage,
+  MAX_EDITOR_IMAGE_SIZE,
+  UploadImagesPlugin,
+} from "@/lib/editor-image-upload-plugin";
 
 function createEditor() {
   const UploadExtension = Extension.create({
@@ -29,6 +35,18 @@ describe("editor image upload plugin", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("rejects non-images and images larger than 100 MB", () => {
+    const validImage = { type: "image/png", size: MAX_EDITOR_IMAGE_SIZE } as File;
+    const oversizedImage = { type: "image/png", size: MAX_EDITOR_IMAGE_SIZE + 1 } as File;
+    const documentFile = { type: "application/pdf", size: 1024 } as File;
+
+    expect(isValidEditorImage(validImage)).toBe(true);
+    expect(isValidEditorImage(oversizedImage)).toBe(false);
+    expect(isValidEditorImage(documentFile)).toBe(false);
+    expect(getEditorImageValidationError(oversizedImage)).toBe("图片太大，最大支持 100MB");
+    expect(getEditorImageValidationError(documentFile)).toBe("仅支持图片文件");
   });
 
   it("shows a translucent placeholder and replaces it with an image on success", async () => {
