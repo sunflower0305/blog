@@ -5,7 +5,7 @@ allowBuilds:
   unrs-resolver: true
   workerd: true
 overrides:
-  vitest: 4.1.9
+  vitest: 4.1.10
   "@tiptap/extension-code-block-lowlight@2.27.2>@tiptap/extension-code-block": 2.27.2
   # 锁定 ProseMirror 到单一版本，防止 novel(Tiptap 2) 与自定义扩展(Tiptap 3)
   # 各自拉起不同的底层 prosemirror 实例，触发 keyed-plugin / schema 双实例崩溃。
@@ -42,7 +42,7 @@ minimumReleaseAgeExclude:
   - lucide-react@1.23.0
   - next@16.2.10
   - vite-plus@0.2.2 || 0.2.4
-  - vitest@4.1.9
+  - vitest@4.1.10
   - vinext@1.0.0-beta.0 || 1.0.0-beta.1
   - "@vinext/cloudflare@1.0.0-beta.0 || 1.0.0-beta.1"
   - "@voidzero-dev/vite-plus-darwin-arm64@0.2.4"
