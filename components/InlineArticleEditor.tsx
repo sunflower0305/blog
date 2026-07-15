@@ -1,5 +1,6 @@
 "use client";
 
+import "@/app/editor.css";
 import Link from "next/link";
 import { useRef, useState, useCallback, useEffect, useMemo } from "react";
 import { ImageIcon, WandSparkles } from "lucide-react";

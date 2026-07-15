@@ -1,3 +1,5 @@
+import "../content.css";
+import "../editor.css";
 import { getPostBySlug } from "@/lib/db";
 import { getAppCloudflareEnv } from "@/lib/cloudflare";
 import { isAdminAuthenticated, COOKIE_NAME } from "@/lib/admin-auth";

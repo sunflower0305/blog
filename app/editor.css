@@ -1,0 +1,258 @@
+/* editor.css — 完整编辑器与管理员前台内联编辑专用样式 */
+
+.editor-floating-menu {
+  color-scheme: light;
+  --background: #ffffff;
+  --editor-panel: #ffffff;
+  --editor-soft: #f4f1eb;
+  --editor-line: #e6dfd4;
+  --editor-ink: #17120d;
+  --editor-muted: #68635b;
+  --editor-accent: #c96442;
+  --editor-accent-ink: #fffaf5;
+  --stone-gray: #87867f;
+  color: var(--editor-ink);
+}
+
+.editor-surface {
+  min-height: calc(100vh - 13rem);
+}
+
+.novel-prose {
+  min-height: calc(100vh - 13rem);
+  padding: 2.75rem 1.5rem 3rem;
+  /* 文字颜色由 content.css 的 :is(.novel-prose, .rich-content) 规则提供，
+     与拆分前的层叠结果保持一致（article-body 覆盖 editor-ink）。 */
+  font-size: 1.06rem;
+  line-height: 1.9;
+  outline: none;
+  caret-color: var(--editor-accent);
+}
+
+@media (min-width: 640px) {
+  .novel-prose {
+    padding-inline: 2.5rem;
+  }
+}
+
+.editor-main-prose {
+  min-height: calc(100vh - 16rem);
+  padding: 0 0 3rem;
+}
+
+.inline-main-prose {
+  min-height: auto;
+  padding: 0;
+  font-size: 1rem;
+  line-height: 1.85;
+}
+
+@media (min-width: 640px) {
+  .inline-main-prose {
+    font-size: 1.06rem;
+    line-height: 1.9;
+  }
+}
+
+.editor-title-textarea,
+.editor-title-textarea:focus,
+.editor-title-textarea:focus-visible {
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent;
+}
+
+/* 编辑器中表格选中态 */
+.novel-prose table .selectedCell {
+  background: var(--editor-selection);
+}
+
+.novel-prose img:hover {
+  cursor: pointer;
+  filter: brightness(0.98);
+}
+
+.novel-prose img.ProseMirror-selectednode {
+  outline: 3px solid #8cb7ff;
+}
+
+.novel-prose .ProseMirror-selectednode {
+  background: var(--editor-selection);
+}
+
+/* ── 全局块拖拽把手 ── */
+.drag-handle {
+  position: fixed;
+  opacity: 0.4;
+  transition: opacity 0.15s ease;
+  cursor: grab;
+  width: 20px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  z-index: 50;
+}
+.drag-handle.hide {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+.drag-handle:hover {
+  opacity: 1 !important;
+  background: var(--editor-soft);
+}
+.drag-handle::after {
+  content: "";
+  display: block;
+  width: 10px;
+  height: 14px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='14' fill='%2387867f'%3E%3Ccircle cx='3' cy='2' r='1.5'/%3E%3Ccircle cx='7' cy='2' r='1.5'/%3E%3Ccircle cx='3' cy='7' r='1.5'/%3E%3Ccircle cx='7' cy='7' r='1.5'/%3E%3Ccircle cx='3' cy='12' r='1.5'/%3E%3Ccircle cx='7' cy='12' r='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* ── 图片拖拽缩放 ── */
+.resizable-image-wrapper {
+  display: flex;
+  justify-content: center;
+  margin: 1em 0;
+}
+
+.resizable-image {
+  position: relative;
+  display: inline-block;
+  transition: outline 0.15s;
+}
+
+.resizable-image.selected {
+  outline: 2px solid var(--editor-accent, #c96442);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.resizable-image.resizing {
+  user-select: none;
+}
+
+.resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: col-resize;
+  background: var(--editor-accent, #c96442);
+  opacity: 0;
+  transition: opacity 0.15s;
+  border-radius: 4px;
+}
+
+.resizable-image:hover .resize-handle,
+.resizable-image.selected .resize-handle {
+  opacity: 0.6;
+}
+
+.resize-handle:hover {
+  opacity: 1 !important;
+}
+
+.resize-handle-left {
+  left: -4px;
+}
+
+.resize-handle-right {
+  right: -4px;
+}
+
+.editor-image-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border-radius: 0.9rem;
+  padding: 0.65rem 0.8rem;
+  font-size: 0.92rem;
+  color: var(--editor-ink);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.editor-image-menu-item:hover {
+  background: var(--editor-soft);
+}
+
+.editor-image-menu-item-active {
+  background: color-mix(in srgb, var(--editor-accent) 10%, white);
+  color: var(--editor-accent);
+}
+
+/* 内联编辑器：去掉全页编辑器的 padding 和 min-height，融入文章详情页 */
+.inline-editor .novel-prose {
+  min-height: auto;
+  padding: 0;
+  font-size: 1rem;
+  line-height: 1.85;
+}
+
+@media (min-width: 640px) {
+  .inline-editor .novel-prose {
+    font-size: 1.06rem;
+    line-height: 1.9;
+  }
+}
+
+.inline-editor .editor-surface {
+  min-height: auto;
+}
+
+/* ── 数学公式：编辑态 ── */
+.math-node-editing {
+  margin: 1rem 0;
+}
+.math-editor-container {
+  border: 1px solid var(--editor-line);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  background: #fafafa;
+}
+.math-editor-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--editor-muted);
+  margin-bottom: 0.4rem;
+}
+.math-editor-input {
+  width: 100%;
+  font-family: "SF Mono", "Fira Code", monospace;
+  font-size: 0.9rem;
+  border: 1px solid var(--editor-line);
+  border-radius: 4px;
+  padding: 0.5rem;
+  background: var(--background);
+  color: var(--editor-ink);
+  resize: vertical;
+  outline: none;
+}
+.math-editor-input:focus {
+  border-color: var(--editor-accent);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+.math-node-rendered {
+  margin: 1rem 0;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+.math-node-rendered:hover {
+  background: #f0f4ff;
+}
+.math-selected {
+  background: #e8f0fe;
+}

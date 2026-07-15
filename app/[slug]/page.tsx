@@ -1,3 +1,4 @@
+import "../content.css";
 import { getPostBySlug, isPubliclyAccessiblePost, isSearchIndexablePost } from "@/lib/db";
 import { getAppCloudflareEnv } from "@/lib/cloudflare";
 import { verifyPassword } from "@/lib/password";
