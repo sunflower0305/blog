@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, Copy, History, Loader2, Sparkles } from "lucide-react";
-import type { EditorInstance } from "novel";
+import type { Editor } from "@tiptap/core";
 import {
   appendStoredHistoryItem,
   LOCAL_HISTORY_UPDATED_EVENT,
@@ -120,7 +120,7 @@ export function extractTitleCandidate(markdown: string) {
 }
 
 interface AIModalProps {
-  editor: EditorInstance;
+  editor: Editor;
   isOpen: boolean;
   onClose: () => void;
   selectedText: string;

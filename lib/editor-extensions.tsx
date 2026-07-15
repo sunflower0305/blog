@@ -1,32 +1,16 @@
 "use client";
 
-import {
-  CharacterCount,
-  CodeBlockLowlight,
-  Color,
-  Command as SlashCommand,
-  HighlightExtension,
-  createSuggestionItems,
-  EditorBubble,
-  EditorCommand,
-  EditorCommandEmpty,
-  EditorCommandItem,
-  EditorCommandList,
-  EditorInstance,
-  StarterKit,
-  TaskItem,
-  TaskList,
-  TextStyle,
-  TiptapLink,
-  TiptapUnderline,
-  createImageUpload,
-  handleImagePaste,
-  handleImageDrop,
-  handleCommandNavigation,
-  renderItems,
-  type SuggestionItem,
-  useEditor,
-} from "novel";
+import type { Editor } from "@tiptap/core";
+import CharacterCount from "@tiptap/extension-character-count";
+import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
+import Color from "@tiptap/extension-color";
+import Highlight from "@tiptap/extension-highlight";
+import TaskItem from "@tiptap/extension-task-item";
+import TaskList from "@tiptap/extension-task-list";
+import { TextStyle } from "@tiptap/extension-text-style";
+import StarterKit from "@tiptap/starter-kit";
+import { useCurrentEditor } from "@tiptap/react";
+import { BubbleMenu } from "@tiptap/react/menus";
 import { Table, TableRow, TableCell, TableHeader } from "@tiptap/extension-table";
 import Youtube from "@tiptap/extension-youtube";
 import GlobalDragHandle from "tiptap-extension-global-drag-handle";
@@ -76,6 +60,12 @@ import {
 import { shouldShowEditorBubble } from "./editor-bubble";
 import { createDefaultTableContent, hasMarkdownTable, normalizeUrl } from "./editor-utils";
 import { codeLowlight, DEFAULT_CODE_LANGUAGE } from "./code-highlighting";
+import { createImageUpload, handleImageDrop, handleImagePaste } from "./editor-image-upload-plugin";
+import {
+  createSlashCommand,
+  createSuggestionItems,
+  type SuggestionItem,
+} from "./editor-slash-command";
 
 const md = markdownit({ html: true });
 
@@ -177,8 +167,8 @@ const TEXT_OPTIONS: Array<{
   id: string;
   label: string;
   icon: React.ReactNode;
-  isActive: (editor: EditorInstance) => boolean;
-  apply: (editor: EditorInstance) => void;
+  isActive: (editor: Editor) => boolean;
+  apply: (editor: Editor) => void;
 }> = [
   {
     id: "paragraph",
@@ -472,9 +462,7 @@ export const suggestionItems = createSuggestionItems([
   },
 ] satisfies SuggestionItem[]);
 
-const slashCommand = SlashCommand.configure({
-  suggestion: { items: () => suggestionItems, render: renderItems },
-});
+const slashCommand = createSlashCommand(suggestionItems);
 
 export interface EditorExtensionOptions {
   imageActions?: ResizableImageActionHandlers;
@@ -482,18 +470,20 @@ export interface EditorExtensionOptions {
 
 export function createEditorExtensions(options: EditorExtensionOptions = {}) {
   return [
-    StarterKit.configure({ heading: { levels: [1, 2, 3] }, codeBlock: false }),
+    StarterKit.configure({
+      heading: { levels: [1, 2, 3] },
+      codeBlock: false,
+      link: { openOnClick: false, autolink: true, linkOnPaste: true },
+    }),
     CodeBlockLowlight.configure({
       lowlight: codeLowlight,
       defaultLanguage: DEFAULT_CODE_LANGUAGE,
     }),
     TextStyle,
     Color,
-    HighlightExtension,
+    Highlight.configure({ multicolor: true }),
     CharacterCount,
     ResizableImage.configure({ imageActions: options.imageActions ?? {} } as never),
-    TiptapUnderline,
-    TiptapLink.configure({ openOnClick: false, autolink: true, linkOnPaste: true }),
     TaskList,
     TaskItem.configure({ nested: true }),
     Table.configure({ resizable: false, HTMLAttributes: { class: "tiptap-table" } }),
@@ -559,7 +549,6 @@ export function buildEditorProps(
 
   const getDroppedFiles = (event: DragEvent) => collectFiles(event.dataTransfer?.files);
 
-  // 不传 validateFn — Novel 有 bug，validateFn 返回 void 会导致上传被跳过
   const uploadFn = onImageUpload
     ? createImageUpload({
         onUpload: async (file) => {
@@ -573,28 +562,19 @@ export function buildEditorProps(
     handlePaste: (view: EditorView, event: ClipboardEvent) => {
       const files = getClipboardFiles(event);
       if (files.length > 0) {
-        if (onNonImageFile) {
-          event.preventDefault();
-          event.stopPropagation();
-          files.forEach((currentFile) => onNonImageFile(currentFile));
-          return true;
-        }
-
-        const [file] = files;
-
-        // Image files: validate then use Novel's upload with visual placeholder
-        if (
-          files.length === 1 &&
-          file.type.startsWith("image/") &&
-          file.size <= 100 * 1024 * 1024 &&
-          uploadFn
-        ) {
-          if (handleImagePaste(view, event, uploadFn)) return true;
-        }
-
-        // Fallback: block native browser behavior when file upload isn't handled
         event.preventDefault();
         event.stopPropagation();
+        if (files.length === 1 && files[0]?.type.startsWith("image/") && uploadFn) {
+          return handleImagePaste(view, event, uploadFn);
+        }
+
+        files.forEach((file) => {
+          if (file.type.startsWith("image/") && file.size <= 100 * 1024 * 1024 && uploadFn) {
+            uploadFn(file, view, view.state.selection.from);
+          } else {
+            onNonImageFile?.(file);
+          }
+        });
         return true;
       }
 
@@ -649,33 +629,23 @@ export function buildEditorProps(
     handleDrop: (view: EditorView, event: DragEvent, _slice: unknown, moved: boolean) => {
       const files = getDroppedFiles(event);
       if (files.length === 0) return false;
-
-      if (onNonImageFile) {
-        event.preventDefault();
-        event.stopPropagation();
-        files.forEach((currentFile) => onNonImageFile(currentFile));
-        return true;
-      }
-
-      const [file] = files;
-
-      // Image files: validate then use Novel's upload with visual placeholder
-      if (
-        files.length === 1 &&
-        file.type.startsWith("image/") &&
-        file.size <= 100 * 1024 * 1024 &&
-        uploadFn
-      ) {
-        if (handleImageDrop(view, event, moved, uploadFn)) return true;
-      }
-
-      // Fallback: block native browser behavior when file upload isn't handled
       event.preventDefault();
       event.stopPropagation();
+      if (files.length === 1 && files[0]?.type.startsWith("image/") && uploadFn) {
+        return handleImageDrop(view, event, moved, uploadFn);
+      }
+
+      const dropPos = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos;
+      files.forEach((file) => {
+        if (file.type.startsWith("image/") && file.size <= 100 * 1024 * 1024 && uploadFn) {
+          uploadFn(file, view, dropPos ?? view.state.selection.from);
+        } else {
+          onNonImageFile?.(file);
+        }
+      });
       return true;
     },
     handleDOMEvents: {
-      keydown: (_view: unknown, event: KeyboardEvent) => handleCommandNavigation(event),
       click: (_view: unknown, event: MouseEvent) => {
         if (event.metaKey || event.ctrlKey) {
           const target = event.target as HTMLElement;
@@ -692,7 +662,7 @@ export function buildEditorProps(
 }
 
 export function FormattingBubble() {
-  const { editor } = useEditor();
+  const { editor } = useCurrentEditor();
   const [mode, setMode] = useState<BubbleMode>("main");
   const [colorTarget, setColorTarget] = useState<BubbleColorTarget>("text");
   const [linkValue, setLinkValue] = useState("");
@@ -778,8 +748,8 @@ export function FormattingBubble() {
   const toggleMode = (next: BubbleMode) => setMode((prev) => (prev === next ? "main" : next));
 
   return (
-    <EditorBubble
-      tippyOptions={{ placement: "top", interactive: true, maxWidth: "none" }}
+    <BubbleMenu
+      options={{ placement: "top", offset: 8, flip: true, shift: { padding: 8 } }}
       shouldShow={({ editor: currentEditor }) => {
         return shouldShowEditorBubble(currentEditor.state.selection, currentEditor.isEditable);
       }}
@@ -1145,14 +1115,14 @@ export function FormattingBubble() {
           )}
         </div>
       )}
-    </EditorBubble>
+    </BubbleMenu>
   );
 }
 
 export type DraftSaveStatus = "idle" | "saving" | "saved";
 
 export function EditorFooter({ saveStatus }: { saveStatus: DraftSaveStatus }) {
-  const { editor } = useEditor();
+  const { editor } = useCurrentEditor();
   if (!editor) return null;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1176,32 +1146,5 @@ export function EditorFooter({ saveStatus }: { saveStatus: DraftSaveStatus }) {
         {saveStatus === "saving" ? "正在保存…" : "已保存"}
       </span>
     </div>
-  );
-}
-
-export function SlashMenu() {
-  return (
-    <EditorCommand className="editor-floating-menu z-50 h-auto max-h-[340px] w-80 overflow-y-auto rounded-md border border-[var(--editor-line)] bg-white p-1 shadow-[0_20px_40px_rgba(37,32,24,0.14)]">
-      <EditorCommandEmpty className="px-3 py-2 text-sm text-[var(--editor-muted)]">
-        没找到匹配项
-      </EditorCommandEmpty>
-      <EditorCommandList>
-        {suggestionItems.map((item) => (
-          <EditorCommandItem
-            key={item.title}
-            value={item.title}
-            keywords={item.searchTerms}
-            onCommand={(props) => item.command?.(props)}
-            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition hover:bg-[var(--editor-soft)] aria-selected:bg-[var(--editor-soft)]"
-          >
-            {item.icon}
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-[var(--editor-ink)]">{item.title}</p>
-              <p className="truncate text-xs text-[var(--editor-muted)]">{item.description}</p>
-            </div>
-          </EditorCommandItem>
-        ))}
-      </EditorCommandList>
-    </EditorCommand>
   );
 }

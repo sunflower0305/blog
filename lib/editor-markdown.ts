@@ -1,6 +1,6 @@
 import { DOMParser as PMDOMParser } from "@tiptap/pm/model";
 import { TextSelection } from "@tiptap/pm/state";
-import type { EditorInstance } from "novel";
+import type { Editor } from "@tiptap/core";
 import markdownit from "markdown-it";
 
 const markdownParser = markdownit({
@@ -8,7 +8,7 @@ const markdownParser = markdownit({
   linkify: true,
 });
 
-function resolveRange(editor: EditorInstance, range?: { from: number; to: number } | null) {
+function resolveRange(editor: Editor, range?: { from: number; to: number } | null) {
   const maxPos = Math.max(1, editor.state.doc.content.size);
   const clamp = (pos: number) => Math.min(Math.max(1, pos), maxPos);
 
@@ -22,7 +22,7 @@ function resolveRange(editor: EditorInstance, range?: { from: number; to: number
   return { from: clamp(from), to: clamp(to) };
 }
 
-function createMarkdownSlice(editor: EditorInstance, markdown: string) {
+function createMarkdownSlice(editor: Editor, markdown: string) {
   const wrapper = document.createElement("div");
   wrapper.innerHTML = markdownParser.render(markdown.trim());
   return PMDOMParser.fromSchema(editor.state.schema).parseSlice(wrapper);
@@ -33,7 +33,7 @@ export function renderMarkdownToHtml(markdown: string) {
 }
 
 export function replaceEditorRangeWithMarkdown(
-  editor: EditorInstance,
+  editor: Editor,
   markdown: string,
   range?: { from: number; to: number } | null,
 ) {

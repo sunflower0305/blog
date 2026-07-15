@@ -2,8 +2,8 @@
 
 import dynamic from "next/dynamic";
 
-const NovelEditor = dynamic(
-  () => import("@/components/NovelEditor").then((m) => ({ default: m.NovelEditor })),
+const PostEditor = dynamic(
+  () => import("@/components/PostEditor").then((m) => ({ default: m.PostEditor })),
   {
     ssr: false,
     loading: () => (
@@ -14,7 +14,7 @@ const NovelEditor = dynamic(
   },
 );
 
-export function NovelEditorClient(props: {
+export function PostEditorClient(props: {
   initialData?: {
     slug: string;
     title: string;
@@ -29,5 +29,5 @@ export function NovelEditorClient(props: {
   };
   skipDraftRestore?: boolean;
 }) {
-  return <NovelEditor {...props} />;
+  return <PostEditor {...props} />;
 }

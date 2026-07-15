@@ -14,7 +14,7 @@ import {
   MoreHorizontal,
   WandSparkles,
 } from "lucide-react";
-import { UploadImagesPlugin } from "novel";
+import { UploadImagesPlugin } from "./editor-image-upload-plugin";
 import { createPortal } from "react-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {

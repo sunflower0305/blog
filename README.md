@@ -140,7 +140,7 @@ pnpm run preview
 - Cloudflare Workers
 - Cloudflare D1
 - Cloudflare R2
-- Novel / Tiptap
+- Tiptap v3
 
 ## 常用命令
 

@@ -4,12 +4,12 @@ import "@/app/editor.css";
 import Link from "next/link";
 import { useRef, useState, useCallback, useEffect, useMemo } from "react";
 import { ImageIcon, WandSparkles } from "lucide-react";
-import { EditorContent, EditorInstance, EditorRoot } from "novel";
+import type { Editor } from "@tiptap/core";
+import { TiptapEditorSurface } from "@/components/TiptapEditorSurface";
 import {
   createEditorExtensions,
   buildEditorProps,
   FormattingBubble,
-  SlashMenu,
 } from "@/lib/editor-extensions";
 import { InputModal } from "@/components/InputModal";
 import { CategorySelector } from "@/components/CategorySelector";
@@ -63,7 +63,7 @@ export function InlineArticleEditor({
   content,
   onExitReading,
 }: InlineArticleEditorProps) {
-  const editorRef = useRef<EditorInstance | null>(null);
+  const editorRef = useRef<Editor | null>(null);
   const titleRef = useRef<HTMLTextAreaElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileUploadRef = useRef<HTMLInputElement>(null);
@@ -91,7 +91,7 @@ export function InlineArticleEditor({
 
   const checkDirty = useCallback(
     (
-      editor: EditorInstance,
+      editor: Editor,
       overrides?: {
         title?: string;
         category?: string;
@@ -235,7 +235,7 @@ export function InlineArticleEditor({
     [checkDirty],
   );
 
-  // Image-only upload: returns URL for Novel's UploadImagesPlugin
+  // Image-only upload: returns the stable source URL for the local placeholder plugin.
   const uploadImageAndGetUrl = async (file: File): Promise<string> => {
     setUploadingFile(true);
     setFeedback(null);
@@ -556,32 +556,30 @@ export function InlineArticleEditor({
         )}
       </div>
 
-      <EditorRoot>
-        <EditorContent
+      <TiptapEditorSurface
+        extensions={imageExtensions}
+        className="editor-surface inline-editor"
+        editorProps={editorProps}
+        onCreate={({ editor }) => {
+          editorRef.current = editor;
+          setEditorHtmlContent(editor, html);
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          extensions={imageExtensions as any}
-          className="editor-surface inline-editor"
-          immediatelyRender={false}
-          editorProps={editorProps}
-          onCreate={({ editor }) => {
-            editorRef.current = editor;
-            setEditorHtmlContent(editor, html);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const st = editor.storage as any;
-            setCharCount(st.characterCount?.characters?.() ?? 0);
-          }}
-          onUpdate={({ editor }) => {
-            editorRef.current = editor;
-            checkDirty(editor);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const st = editor.storage as any;
-            setCharCount(st.characterCount?.characters?.() ?? 0);
-          }}
-        >
-          <FormattingBubble />
-          <SlashMenu />
-        </EditorContent>
-      </EditorRoot>
+          const st = editor.storage as any;
+          setCharCount(st.characterCount?.characters?.() ?? 0);
+        }}
+        onUpdate={({ editor }) => {
+          editorRef.current = editor;
+          checkDirty(editor);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const st = editor.storage as any;
+          setCharCount(st.characterCount?.characters?.() ?? 0);
+        }}
+        onDestroy={() => {
+          editorRef.current = null;
+        }}
+      >
+        <FormattingBubble />
+      </TiptapEditorSurface>
 
       <InputModal
         open={inputModal.open}

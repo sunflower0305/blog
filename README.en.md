@@ -140,7 +140,7 @@ No API keys are committed to the repository. Add them during the first deploymen
 - Cloudflare Workers
 - Cloudflare D1
 - Cloudflare R2
-- Novel / Tiptap
+- Tiptap v3
 
 ## Common Commands
 

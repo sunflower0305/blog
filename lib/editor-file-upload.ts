@@ -1,4 +1,4 @@
-import type { EditorInstance } from "novel";
+import type { Editor } from "@tiptap/core";
 import { optimizePostImageUrls } from "./post-utils";
 
 export interface UploadedEditorFile {
@@ -177,7 +177,7 @@ export function buildUploadPlaceholderText(file: File, marker: string) {
   return `📤 ${file.name} 上传中... [${marker}]`;
 }
 
-export function insertUploadPlaceholder(editor: EditorInstance, file: File, marker: string) {
+export function insertUploadPlaceholder(editor: Editor, file: File, marker: string) {
   editor
     .chain()
     .focus()
@@ -188,7 +188,7 @@ export function insertUploadPlaceholder(editor: EditorInstance, file: File, mark
     .run();
 }
 
-export function removeUploadPlaceholder(editor: EditorInstance, marker: string) {
+export function removeUploadPlaceholder(editor: Editor, marker: string) {
   const { state } = editor;
   const { doc } = state;
   let placeholderPos: number | null = null;
@@ -209,18 +209,16 @@ export function removeUploadPlaceholder(editor: EditorInstance, marker: string) 
 }
 
 export function insertUploadedFileIntoEditor(
-  editor: EditorInstance,
+  editor: Editor,
   file: File,
   uploaded: UploadedEditorFile,
 ) {
   if (file.type.startsWith("video/")) {
-    // @ts-expect-error - setVideo is defined in video-extension.tsx
     editor.chain().focus().setVideo({ src: uploaded.url }).run();
     return;
   }
 
   if (file.type.startsWith("audio/")) {
-    // @ts-expect-error - setAudio is defined in audio-extension.tsx
     editor.chain().focus().setAudio({ src: uploaded.url }).run();
     return;
   }
@@ -235,7 +233,7 @@ export function insertUploadedFileIntoEditor(
 }
 
 export function insertGeneratedImageAtPosition(
-  editor: EditorInstance,
+  editor: Editor,
   imageUrl: string,
   alt: string,
   insertPos: number | null,
@@ -252,7 +250,7 @@ export function insertGeneratedImageAtPosition(
 }
 
 export function insertGeneratedImageAfterNode(
-  editor: EditorInstance,
+  editor: Editor,
   imageUrl: string,
   alt: string,
   nodePos: number | null,
@@ -268,7 +266,7 @@ export function insertGeneratedImageAfterNode(
 }
 
 export function replaceImageNodeAtPosition(
-  editor: EditorInstance,
+  editor: Editor,
   imageUrl: string,
   alt: string,
   nodePos: number | null,

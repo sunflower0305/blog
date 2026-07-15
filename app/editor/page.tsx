@@ -5,7 +5,7 @@ import { getAppCloudflareEnv } from "@/lib/cloudflare";
 import { isAdminAuthenticated, COOKIE_NAME } from "@/lib/admin-auth";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { NovelEditorClient } from "@/components/NovelEditorClient";
+import { PostEditorClient } from "@/components/PostEditorClient";
 
 export default async function EditorPage({
   searchParams,
@@ -64,5 +64,5 @@ export default async function EditorPage({
     }
   }
 
-  return <NovelEditorClient initialData={initialData} skipDraftRestore={isNew} />;
+  return <PostEditorClient initialData={initialData} skipDraftRestore={isNew} />;
 }

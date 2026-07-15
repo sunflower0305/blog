@@ -6,27 +6,6 @@ allowBuilds:
   workerd: true
 overrides:
   vitest: 4.1.10
-  "@tiptap/extension-code-block-lowlight@2.27.2>@tiptap/extension-code-block": 2.27.2
-  # 锁定 ProseMirror 到单一版本，防止 novel(Tiptap 2) 与自定义扩展(Tiptap 3)
-  # 各自拉起不同的底层 prosemirror 实例，触发 keyed-plugin / schema 双实例崩溃。
-  # 覆盖 @tiptap/pm 聚合的全部子包，版本对齐当前可用的解析结果。
-  prosemirror-model: 1.25.11
-  prosemirror-state: 1.4.4
-  prosemirror-view: 1.42.1
-  prosemirror-transform: 1.12.0
-  prosemirror-commands: 1.7.1
-  prosemirror-keymap: 1.2.3
-  prosemirror-schema-list: 1.5.1
-  prosemirror-history: 1.5.0
-  prosemirror-gapcursor: 1.4.1
-  prosemirror-dropcursor: 1.8.3
-  prosemirror-inputrules: 1.5.1
-  prosemirror-tables: 1.8.5
-  prosemirror-changeset: 2.4.1
-packageExtensions:
-  "novel@1.0.2":
-    dependencies:
-      "@tiptap/extension-code-block": 2.27.2
 minimumReleaseAgeExclude:
   - "@voidzero-dev/vite-plus-core@0.2.2 || 0.2.4"
   - "@next/env@16.2.10"

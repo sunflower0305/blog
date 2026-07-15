@@ -19,12 +19,12 @@ import {
   WandSparkles,
   X,
 } from "lucide-react";
-import { EditorContent, EditorInstance, EditorRoot, JSONContent } from "novel";
+import type { Editor, JSONContent } from "@tiptap/core";
+import { TiptapEditorSurface } from "@/components/TiptapEditorSurface";
 import {
   createEditorExtensions,
   buildEditorProps,
   FormattingBubble,
-  SlashMenu,
 } from "@/lib/editor-extensions";
 import { generatePassword } from "@/lib/password";
 import { InputModal } from "@/components/InputModal";
@@ -93,7 +93,7 @@ function relativeTime(ts: number): string {
   return `${Math.floor(diff / 3600)}小时前`;
 }
 
-interface NovelEditorProps {
+interface PostEditorProps {
   initialData?: {
     slug: string;
     title: string;
@@ -119,11 +119,11 @@ type DraftMetaState = {
 
 type MetaGenerationTarget = "summary" | "tags" | "slug" | "cover";
 
-export function NovelEditor({ initialData }: NovelEditorProps = {}) {
+export function PostEditor({ initialData }: PostEditorProps = {}) {
   // ── Core state ──
   const [draftReady, setDraftReady] = useState(false);
   const [initialContent, setInitialContent] = useState<JSONContent>(EMPTY_DOCUMENT);
-  const editorRef = useRef<EditorInstance | null>(null);
+  const editorRef = useRef<Editor | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const fileUploadRef = useRef<HTMLInputElement | null>(null);
 
@@ -1367,72 +1367,70 @@ export function NovelEditor({ initialData }: NovelEditorProps = {}) {
               />
             </div>
 
-            {/* Novel editor */}
+            {/* Post editor */}
             {!draftReady ? (
               <div className="editor-surface" />
             ) : (
-              <EditorRoot>
-                <div>
-                  <EditorContent
-                    initialContent={initialContent}
+              <div>
+                <TiptapEditorSurface
+                  initialContent={initialContent}
+                  extensions={imageExtensions}
+                  className="editor-surface"
+                  editorProps={buildEditorProps(
+                    (file) => uploadImageAndGetUrl(file),
+                    (file) => void insertNonImageFile(file),
+                    "editor-main-prose",
+                  )}
+                  onCreate={({ editor }) => {
+                    editorRef.current = editor;
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    extensions={imageExtensions as any}
-                    className="editor-surface"
-                    immediatelyRender={false}
-                    editorProps={buildEditorProps(
-                      (file) => uploadImageAndGetUrl(file),
-                      (file) => void insertNonImageFile(file),
-                      "editor-main-prose",
-                    )}
-                    onCreate={({ editor }) => {
-                      editorRef.current = editor;
+                    const st = editor.storage as any;
+                    setCharCount(st.characterCount?.characters?.() ?? 0);
+                    if (initialData?.html) {
+                      skipNextEditorUpdateRef.current = true;
+                      setEditorHtmlContent(editor, initialData.html);
+                    } else {
+                      skipNextEditorUpdateRef.current = false;
+                    }
+
+                    if (initialData?.slug) {
+                      lastAutosaveSnapshotRef.current = buildAutosaveSnapshot({
+                        currentSlug: initialData.slug,
+                        nextSlug: initialData.slug,
+                        title: initialData.title || "无标题",
+                        html: initialData.html || "",
+                        description: (initialData.description || "").trim(),
+                        category: initialData.category || "未分类",
+                        tags: initialData.tags || [],
+                        coverImage: initialData.cover_image || "",
+                      });
+                    } else {
+                      lastAutosaveSnapshotRef.current = null;
+                    }
+                  }}
+                  onUpdate={({ editor }) => {
+                    editorRef.current = editor;
+
+                    if (skipNextEditorUpdateRef.current) {
+                      skipNextEditorUpdateRef.current = false;
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       const st = editor.storage as any;
                       setCharCount(st.characterCount?.characters?.() ?? 0);
-                      if (initialData?.html) {
-                        skipNextEditorUpdateRef.current = true;
-                        setEditorHtmlContent(editor, initialData.html);
-                      } else {
-                        skipNextEditorUpdateRef.current = false;
-                      }
+                      return;
+                    }
 
-                      if (initialData?.slug) {
-                        lastAutosaveSnapshotRef.current = buildAutosaveSnapshot({
-                          currentSlug: initialData.slug,
-                          nextSlug: initialData.slug,
-                          title: initialData.title || "无标题",
-                          html: initialData.html || "",
-                          description: (initialData.description || "").trim(),
-                          category: initialData.category || "未分类",
-                          tags: initialData.tags || [],
-                          coverImage: initialData.cover_image || "",
-                        });
-                      } else {
-                        lastAutosaveSnapshotRef.current = null;
-                      }
-                    }}
-                    onUpdate={({ editor }) => {
-                      editorRef.current = editor;
-
-                      if (skipNextEditorUpdateRef.current) {
-                        skipNextEditorUpdateRef.current = false;
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        const st = editor.storage as any;
-                        setCharCount(st.characterCount?.characters?.() ?? 0);
-                        return;
-                      }
-
-                      scheduleDraftSave(latestTitleRef.current, editor);
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      const st = editor.storage as any;
-                      setCharCount(st.characterCount?.characters?.() ?? 0);
-                    }}
-                  >
-                    <FormattingBubble />
-                    <SlashMenu />
-                  </EditorContent>
-                </div>
-              </EditorRoot>
+                    scheduleDraftSave(latestTitleRef.current, editor);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const st = editor.storage as any;
+                    setCharCount(st.characterCount?.characters?.() ?? 0);
+                  }}
+                  onDestroy={() => {
+                    editorRef.current = null;
+                  }}
+                >
+                  <FormattingBubble />
+                </TiptapEditorSurface>
+              </div>
             )}
           </div>
         </main>

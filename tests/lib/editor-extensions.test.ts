@@ -1,26 +1,29 @@
 import { Selection, TextSelection, NodeSelection } from "@tiptap/pm/state";
 import { Schema } from "@tiptap/pm/model";
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { shouldShowEditorBubble } from "@/lib/editor-bubble";
 import { codeLowlight, DEFAULT_CODE_LANGUAGE } from "@/lib/code-highlighting";
 import { createDefaultTableContent, hasMarkdownTable, normalizeUrl } from "@/lib/editor-utils";
+import { createEditorExtensions } from "@/lib/editor-extensions";
 
 describe("editor-extensions helpers", () => {
   it("uses one TypeScript lowlight code block extension", () => {
-    const source = readFileSync(
-      new URL("../../lib/editor-extensions.tsx", import.meta.url),
-      "utf8",
+    const extensions = createEditorExtensions();
+    const starterKit = extensions.find((extension) => extension.name === "starterKit");
+    const starterExtensions = starterKit?.config.addExtensions?.call(starterKit) ?? [];
+    const expanded = extensions.flatMap((extension) =>
+      extension === starterKit ? starterExtensions : [extension],
     );
+    const names = expanded.map((extension) => extension.name);
 
     expect(DEFAULT_CODE_LANGUAGE).toBe("typescript");
     expect(codeLowlight.listLanguages()).toEqual(["typescript"]);
     expect(codeLowlight.registered("ts")).toBe(true);
-    expect(source).toContain(
-      "StarterKit.configure({ heading: { levels: [1, 2, 3] }, codeBlock: false })",
-    );
-    expect(source).toContain("CodeBlockLowlight.configure({");
-    expect(source.match(/CodeBlockLowlight\.configure\(/g)).toHaveLength(1);
+    expect(starterKit?.options.codeBlock).toBe(false);
+    expect(names.filter((name) => name === "codeBlock")).toHaveLength(1);
+    expect(names.filter((name) => name === "link")).toHaveLength(1);
+    expect(names.filter((name) => name === "underline")).toHaveLength(1);
+    expect(new Set(names).size).toBe(names.length);
   });
 
   it("creates a default table with header row and paragraph cells", () => {
