@@ -55,5 +55,6 @@ worker-configuration.d.ts
 .codex/
 .github/
 article/
+CLAUDE.md
 review.md
 css-plan.md
