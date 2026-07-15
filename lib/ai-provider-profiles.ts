@@ -181,7 +181,10 @@ export function maskApiKey(apiKey: string): string {
   return `${trimmed.slice(0, 6)}...${trimmed.slice(-4)}`;
 }
 
-export function resolveAiConfigSecret(env?: Record<string, unknown>): string {
+export function resolveAiConfigSecret(env?: {
+  AI_CONFIG_ENCRYPTION_SECRET?: unknown;
+  ADMIN_TOKEN_SALT?: unknown;
+}): string {
   const envSecret =
     typeof env?.AI_CONFIG_ENCRYPTION_SECRET === "string" ? env.AI_CONFIG_ENCRYPTION_SECRET : "";
   const envSalt = typeof env?.ADMIN_TOKEN_SALT === "string" ? env.ADMIN_TOKEN_SALT : "";

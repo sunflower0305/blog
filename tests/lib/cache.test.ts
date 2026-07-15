@@ -39,14 +39,14 @@ describe("cache helpers", () => {
   const originalEnableCacheInDev = process.env.ENABLE_PUBLIC_CACHE_IN_DEV;
 
   beforeEach(() => {
-    delete process.env.ENABLE_PUBLIC_CACHE_IN_DEV;
+    Reflect.deleteProperty(process.env, "ENABLE_PUBLIC_CACHE_IN_DEV");
     setNodeEnv("test");
   });
 
   afterEach(() => {
     setNodeEnv(originalNodeEnv);
     if (originalEnableCacheInDev === undefined) {
-      delete process.env.ENABLE_PUBLIC_CACHE_IN_DEV;
+      Reflect.deleteProperty(process.env, "ENABLE_PUBLIC_CACHE_IN_DEV");
     } else {
       process.env.ENABLE_PUBLIC_CACHE_IN_DEV = originalEnableCacheInDev;
     }

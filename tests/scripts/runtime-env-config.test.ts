@@ -50,7 +50,11 @@ describe("runtime environment contract", () => {
     writeFileSync(envExamplePath, "AI_MODEL=wrong\n");
     writeFileSync(wranglerPath, '[vars]\nAI_MODEL = "wrong"\n');
 
-    const errors = validateRuntimeEnvFiles(contract, { envExamplePath, wranglerPath });
+    const errors = validateRuntimeEnvFiles(contract, {
+      envExamplePath,
+      wranglerPath,
+      packageJsonPath: join(process.cwd(), "package.json"),
+    });
 
     expect(
       errors.some((error) =>

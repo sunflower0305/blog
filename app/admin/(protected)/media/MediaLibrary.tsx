@@ -163,7 +163,7 @@ export function MediaLibrary() {
       fd.append("file", file);
       try {
         const res = await fetch("/api/uploads", { method: "POST", body: fd });
-        const data = await res.json();
+        const data = (await res.json()) as { success?: boolean };
         if (data.success) succeeded++;
         else toast.error(`上传失败: ${file.name}`);
       } catch {

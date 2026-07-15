@@ -20,6 +20,15 @@ vi.mock("nanoid", () => ({
 
 import { POST } from "@/app/api/uploads/route";
 
+interface UploadResponseBody {
+  success: boolean;
+  deduplicated?: boolean;
+  type?: string;
+  delivery?: string;
+  variants?: Record<string, string>;
+  key?: string;
+}
+
 function createFormRequest(file: File) {
   return {
     formData: vi.fn(async () => {
@@ -69,7 +78,7 @@ describe("/api/uploads route", () => {
 
     const file = new File(["small-image"], "cover.png", { type: "image/png" });
     const response = await POST(createFormRequest(file));
-    const body = await response.json();
+    const body = (await response.json()) as UploadResponseBody;
 
     expect(body.success).toBe(true);
     expect(body.deduplicated).toBe(true);
@@ -96,7 +105,7 @@ describe("/api/uploads route", () => {
     const file = new File([largeContent], "movie.mov", { type: "application/octet-stream" });
 
     const response = await POST(createFormRequest(file));
-    const body = await response.json();
+    const body = (await response.json()) as UploadResponseBody;
 
     expect(body.success).toBe(true);
     expect(body.type).toBe("document");

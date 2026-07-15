@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
         postId,
       },
       {
-        waitUntil: ctx?.waitUntil?.bind(ctx),
+        waitUntil: ctx?.waitUntil.bind(ctx),
       },
     );
 
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
         postId,
       },
       {
-        waitUntil: ctx?.waitUntil?.bind(ctx),
+        waitUntil: ctx?.waitUntil.bind(ctx),
       },
     );
 

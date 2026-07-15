@@ -111,7 +111,7 @@ export async function PUT(req: NextRequest, { params }: Ctx) {
         postId: post.id,
       },
       {
-        waitUntil: ctx?.waitUntil?.bind(ctx),
+        waitUntil: ctx?.waitUntil.bind(ctx),
       },
     );
 
@@ -158,7 +158,7 @@ export async function DELETE(req: NextRequest, { params }: Ctx) {
         postId: post.id,
       },
       {
-        waitUntil: ctx?.waitUntil?.bind(ctx),
+        waitUntil: ctx?.waitUntil.bind(ctx),
       },
     );
 

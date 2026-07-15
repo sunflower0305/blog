@@ -30,12 +30,7 @@ describe("CSS 路由拆分边界", () => {
 
   it("站点框架级主题规则仍保留在 globals.css", () => {
     // 这些选择器服务所有路由，必须留在根布局，不能被迁移到 content.css / home.css。
-    for (const selector of [
-      ".site-header",
-      ".site-header-inner",
-      ".page-main",
-      ".search-panel",
-    ]) {
+    for (const selector of [".site-header", ".site-header-inner", ".page-main", ".search-panel"]) {
       expect(globals, `globals.css 应保留 ${selector}`).toContain(selector);
     }
   });

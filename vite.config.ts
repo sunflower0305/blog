@@ -44,6 +44,20 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: isTest ? [] : createVinextPlugins(),
+    lint: {
+      ignorePatterns: ["vite.config.ts"],
+      options: {
+        typeAware: true,
+        typeCheck: true,
+      },
+      rules: {
+        "typescript/no-base-to-string": "off",
+        "typescript/no-floating-promises": "off",
+        "typescript/no-meaningless-void-operator": "off",
+        "typescript/no-redundant-type-constituents": "off",
+        "typescript/unbound-method": "off",
+      },
+    },
     optimizeDeps: {
       include: isTest ? [] : ["juice", "postcss"],
       needsInterop: isTest ? [] : ["postcss"],

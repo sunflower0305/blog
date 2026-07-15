@@ -17,7 +17,7 @@ import { POST } from "@/app/api/posts/views/route";
 describe("/api/posts/views route", () => {
   const run = vi.fn();
   const bind = vi.fn(() => ({ run }));
-  const prepare = vi.fn(() => ({ bind }));
+  const prepare = vi.fn((_sql: string) => ({ bind }));
 
   beforeEach(() => {
     vi.clearAllMocks();

@@ -14,11 +14,8 @@ rm -rf .next dist
 echo "==> pnpm run config:check"
 pnpm run config:check
 
-echo "==> pnpm run lint"
-pnpm run lint
-
-echo "==> pnpm run typecheck:editor"
-pnpm run typecheck:editor
+echo "==> pnpm run check (format, lint, typecheck)"
+pnpm run check
 
 echo "==> pnpm run test:run"
 pnpm run test:run

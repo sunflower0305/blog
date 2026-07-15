@@ -526,7 +526,10 @@ export function getEditorCharacterCount(editor: Editor) {
 
 export function buildEditorProps(
   onImageUpload?: (file: File) => Promise<string>,
-  onNonImageFile?: (file: File, pos: number) => Promise<number | null | void> | number | null | void,
+  onNonImageFile?: (
+    file: File,
+    pos: number,
+  ) => Promise<number | null | void> | number | null | void,
   contentClassName = "",
   onImageValidationError?: (file: File, message: string) => void,
 ) {

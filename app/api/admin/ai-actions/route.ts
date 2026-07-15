@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
   }
   if (!db) return NextResponse.json({ error: "DB unavailable" }, { status: 500 });
 
-  const secret = resolveAiConfigSecret(env as Record<string, unknown>);
+  const secret = resolveAiConfigSecret(env);
   await ensureAiConfigInfrastructure(db, secret);
 
   const { results } = await db
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "缺少必填字段" }, { status: 400 });
   }
 
-  const secret = resolveAiConfigSecret(env as Record<string, unknown>);
+  const secret = resolveAiConfigSecret(env);
   await ensureAiConfigInfrastructure(db, secret);
   const defaultProfileId = await ensureDefaultProfileId(db);
   const profileId =
@@ -113,7 +113,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   if (!db) return NextResponse.json({ error: "DB unavailable" }, { status: 500 });
-  const secret = resolveAiConfigSecret(env as Record<string, unknown>);
+  const secret = resolveAiConfigSecret(env);
   await ensureAiConfigInfrastructure(db, secret);
 
   const body = (await req.json()) as { items: Array<{ id: number; sort_order: number }> };

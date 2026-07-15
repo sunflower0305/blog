@@ -142,13 +142,12 @@ describe("editor-extensions helpers", () => {
     const first = new File(["first"], "first.pdf", { type: "application/pdf" });
     const second = new File(["second"], "second.pdf", { type: "application/pdf" });
     let releaseFirst: (() => void) | undefined;
-    const onNonImageFile = vi.fn(
-      (file: File) =>
-        file === first
-          ? new Promise<void>((resolve) => {
-              releaseFirst = resolve;
-            })
-          : Promise.resolve(),
+    const onNonImageFile = vi.fn((file: File) =>
+      file === first
+        ? new Promise<void>((resolve) => {
+            releaseFirst = resolve;
+          })
+        : Promise.resolve(),
     );
     const props = buildEditorProps(undefined, onNonImageFile);
     const view = { state: { selection: { from: 1 } } } as never;

@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
       resolution: body.resolution,
       profileId: body.profileId,
       db,
-      env: env as Record<string, string | undefined>,
+      env,
       images,
     });
 

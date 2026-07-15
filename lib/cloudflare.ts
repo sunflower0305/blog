@@ -1,13 +1,21 @@
 async function getVinextCloudflareEnv() {
   try {
-    const workers = (await import("cloudflare:workers")) as { env?: CloudflareEnv };
+    const workers = (await import("cloudflare:workers")) as unknown as { env?: CloudflareEnv };
     return workers.env;
   } catch {
     return undefined;
   }
 }
 
-export async function getAppCloudflareContext() {
+export interface AppExecutionContext {
+  waitUntil(promise: Promise<unknown>): void;
+}
+
+export async function getAppCloudflareContext(): Promise<{
+  env: CloudflareEnv | undefined;
+  ctx: AppExecutionContext | undefined;
+  cf: unknown;
+}> {
   const vinextEnv = await getVinextCloudflareEnv();
   return {
     env: vinextEnv,

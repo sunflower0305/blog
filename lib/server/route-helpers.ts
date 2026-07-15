@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/lib/admin-auth";
-import { getAppCloudflareContext, getAppCloudflareEnv } from "@/lib/cloudflare";
+import {
+  getAppCloudflareContext,
+  getAppCloudflareEnv,
+  type AppExecutionContext,
+} from "@/lib/cloudflare";
 
 export type RouteDbEnv = Partial<CloudflareEnv> & { DB: D1Database };
 
@@ -20,7 +24,7 @@ type RouteContextWithDbResult =
       ok: true;
       env: RouteDbEnv;
       db: D1Database;
-      ctx: Awaited<ReturnType<typeof getAppCloudflareContext>>["ctx"];
+      ctx: AppExecutionContext | undefined;
     }
   | {
       ok: false;

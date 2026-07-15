@@ -150,8 +150,8 @@ No API keys are committed to the repository. Add them during the first deploymen
 | `pnpm run dev:remote`      | Local development using remote Cloudflare bindings from `wrangler.local.toml` |
 | `pnpm run build`           | Build the application                                                         |
 | `pnpm run test:run`        | Run tests with Vite+ / Vitest                                                 |
-| `pnpm run typecheck:editor` | Type-check the editor migration surface                                      |
-| `pnpm run verify:quick`    | Run config checks, lint, editor type checks, tests, and build                 |
+| `pnpm run typecheck`       | Type-check the entire repository through Vite+                                |
+| `pnpm run verify:quick`    | Run config, format, lint, full type checks, tests, and build                  |
 | `pnpm run verify`          | Run the full verification pipeline                                            |
 | `pnpm run config:generate` | Generate `.env.example` from the environment variable contract                |
 | `pnpm run config:check`    | Validate that environment variable configuration matches the contract         |
