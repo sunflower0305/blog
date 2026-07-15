@@ -19,10 +19,6 @@ export interface HomeProps {
   categorySlugMap: Record<string, string>;
 }
 
-const HomeVariantA = dynamic<HomeProps>(() =>
-  import("@/components/themes/HomeVariantA").then((module) => module.HomeVariantA),
-);
-
 const HomeVariantB = dynamic<HomeProps>(() =>
   import("@/components/themes/HomeVariantB").then((module) => module.HomeVariantB),
 );
@@ -51,7 +47,7 @@ export function HomeClient(props: HomeProps) {
 
   // Inject fonts on demand
   useEffect(() => {
-    if (theme === "refined" || theme === "terminal" || theme === "editorial") {
+    if (theme === "terminal" || theme === "editorial") {
       injectFont(
         "jetbrains-mono",
         "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap",
@@ -66,13 +62,7 @@ export function HomeClient(props: HomeProps) {
   }, [theme]);
 
   const ThemeComponent =
-    theme === "refined"
-      ? HomeVariantA
-      : theme === "editorial"
-        ? HomeVariantB
-        : theme === "terminal"
-          ? HomeVariantC
-          : HomeDefault;
+    theme === "editorial" ? HomeVariantB : theme === "terminal" ? HomeVariantC : HomeDefault;
 
   return <ThemeComponent {...props} />;
 }

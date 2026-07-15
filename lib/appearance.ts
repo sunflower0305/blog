@@ -8,11 +8,6 @@ export const THEME_OPTIONS = [
     description: "温暖、克制的阅读首页",
   },
   {
-    id: "refined",
-    label: "精致极简",
-    description: "更轻、更专注的杂志式列表",
-  },
-  {
     id: "editorial",
     label: "杂志编辑",
     description: "更强视觉层次的刊物风格",
@@ -76,6 +71,7 @@ export function normalizeTheme(
   value: string | null | undefined,
   fallback: Theme = "default",
 ): Theme {
+  if (value === "refined") return "default";
   return isTheme(value) ? value : fallback;
 }
 
@@ -83,9 +79,11 @@ export function getClientThemePreference(fallback: Theme): Theme {
   if (typeof window === "undefined") return fallback;
 
   const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
+  if (saved === "refined") return "default";
   if (isTheme(saved)) return saved;
 
   const attr = document.documentElement.getAttribute("data-theme");
+  if (attr === "refined") return "default";
   if (isTheme(attr)) return attr;
 
   return fallback;

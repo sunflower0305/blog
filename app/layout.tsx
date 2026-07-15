@@ -180,6 +180,10 @@ export default async function RootLayout({
   applyTheme(defaultTheme);
   try {
     var savedTheme = window.localStorage.getItem(themeStorageKey);
+    if (savedTheme === 'refined') {
+      savedTheme = 'default';
+      window.localStorage.setItem(themeStorageKey, savedTheme);
+    }
     if (isTheme(savedTheme)) applyTheme(savedTheme);
   } catch (e) {}
 })();

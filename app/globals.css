@@ -901,13 +901,6 @@ body {
    跨页面主题适配：SiteHeader 宽度 & 样式
    ══════════════════════════════════════════════════════ */
 
-/* 精致极简：860px 宽度 */
-[data-theme="refined"] .site-header-inner {
-  max-width: 860px;
-  padding-left: 32px;
-  padding-right: 32px;
-}
-
 /* 杂志编辑：全宽 + 48px 内边距 */
 [data-theme="editorial"] .site-header-inner {
   max-width: none;
@@ -946,11 +939,6 @@ body {
    跨页面主题适配：文章/搜索/分类 内容区宽度
    ══════════════════════════════════════════════════════ */
 
-/* 精致极简：860px */
-[data-theme="refined"] .page-main {
-  max-width: 860px;
-}
-
 /* 杂志编辑：正文回到可阅读宽度 */
 [data-theme="editorial"] .page-main {
   max-width: 860px;
@@ -963,16 +951,44 @@ body {
   padding-right: 40px;
 }
 
+/* ── 默认主题：首页文章列表 ── */
+.default-post-title,
+.default-post-arrow {
+  transition:
+    color 250ms ease,
+    transform 250ms ease;
+}
+
+.default-post:hover .default-post-title,
+.default-post:focus-within .default-post-title {
+  color: var(--category-color);
+}
+
+.default-post:hover .default-post-arrow,
+.default-post:focus-within .default-post-arrow {
+  transform: translateX(5px);
+}
+
 @media (max-width: 640px) {
-  .theme-home-refined .refined-home-filter {
+  .default-post-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding-top: 24px;
+    padding-bottom: 24px;
+  }
+
+  .default-post-date {
     display: none;
+  }
+
+  .default-post-date-mobile {
+    display: inline;
   }
 
   .theme-home-editorial {
     overflow-x: clip;
   }
 
-  [data-theme="refined"] .site-header-inner,
   [data-theme="editorial"] .site-header-inner,
   [data-theme="terminal"] .site-header-inner {
     padding-left: 16px;
@@ -983,33 +999,6 @@ body {
   [data-theme="terminal"] .page-main {
     padding-left: 16px;
     padding-right: 16px;
-  }
-
-  .theme-home-refined .refined-home-main {
-    padding-left: 16px !important;
-    padding-right: 16px !important;
-    padding-bottom: 96px !important;
-  }
-
-  .theme-home-refined .refined-toolbar-head {
-    flex-direction: column;
-    align-items: flex-start !important;
-    gap: 8px;
-  }
-
-  .theme-home-refined .refined-post-link {
-    grid-template-columns: 56px minmax(0, 1fr) !important;
-    gap: 16px !important;
-    padding: 24px 0 !important;
-  }
-
-  .theme-home-refined .refined-post-category {
-    flex-wrap: wrap;
-    row-gap: 4px;
-  }
-
-  .theme-home-refined .refined-post-title {
-    font-size: 20px !important;
   }
 
   .theme-home-editorial .editorial-nav-bar {
@@ -1134,5 +1123,12 @@ body {
 
   .theme-home-terminal .terminal-post-body {
     min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .default-post-title,
+  .default-post-arrow {
+    transition: none;
   }
 }

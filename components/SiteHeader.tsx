@@ -168,7 +168,7 @@ export function SiteHeader({
         stickyOnMobile ? "sticky" : "sm:sticky"
       } top-0 z-40 border-b border-[var(--editor-line)] bg-[var(--background)]/95 backdrop-blur-sm`}
     >
-      <div className="site-header-inner mx-auto max-w-3xl px-4 sm:px-6">
+      <div className="site-header-inner mx-auto max-w-[860px] px-4 sm:px-8">
         <div className="h-14 flex items-center justify-between gap-4">
           {renderLogo()}
 
