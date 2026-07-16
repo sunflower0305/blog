@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 interface ModalProps {
   isOpen: boolean;
@@ -26,27 +27,16 @@ export function Modal({
   type = "info",
   closeOnConfirm = true,
 }: ModalProps) {
-  const modalRef = useRef<HTMLDivElement>(null);
+  const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
+  const submittingRef = useRef(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!isOpen) return;
-
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
-  }, [isOpen, onClose]);
-
-  useEffect(() => {
     if (!isOpen) {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   }, [isOpen]);
-
-  if (!isOpen) return null;
 
   const buttonColor = {
     danger: "bg-rose-500 hover:bg-rose-600 text-white",
@@ -55,8 +45,9 @@ export function Modal({
   }[type];
 
   const handleConfirm = async () => {
-    if (!onConfirm || submitting) return;
+    if (!onConfirm || submittingRef.current) return;
 
+    submittingRef.current = true;
     setSubmitting(true);
     try {
       const result = await onConfirm();
@@ -64,61 +55,92 @@ export function Modal({
         onClose();
       }
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-in fade-in duration-200"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !submitting) onClose();
+    <Dialog.Root
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open && !submittingRef.current) onClose();
       }}
     >
-      <div
-        ref={modalRef}
-        className="bg-[var(--editor-panel)] rounded-lg shadow-xl max-w-md w-full animate-in zoom-in-95 duration-200"
-      >
-        {/* Header */}
-        <div className="flex items-start justify-between p-6 pb-4">
-          <h3 className="text-lg font-semibold text-[var(--editor-ink)]">{title}</h3>
-          <button
-            onClick={onClose}
-            disabled={submitting}
-            className="text-[var(--stone-gray)] hover:text-[var(--editor-ink)] transition-colors"
-            aria-label="关闭"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Body */}
-        {description && (
-          <div className="px-6 pb-6">
-            <p className="text-sm text-[var(--editor-muted)]">{description}</p>
+      <Dialog.Portal>
+        {/* Keep confirmations above ImageGenerationModal (z-70) and ImageCropModal (z-75). */}
+        <Dialog.Overlay data-modal-overlay="" className="fixed inset-0 z-[80] bg-black/50" />
+        <Dialog.Content
+          aria-modal="true"
+          {...(description ? {} : { "aria-describedby": undefined })}
+          onOpenAutoFocus={() => {
+            const activeElement = document.activeElement;
+            previouslyFocusedElementRef.current =
+              activeElement instanceof HTMLElement && activeElement !== document.body
+                ? activeElement
+                : null;
+          }}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            const elementToRestore = previouslyFocusedElementRef.current;
+            previouslyFocusedElementRef.current = null;
+            if (elementToRestore?.isConnected) elementToRestore.focus();
+          }}
+          onInteractOutside={(event) => {
+            if (submittingRef.current) event.preventDefault();
+          }}
+          onEscapeKeyDown={(event) => {
+            if (submittingRef.current) event.preventDefault();
+          }}
+          className="fixed left-1/2 top-1/2 z-[80] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg bg-[var(--editor-panel)] shadow-xl outline-none"
+        >
+          {/* Header */}
+          <div className="flex items-start justify-between p-6 pb-4">
+            <Dialog.Title asChild>
+              <h3 className="text-lg font-semibold text-[var(--editor-ink)]">{title}</h3>
+            </Dialog.Title>
+            <Dialog.Close asChild>
+              <button
+                disabled={submitting}
+                className="text-[var(--stone-gray)] hover:text-[var(--editor-ink)] transition-colors"
+                aria-label="关闭"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </Dialog.Close>
           </div>
-        )}
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 bg-[var(--editor-panel)] rounded-b-lg">
-          <button
-            onClick={onClose}
-            disabled={submitting}
-            className="px-4 py-2 text-sm font-medium text-[var(--editor-muted)] hover:text-[var(--editor-ink)] transition-colors"
-          >
-            {cancelText}
-          </button>
-          {onConfirm && (
-            <button
-              onClick={handleConfirm}
-              disabled={submitting}
-              className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${buttonColor}`}
-            >
-              {submitting ? "处理中…" : confirmText}
-            </button>
+          {/* Body */}
+          {description && (
+            <div className="px-6 pb-6">
+              <Dialog.Description className="text-sm text-[var(--editor-muted)]">
+                {description}
+              </Dialog.Description>
+            </div>
           )}
-        </div>
-      </div>
-    </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-end gap-3 rounded-b-lg bg-[var(--editor-panel)] px-6 py-4">
+            <Dialog.Close asChild>
+              <button
+                disabled={submitting}
+                className="px-4 py-2 text-sm font-medium text-[var(--editor-muted)] hover:text-[var(--editor-ink)] transition-colors"
+              >
+                {cancelText}
+              </button>
+            </Dialog.Close>
+            {onConfirm && (
+              <button
+                onClick={handleConfirm}
+                disabled={submitting}
+                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${buttonColor}`}
+              >
+                {submitting ? "处理中…" : confirmText}
+              </button>
+            )}
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

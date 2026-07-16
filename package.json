@@ -37,6 +37,7 @@
     "lint": "vp check --no-fmt --no-error-on-unmatched-pattern -- --ignore-pattern 'dist/**' --ignore-pattern '.wrangler/**' --ignore-pattern 'worker-configuration.d.ts'"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "1.1.19",
     "@tiptap/core": "^3.27.4",
     "@tiptap/extension-character-count": "^3.27.4",
     "@tiptap/extension-code-block-lowlight": "^3.27.4",
