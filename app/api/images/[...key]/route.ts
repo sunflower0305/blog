@@ -156,6 +156,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ key:
   const isRawRequest = req.nextUrl.searchParams.get("__raw") === "1";
   const transform =
     !rangeHeader && !isRawRequest ? getImageTransform(req.nextUrl.searchParams) : null;
+  const transformRequested = transform !== null;
   const negotiateFormat = transform?.format === "auto";
 
   if (transform && readFlag(env.ENABLE_CF_IMAGE_PIPELINE)) {
@@ -197,6 +198,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ key:
             headers,
           });
         }
+
+        console.warn(
+          `Cloudflare image transform returned ${transformed.status}, falling back to original asset`,
+        );
       } catch (error) {
         console.warn("Cloudflare image transform failed, falling back to original asset:", error);
       }
@@ -249,7 +254,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ key:
   const headers = new Headers();
   object.writeHttpMetadata(headers);
   headers.set("etag", object.httpEtag);
-  headers.set("cache-control", "public, max-age=31536000, immutable");
+  headers.set(
+    "cache-control",
+    transformRequested ? "no-store" : "public, max-age=31536000, immutable",
+  );
   headers.set("Accept-Ranges", "bytes");
   if (negotiateFormat) appendVary(headers, "Accept");
   if (object.size) {

@@ -144,6 +144,37 @@ describe("/api/images/[...key] route", () => {
     expect(response.headers.get("vary")).toBe("Accept-Encoding, Accept");
   });
 
+  it("does not cache the original image when a requested transformation fails", async () => {
+    const head = vi.fn(async () => ({ size: 2048, httpMetadata: { contentType: "image/png" } }));
+    const get = vi.fn(async () =>
+      createStoredObject({ size: 2048, httpEtag: "etag-fallback" }),
+    );
+    mocks.getAppCloudflareEnv.mockResolvedValue({
+      IMAGES: { head, get },
+      ENABLE_CF_IMAGE_PIPELINE: "true",
+    });
+
+    global.fetch = vi.fn(
+      async () => new Response("transform-error", { status: 502 }),
+    ) as unknown as typeof fetch;
+
+    const response = await GET(
+      createImageRequest(
+        "http://test.local/api/images/image/diagram.png?w=1600&q=85&format=auto",
+        { headers: { Accept: "image/avif,image/webp,image/*,*/*;q=0.8" } },
+      ) as never,
+      {
+        params: Promise.resolve({ key: ["image", "diagram.png"] }),
+      },
+    );
+
+    expect(get).toHaveBeenCalledWith("image/diagram.png");
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Content-Type")).toBe("image/webp");
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("etag")).toBe("etag-fallback");
+  });
+
   it("returns partial content for range requests", async () => {
     const head = vi.fn(async () => ({ size: 4096, httpMetadata: { contentType: "video/mp4" } }));
     const get = vi.fn(async () => createStoredObject({ size: 4096 }));
@@ -187,5 +218,8 @@ describe("/api/images/[...key] route", () => {
     expect(response.headers.get("etag")).toBe("etag-full");
     expect(response.headers.get("Content-Length")).toBe("2048");
     expect(response.headers.get("Accept-Ranges")).toBe("bytes");
+    expect(response.headers.get("cache-control")).toBe(
+      "public, max-age=31536000, immutable",
+    );
   });
 });
