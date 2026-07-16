@@ -688,7 +688,7 @@ export function buildEditorProps(
         }
       },
     },
-    attributes: { class: ["novel-prose", contentClassName].filter(Boolean).join(" ") },
+    attributes: { class: ["editor-prose", contentClassName].filter(Boolean).join(" ") },
   };
 }
 

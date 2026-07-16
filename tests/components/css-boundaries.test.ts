@@ -9,7 +9,7 @@ describe("CSS 路由拆分边界", () => {
   it("globals.css 不再包含文章正文与编辑器样式", () => {
     // 已迁移到 content.css / editor.css 的选择器不得重新进入根布局。
     for (const selector of [
-      ".novel-prose",
+      ".editor-prose",
       ".rich-content",
       ".drag-handle",
       ".resizable-image",

@@ -1,73 +1,73 @@
 /* content.css — 文章详情与编辑器共享的正文样式 */
 @import "./katex.css";
 
-:is(.novel-prose, .rich-content) {
+:is(.editor-prose, .rich-content) {
   color: var(--article-body);
 }
 
-:is(.novel-prose, .rich-content) > :first-child {
+:is(.editor-prose, .rich-content) > :first-child {
   margin-top: 0;
 }
 
-:is(.novel-prose, .rich-content) > * + * {
+:is(.editor-prose, .rich-content) > * + * {
   margin-top: 1.15em;
 }
 
-:is(.novel-prose, .rich-content) h1,
-:is(.novel-prose, .rich-content) h2,
-:is(.novel-prose, .rich-content) h3 {
+:is(.editor-prose, .rich-content) h1,
+:is(.editor-prose, .rich-content) h2,
+:is(.editor-prose, .rich-content) h3 {
   font-weight: 700;
   letter-spacing: 0;
   line-height: 1.25;
   color: var(--article-heading);
 }
 
-:is(.novel-prose, .rich-content) h1 {
+:is(.editor-prose, .rich-content) h1 {
   font-size: clamp(2rem, 4vw, 2.6rem);
 }
 
-:is(.novel-prose, .rich-content) h2 {
+:is(.editor-prose, .rich-content) h2 {
   font-size: clamp(1.55rem, 3vw, 2rem);
 }
 
-:is(.novel-prose, .rich-content) h3 {
+:is(.editor-prose, .rich-content) h3 {
   font-size: clamp(1.2rem, 2vw, 1.45rem);
 }
 
-:is(.novel-prose, .rich-content) p,
-:is(.novel-prose, .rich-content) li {
+:is(.editor-prose, .rich-content) p,
+:is(.editor-prose, .rich-content) li {
   color: inherit;
 }
 
-:is(.novel-prose, .rich-content) a {
+:is(.editor-prose, .rich-content) a {
   color: var(--editor-link);
   text-decoration: none;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 
-:is(.novel-prose, .rich-content) a:hover {
+:is(.editor-prose, .rich-content) a:hover {
   text-decoration: underline;
 }
 
-:is(.novel-prose, .rich-content) ul,
-:is(.novel-prose, .rich-content) ol {
+:is(.editor-prose, .rich-content) ul,
+:is(.editor-prose, .rich-content) ol {
   padding-left: 1.4rem;
 }
 
-:is(.novel-prose, .rich-content) ul {
+:is(.editor-prose, .rich-content) ul {
   list-style: disc;
 }
 
-:is(.novel-prose, .rich-content) ol {
+:is(.editor-prose, .rich-content) ol {
   list-style: decimal;
 }
 
-:is(.novel-prose, .rich-content) li + li {
+:is(.editor-prose, .rich-content) li + li {
   margin-top: 0.4rem;
 }
 
-:is(.novel-prose, .rich-content) blockquote {
+:is(.editor-prose, .rich-content) blockquote {
   border-left: 3px solid var(--article-quote-border);
   background: var(--editor-quote-bg);
   padding: 0.9rem 1.2rem;
@@ -78,27 +78,27 @@
   font-style: italic;
 }
 
-:is(.novel-prose, .rich-content) blockquote > * + * {
+:is(.editor-prose, .rich-content) blockquote > * + * {
   margin-top: 0.6em;
 }
 
-:is(.novel-prose, .rich-content) blockquote p:first-child {
+:is(.editor-prose, .rich-content) blockquote p:first-child {
   margin-top: 0;
 }
 
-:is(.novel-prose, .rich-content) blockquote p:last-child {
+:is(.editor-prose, .rich-content) blockquote p:last-child {
   margin-bottom: 0;
 }
 
 /* 嵌套引用 */
-:is(.novel-prose, .rich-content) blockquote blockquote {
+:is(.editor-prose, .rich-content) blockquote blockquote {
   border-left-color: var(--article-quote-nested-border);
   background: var(--article-quote-nested-bg);
   margin-top: 0.6em;
 }
 
 /* 表格样式 */
-:is(.novel-prose, .rich-content) table {
+:is(.editor-prose, .rich-content) table {
   width: 100%;
   border-collapse: collapse;
   border-radius: 6px;
@@ -107,8 +107,8 @@
   margin-block: 1.2em;
 }
 
-:is(.novel-prose, .rich-content) table th,
-:is(.novel-prose, .rich-content) table td {
+:is(.editor-prose, .rich-content) table th,
+:is(.editor-prose, .rich-content) table td {
   border: 1px solid var(--editor-line);
   padding: 0.55rem 0.75rem;
   text-align: left;
@@ -116,28 +116,28 @@
   min-width: 80px;
 }
 
-:is(.novel-prose, .rich-content) table th {
+:is(.editor-prose, .rich-content) table th {
   background: var(--editor-soft);
   font-weight: 600;
   color: var(--editor-ink);
   font-size: 0.95em;
 }
 
-:is(.novel-prose, .rich-content) table td {
+:is(.editor-prose, .rich-content) table td {
   background: var(--background);
 }
 
-:is(.novel-prose, .rich-content) table tr:nth-child(even) td {
+:is(.editor-prose, .rich-content) table tr:nth-child(even) td {
   background: var(--editor-quote-bg);
 }
 
-:is(.novel-prose, .rich-content) hr {
+:is(.editor-prose, .rich-content) hr {
   border: 0;
   border-top: 1px solid var(--editor-line);
   margin-block: 2rem;
 }
 
-:is(.novel-prose, .rich-content) code {
+:is(.editor-prose, .rich-content) code {
   border: 1px solid var(--editor-code-border);
   background: var(--editor-code-bg);
   border-radius: 6px;
@@ -146,7 +146,7 @@
   font-size: 0.92em;
 }
 
-:is(.novel-prose, .rich-content) pre {
+:is(.editor-prose, .rich-content) pre {
   overflow-x: auto;
   border-radius: 6px;
   background: #181818;
@@ -154,18 +154,18 @@
   padding: 1rem 1.1rem;
 }
 
-:is(.novel-prose, .rich-content) pre code {
+:is(.editor-prose, .rich-content) pre code {
   border: 0;
   background: transparent;
   padding: 0;
   color: inherit;
 }
 
-:is(.novel-prose, .rich-content) pre code.hljs {
+:is(.editor-prose, .rich-content) pre code.hljs {
   color: #c9d1d9;
 }
 
-:is(.novel-prose, .rich-content)
+:is(.editor-prose, .rich-content)
   :is(
     .hljs-doctag,
     .hljs-keyword,
@@ -177,12 +177,12 @@
   color: #ff7b72;
 }
 
-:is(.novel-prose, .rich-content)
+:is(.editor-prose, .rich-content)
   :is(.hljs-title, .hljs-title.class_, .hljs-title.class_.inherited__, .hljs-title.function_) {
   color: #d2a8ff;
 }
 
-:is(.novel-prose, .rich-content)
+:is(.editor-prose, .rich-content)
   :is(
     .hljs-attr,
     .hljs-attribute,
@@ -198,83 +198,83 @@
   color: #79c0ff;
 }
 
-:is(.novel-prose, .rich-content) :is(.hljs-regexp, .hljs-string, .hljs-meta .hljs-string) {
+:is(.editor-prose, .rich-content) :is(.hljs-regexp, .hljs-string, .hljs-meta .hljs-string) {
   color: #a5d6ff;
 }
 
-:is(.novel-prose, .rich-content) :is(.hljs-built_in, .hljs-symbol) {
+:is(.editor-prose, .rich-content) :is(.hljs-built_in, .hljs-symbol) {
   color: #ffa657;
 }
 
-:is(.novel-prose, .rich-content) :is(.hljs-comment, .hljs-code, .hljs-formula) {
+:is(.editor-prose, .rich-content) :is(.hljs-comment, .hljs-code, .hljs-formula) {
   color: #8b949e;
 }
 
-:is(.novel-prose, .rich-content)
+:is(.editor-prose, .rich-content)
   :is(.hljs-name, .hljs-quote, .hljs-selector-tag, .hljs-selector-pseudo) {
   color: #7ee787;
 }
 
-:is(.novel-prose, .rich-content) .hljs-subst {
+:is(.editor-prose, .rich-content) .hljs-subst {
   color: #c9d1d9;
 }
 
-:is(.novel-prose, .rich-content) .hljs-section {
+:is(.editor-prose, .rich-content) .hljs-section {
   color: #1f6feb;
   font-weight: 700;
 }
 
-:is(.novel-prose, .rich-content) .hljs-bullet {
+:is(.editor-prose, .rich-content) .hljs-bullet {
   color: #f2cc60;
 }
 
-:is(.novel-prose, .rich-content) .hljs-emphasis {
+:is(.editor-prose, .rich-content) .hljs-emphasis {
   color: #c9d1d9;
   font-style: italic;
 }
 
-:is(.novel-prose, .rich-content) .hljs-strong {
+:is(.editor-prose, .rich-content) .hljs-strong {
   color: #c9d1d9;
   font-weight: 700;
 }
 
-:is(.novel-prose, .rich-content) .hljs-addition {
+:is(.editor-prose, .rich-content) .hljs-addition {
   color: #aff5b4;
   background-color: #033a16;
 }
 
-:is(.novel-prose, .rich-content) .hljs-deletion {
+:is(.editor-prose, .rich-content) .hljs-deletion {
   color: #ffdcd7;
   background-color: #67060c;
 }
 
-:is(.novel-prose, .rich-content) img {
+:is(.editor-prose, .rich-content) img {
   display: block;
   max-width: 100%;
   border-radius: 6px;
 }
 
-:is(.novel-prose, .rich-content) ul[data-type="taskList"] {
+:is(.editor-prose, .rich-content) ul[data-type="taskList"] {
   list-style: none;
   padding-left: 0;
 }
 
-:is(.novel-prose, .rich-content) ul[data-type="taskList"] li {
+:is(.editor-prose, .rich-content) ul[data-type="taskList"] li {
   display: flex;
   align-items: flex-start;
   gap: 0.6rem;
 }
 
-:is(.novel-prose, .rich-content) ul[data-type="taskList"] li > label {
+:is(.editor-prose, .rich-content) ul[data-type="taskList"] li > label {
   margin-top: 0.2rem;
   user-select: none;
 }
 
-:is(.novel-prose, .rich-content) ul[data-type="taskList"] li > div {
+:is(.editor-prose, .rich-content) ul[data-type="taskList"] li > div {
   flex: 1;
 }
 
-:is(.novel-prose, .rich-content) ul[data-type="taskList"] input[type="checkbox"] {
+:is(.editor-prose, .rich-content) ul[data-type="taskList"] input[type="checkbox"] {
   width: 1rem;
   height: 1rem;
   accent-color: var(--editor-accent);
@@ -342,19 +342,19 @@
 }
 
 /* ── 视频 / 音频移动端兼容 ── */
-:is(.novel-prose, .rich-content) video {
+:is(.editor-prose, .rich-content) video {
   max-width: 100%;
   border-radius: 8px;
   background: #000;
 }
 
-:is(.novel-prose, .rich-content) audio {
+:is(.editor-prose, .rich-content) audio {
   max-width: 100%;
   margin: 1rem 0;
 }
 
 /* ── YouTube 嵌入 ── */
-:is(.novel-prose, .rich-content) div[data-youtube-video] {
+:is(.editor-prose, .rich-content) div[data-youtube-video] {
   position: relative;
   width: 100% !important;
   height: 0 !important;
@@ -365,7 +365,7 @@
   background: #000;
 }
 
-:is(.novel-prose, .rich-content) div[data-youtube-video] iframe {
+:is(.editor-prose, .rich-content) div[data-youtube-video] iframe {
   position: absolute !important;
   top: 0;
   left: 0;
@@ -397,7 +397,7 @@
 }
 
 /* 前台渲染（非编辑器） */
-:is(.novel-prose, .rich-content) div[data-twitter-src] {
+:is(.editor-prose, .rich-content) div[data-twitter-src] {
   display: flex;
   justify-content: center;
   margin: 1.5rem 0;
@@ -425,55 +425,55 @@
 }
 
 /* ── 终端主题：文章内容深色适配 ── */
-[data-theme="terminal"] :is(.novel-prose, .rich-content) h1,
-[data-theme="terminal"] :is(.novel-prose, .rich-content) h2,
-[data-theme="terminal"] :is(.novel-prose, .rich-content) h3 {
+[data-theme="terminal"] :is(.editor-prose, .rich-content) h1,
+[data-theme="terminal"] :is(.editor-prose, .rich-content) h2,
+[data-theme="terminal"] :is(.editor-prose, .rich-content) h3 {
   color: var(--article-heading);
 }
 
-[data-theme="terminal"] :is(.novel-prose, .rich-content) p,
-[data-theme="terminal"] :is(.novel-prose, .rich-content) li {
+[data-theme="terminal"] :is(.editor-prose, .rich-content) p,
+[data-theme="terminal"] :is(.editor-prose, .rich-content) li {
   color: inherit;
 }
 
-[data-theme="terminal"] :is(.novel-prose, .rich-content) blockquote {
+[data-theme="terminal"] :is(.editor-prose, .rich-content) blockquote {
   border-left-color: var(--article-quote-border);
   background: #1f2240;
   color: var(--article-quote);
 }
 
-[data-theme="terminal"] :is(.novel-prose, .rich-content) pre {
+[data-theme="terminal"] :is(.editor-prose, .rich-content) pre {
   background: #12141f;
   border: 1px solid #2a2f48;
 }
 
-[data-theme="terminal"] :is(.novel-prose, .rich-content) code {
+[data-theme="terminal"] :is(.editor-prose, .rich-content) code {
   background: #12141f;
   border-color: #2a2f48;
   color: #4ade80;
 }
 
-[data-theme="terminal"] :is(.novel-prose, .rich-content) a {
+[data-theme="terminal"] :is(.editor-prose, .rich-content) a {
   color: #4ade80;
 }
 
-[data-theme="terminal"] :is(.novel-prose, .rich-content) hr {
+[data-theme="terminal"] :is(.editor-prose, .rich-content) hr {
   border-top-color: #2a2f48;
 }
 
 /* ── 杂志编辑主题：文章内容适配 ── */
-[data-theme="editorial"] :is(.novel-prose, .rich-content) h1,
-[data-theme="editorial"] :is(.novel-prose, .rich-content) h2,
-[data-theme="editorial"] :is(.novel-prose, .rich-content) h3 {
+[data-theme="editorial"] :is(.editor-prose, .rich-content) h1,
+[data-theme="editorial"] :is(.editor-prose, .rich-content) h2,
+[data-theme="editorial"] :is(.editor-prose, .rich-content) h3 {
   color: var(--article-heading);
   font-family: "Noto Serif SC", Georgia, serif;
 }
 
-[data-theme="editorial"] :is(.novel-prose, .rich-content) blockquote {
+[data-theme="editorial"] :is(.editor-prose, .rich-content) blockquote {
   border-left-color: var(--article-quote-border);
   color: var(--article-quote);
 }
 
-[data-theme="editorial"] :is(.novel-prose, .rich-content) a {
+[data-theme="editorial"] :is(.editor-prose, .rich-content) a {
   color: #c44a2a;
 }

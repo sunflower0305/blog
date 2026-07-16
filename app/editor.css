@@ -18,10 +18,10 @@
   min-height: calc(100vh - 13rem);
 }
 
-.novel-prose {
+.editor-prose {
   min-height: calc(100vh - 13rem);
   padding: 2.75rem 1.5rem 3rem;
-  /* 文字颜色由 content.css 的 :is(.novel-prose, .rich-content) 规则提供，
+  /* 文字颜色由 content.css 的 :is(.editor-prose, .rich-content) 规则提供，
      与拆分前的层叠结果保持一致（article-body 覆盖 editor-ink）。 */
   font-size: 1.06rem;
   line-height: 1.9;
@@ -30,7 +30,7 @@
 }
 
 @media (min-width: 640px) {
-  .novel-prose {
+  .editor-prose {
     padding-inline: 2.5rem;
   }
 }
@@ -64,20 +64,20 @@
 }
 
 /* 编辑器中表格选中态 */
-.novel-prose table .selectedCell {
+.editor-prose table .selectedCell {
   background: var(--editor-selection);
 }
 
-.novel-prose img:hover {
+.editor-prose img:hover {
   cursor: pointer;
   filter: brightness(0.98);
 }
 
-.novel-prose img.ProseMirror-selectednode {
+.editor-prose img.ProseMirror-selectednode {
   outline: 3px solid #8cb7ff;
 }
 
-.novel-prose .ProseMirror-selectednode {
+.editor-prose .ProseMirror-selectednode {
   background: var(--editor-selection);
 }
 
@@ -192,7 +192,7 @@
 }
 
 /* 内联编辑器：去掉全页编辑器的 padding 和 min-height，融入文章详情页 */
-.inline-editor .novel-prose {
+.inline-editor .editor-prose {
   min-height: auto;
   padding: 0;
   font-size: 1rem;
@@ -200,7 +200,7 @@
 }
 
 @media (min-width: 640px) {
-  .inline-editor .novel-prose {
+  .inline-editor .editor-prose {
     font-size: 1.06rem;
     line-height: 1.9;
   }
