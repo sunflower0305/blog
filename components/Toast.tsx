@@ -17,6 +17,11 @@ interface ToastContextValue {
   info: (message: string, duration?: number) => void;
 }
 
+interface ToastAnnouncement {
+  id: string;
+  message: string;
+}
+
 const ToastContext = createContext<ToastContextValue | null>(null);
 
 export function useToast() {
@@ -29,12 +34,22 @@ export function useToast() {
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [assertiveAnnouncement, setAssertiveAnnouncement] = useState<ToastAnnouncement | null>(
+    null,
+  );
+  const [politeAnnouncement, setPoliteAnnouncement] = useState<ToastAnnouncement | null>(null);
 
   const addToast = useCallback((message: string, type: Toast["type"], duration = 3000) => {
     const id = Math.random().toString(36).substring(2, 9);
     const toast: Toast = { id, message, type, duration };
 
     setToasts((prev) => [...prev, toast]);
+    const announcement = { id, message };
+    if (type === "error") {
+      setAssertiveAnnouncement(announcement);
+    } else {
+      setPoliteAnnouncement(announcement);
+    }
 
     if (duration > 0) {
       setTimeout(() => {
@@ -60,6 +75,28 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
+      <div
+        className="sr-only"
+        aria-live="assertive"
+        aria-atomic="true"
+        aria-relevant="additions text"
+        data-toast-live="assertive"
+      >
+        {assertiveAnnouncement && (
+          <span key={assertiveAnnouncement.id}>{assertiveAnnouncement.message}</span>
+        )}
+      </div>
+      <div
+        className="sr-only"
+        aria-live="polite"
+        aria-atomic="true"
+        aria-relevant="additions text"
+        data-toast-live="polite"
+      >
+        {politeAnnouncement && (
+          <span key={politeAnnouncement.id}>{politeAnnouncement.message}</span>
+        )}
+      </div>
       <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
         {toasts.map((toast) => (
           <ToastItem key={toast.id} toast={toast} onClose={() => removeToast(toast.id)} />
@@ -70,7 +107,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 }
 
 function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
-  const isError = toast.type === "error";
   const accentColor = {
     success: "var(--editor-accent)",
     error: "#c65b5b",
@@ -80,9 +116,6 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
 
   return (
     <div
-      role={isError ? "alert" : "status"}
-      aria-live={isError ? "assertive" : "polite"}
-      aria-atomic="true"
       className="pointer-events-auto flex min-w-[220px] max-w-sm items-start gap-3 rounded-xl border px-3.5 py-3 shadow-[0_12px_28px_rgba(0,0,0,0.12)] backdrop-blur-md animate-in slide-in-from-right-full duration-300"
       style={{
         background: "color-mix(in srgb, var(--editor-panel) 94%, transparent)",

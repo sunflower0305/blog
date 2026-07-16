@@ -44,6 +44,7 @@ describe("shared UI accessibility", () => {
     expect(tabs[0]?.getAttribute("aria-selected")).toBe("true");
     expect(tabs[0]?.tabIndex).toBe(0);
     expect(tabs[1]?.tabIndex).toBe(-1);
+    expect(tabs[1]?.hasAttribute("aria-controls")).toBe(false);
 
     act(() => {
       tabs[0]?.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
@@ -69,9 +70,41 @@ describe("shared UI accessibility", () => {
     expect(tabs[2]?.getAttribute("aria-selected")).toBe("true");
     expect(tabs[2]?.getAttribute("aria-controls")).toBe(panel?.id);
     expect(panel?.getAttribute("aria-labelledby")).toBe(tabs[2]?.id);
+    expect(panel?.tabIndex).toBe(0);
   });
 
-  it("announces errors assertively and other toast types politely", () => {
+  it("falls back to the first tab when the requested or retained tab no longer exists", () => {
+    const firstTabs = [
+      { id: "one", label: "第一项", content: "内容一" },
+      { id: "two", label: "第二项", content: "内容二" },
+    ];
+
+    act(() => {
+      root.render(createElement(Tabs, { tabs: firstTabs, defaultTab: "missing" }));
+    });
+    let tabs = Array.from(container.querySelectorAll<HTMLButtonElement>("[role=tab]"));
+    expect(tabs[0]?.getAttribute("aria-selected")).toBe("true");
+    expect(tabs[0]?.tabIndex).toBe(0);
+    expect(container.querySelector("[role=tabpanel]")?.textContent).toBe("内容一");
+
+    act(() => tabs[1]?.click());
+    expect(tabs[1]?.getAttribute("aria-selected")).toBe("true");
+
+    act(() => {
+      root.render(
+        createElement(Tabs, {
+          tabs: [{ id: "three", label: "第三项", content: "内容三" }],
+          defaultTab: "missing",
+        }),
+      );
+    });
+    tabs = Array.from(container.querySelectorAll<HTMLButtonElement>("[role=tab]"));
+    expect(tabs[0]?.getAttribute("aria-selected")).toBe("true");
+    expect(tabs[0]?.tabIndex).toBe(0);
+    expect(container.querySelector("[role=tabpanel]")?.textContent).toBe("内容三");
+  });
+
+  it("keeps live regions mounted before announcing assertive and polite messages", () => {
     function ToastHarness() {
       const toast = useToast();
       return createElement(
@@ -86,17 +119,27 @@ describe("shared UI accessibility", () => {
       root.render(createElement(ToastProvider, null, createElement(ToastHarness)));
     });
     const buttons = container.querySelectorAll<HTMLButtonElement>("button");
+    const assertiveRegion = container.querySelector<HTMLElement>('[data-toast-live="assertive"]');
+    const politeRegion = container.querySelector<HTMLElement>('[data-toast-live="polite"]');
+    expect(assertiveRegion?.textContent).toBe("");
+    expect(politeRegion?.textContent).toBe("");
 
     act(() => buttons[0]?.click());
-    const error = container.querySelector<HTMLElement>("[role=alert]");
-    expect(error?.getAttribute("aria-live")).toBe("assertive");
-    expect(error?.getAttribute("aria-atomic")).toBe("true");
-    expect(error?.textContent).toContain("保存失败");
+    expect(container.querySelector<HTMLElement>('[data-toast-live="assertive"]')).toBe(
+      assertiveRegion,
+    );
+    expect(assertiveRegion?.getAttribute("aria-live")).toBe("assertive");
+    expect(assertiveRegion?.getAttribute("aria-atomic")).toBe("true");
+    expect(assertiveRegion?.textContent).toBe("保存失败");
+    const firstAnnouncement = assertiveRegion?.firstElementChild;
+
+    act(() => buttons[0]?.click());
+    expect(assertiveRegion?.firstElementChild).not.toBe(firstAnnouncement);
+    expect(assertiveRegion?.textContent).toBe("保存失败");
 
     act(() => buttons[1]?.click());
-    const statuses = container.querySelectorAll<HTMLElement>("[role=status]");
-    expect(statuses).toHaveLength(1);
-    expect(statuses[0]?.getAttribute("aria-live")).toBe("polite");
-    expect(statuses[0]?.textContent).toContain("请检查");
+    expect(container.querySelector<HTMLElement>('[data-toast-live="polite"]')).toBe(politeRegion);
+    expect(politeRegion?.getAttribute("aria-live")).toBe("polite");
+    expect(politeRegion?.textContent).toBe("请检查");
   });
 });

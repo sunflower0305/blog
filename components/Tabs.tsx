@@ -19,7 +19,8 @@ export function Tabs({ tabs, defaultTab }: TabsProps) {
   const baseId = useId();
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
-  const activeIndex = tabs.findIndex((tab) => tab.id === activeTab);
+  const requestedActiveIndex = tabs.findIndex((tab) => tab.id === activeTab);
+  const activeIndex = requestedActiveIndex >= 0 ? requestedActiveIndex : tabs.length > 0 ? 0 : -1;
   const activeContent = activeIndex >= 0 ? tabs[activeIndex]?.content : undefined;
 
   const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
@@ -56,7 +57,7 @@ export function Tabs({ tabs, defaultTab }: TabsProps) {
       <div className="border-b border-[var(--editor-line)] mb-6">
         <div className="flex gap-1" role="tablist" aria-label="选项卡">
           {tabs.map((tab, index) => {
-            const isActive = activeTab === tab.id;
+            const isActive = activeIndex === index;
             const tabId = `${baseId}-tab-${index}`;
             const panelId = `${baseId}-panel-${index}`;
 
@@ -69,7 +70,7 @@ export function Tabs({ tabs, defaultTab }: TabsProps) {
                 type="button"
                 role="tab"
                 id={tabId}
-                aria-controls={panelId}
+                aria-controls={isActive ? panelId : undefined}
                 aria-selected={isActive}
                 tabIndex={isActive ? 0 : -1}
                 onClick={() => setActiveTab(tab.id)}
@@ -97,6 +98,7 @@ export function Tabs({ tabs, defaultTab }: TabsProps) {
           role="tabpanel"
           id={`${baseId}-panel-${activeIndex}`}
           aria-labelledby={`${baseId}-tab-${activeIndex}`}
+          tabIndex={0}
         >
           {activeContent}
         </div>
