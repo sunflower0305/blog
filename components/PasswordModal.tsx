@@ -89,12 +89,12 @@ export function PasswordModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-[var(--editor-panel)] rounded-lg shadow-xl max-w-md w-full animate-in zoom-in-95 duration-200">
+      <div className="bg-[var(--editor-panel)] rounded-lg shadow-xl max-w-md w-full">
         {/* Header */}
         <div className="flex items-start justify-between p-6 pb-4">
           <h3 className="text-lg font-semibold text-[var(--editor-ink)]">密码保护</h3>
