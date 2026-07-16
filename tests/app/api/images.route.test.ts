@@ -144,7 +144,7 @@ describe("/api/images/[...key] route", () => {
     expect(response.headers.get("vary")).toBe("Accept-Encoding, Accept");
   });
 
-  it("does not cache the original image when a requested transformation fails", async () => {
+  it("briefly caches the original image when an attempted transformation fails", async () => {
     const head = vi.fn(async () => ({ size: 2048, httpMetadata: { contentType: "image/png" } }));
     const get = vi.fn(async () =>
       createStoredObject({ size: 2048, httpEtag: "etag-fallback" }),
@@ -171,8 +171,35 @@ describe("/api/images/[...key] route", () => {
     expect(get).toHaveBeenCalledWith("image/diagram.png");
     expect(response.status).toBe(200);
     expect(response.headers.get("Content-Type")).toBe("image/webp");
-    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("cache-control")).toBe("public, max-age=60");
     expect(response.headers.get("etag")).toBe("etag-fallback");
+  });
+
+  it("keeps immutable caching when transformation parameters are ignored by a disabled pipeline", async () => {
+    const get = vi.fn(async () =>
+      createStoredObject({ size: 2048, httpEtag: "etag-pipeline-disabled" }),
+    );
+    const fetchMock = vi.fn();
+    global.fetch = fetchMock as unknown as typeof fetch;
+    mocks.getAppCloudflareEnv.mockResolvedValue({
+      IMAGES: { head: vi.fn(), get },
+      ENABLE_CF_IMAGE_PIPELINE: "false",
+    });
+
+    const response = await GET(
+      createImageRequest(
+        "http://test.local/api/images/image/diagram.png?w=1600&q=85&format=auto",
+      ) as never,
+      {
+        params: Promise.resolve({ key: ["image", "diagram.png"] }),
+      },
+    );
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(get).toHaveBeenCalledWith("image/diagram.png");
+    expect(response.headers.get("cache-control")).toBe(
+      "public, max-age=31536000, immutable",
+    );
   });
 
   it("returns partial content for range requests", async () => {

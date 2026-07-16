@@ -156,7 +156,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ key:
   const isRawRequest = req.nextUrl.searchParams.get("__raw") === "1";
   const transform =
     !rangeHeader && !isRawRequest ? getImageTransform(req.nextUrl.searchParams) : null;
-  const transformRequested = transform !== null;
+  let transformAttempted = false;
   const negotiateFormat = transform?.format === "auto";
 
   if (transform && readFlag(env.ENABLE_CF_IMAGE_PIPELINE)) {
@@ -173,6 +173,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ key:
       contentType !== "image/svg+xml";
 
     if (canTransform) {
+      const resolvedTransform = negotiateImageFormat(transform, req.headers.get("Accept"));
+
       try {
         const rawUrl = new URL(req.url);
         rawUrl.searchParams.set("__raw", "1");
@@ -180,7 +182,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ key:
           rawUrl.searchParams.delete(key);
         }
 
-        const resolvedTransform = negotiateImageFormat(transform, req.headers.get("Accept"));
+        transformAttempted = true;
         const transformed = await fetch(rawUrl.toString(), {
           cf: {
             image: resolvedTransform,
@@ -199,11 +201,17 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ key:
           });
         }
 
-        console.warn(
-          `Cloudflare image transform returned ${transformed.status}, falling back to original asset`,
-        );
+        console.warn("Cloudflare image transform failed, falling back to original asset", {
+          objectKey,
+          status: transformed.status,
+          transform: resolvedTransform,
+        });
       } catch (error) {
-        console.warn("Cloudflare image transform failed, falling back to original asset:", error);
+        console.warn("Cloudflare image transform failed, falling back to original asset", {
+          objectKey,
+          transform: resolvedTransform,
+          error,
+        });
       }
     }
   }
@@ -256,7 +264,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ key:
   headers.set("etag", object.httpEtag);
   headers.set(
     "cache-control",
-    transformRequested ? "no-store" : "public, max-age=31536000, immutable",
+    transformAttempted ? "public, max-age=60" : "public, max-age=31536000, immutable",
   );
   headers.set("Accept-Ranges", "bytes");
   if (negotiateFormat) appendVary(headers, "Accept");
