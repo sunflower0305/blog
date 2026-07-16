@@ -70,6 +70,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 }
 
 function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
+  const isError = toast.type === "error";
   const accentColor = {
     success: "var(--editor-accent)",
     error: "#c65b5b",
@@ -79,6 +80,9 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
 
   return (
     <div
+      role={isError ? "alert" : "status"}
+      aria-live={isError ? "assertive" : "polite"}
+      aria-atomic="true"
       className="pointer-events-auto flex min-w-[220px] max-w-sm items-start gap-3 rounded-xl border px-3.5 py-3 shadow-[0_12px_28px_rgba(0,0,0,0.12)] backdrop-blur-md animate-in slide-in-from-right-full duration-300"
       style={{
         background: "color-mix(in srgb, var(--editor-panel) 94%, transparent)",
