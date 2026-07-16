@@ -104,7 +104,7 @@ export function HomeDefault({
                         className="default-post-date pt-1 text-xs leading-relaxed text-[var(--stone-gray)] font-mono"
                       >
                         <span className="block">{dateLabel}</span>
-                        <span className="block text-[11px] opacity-70">{year}</span>
+                        <span className="block text-[11px] text-[var(--editor-muted)]">{year}</span>
                       </time>
 
                       <div className="min-w-0">
