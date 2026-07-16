@@ -12,10 +12,10 @@ import { ThemeDropdown } from "@/components/ThemeDropdown";
 import type { HomeProps } from "@/components/HomeClient";
 import type { SiteNavLink } from "@/lib/site";
 
-const ACCENT = "#c44a2a"; // editorial red-orange
+const ACCENT = "#bc4728"; // editorial red-orange (darkened for AA contrast, 4.66:1 on BG)
 const BG = "#f6f3ed";
 const FG = "#1a1614";
-const MUTED = "#7a6f68";
+const MUTED = "#766c65"; // AA contrast 4.62:1 on BG
 const BORDER = "#d8d2c8";
 
 function formatDate(ts: number) {

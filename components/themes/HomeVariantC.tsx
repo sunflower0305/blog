@@ -13,7 +13,7 @@ import type { SiteNavLink } from "@/lib/site";
 
 const BG = "#1a1c2e";
 const FG = "#c8d3e8";
-const MUTED = "#5a6480";
+const MUTED = "#7986ac"; // brightened for AA contrast, 4.66:1 on BG
 const BORDER = "#2a2f48";
 const ACCENT = "#4ade80"; // terminal green
 const ACCENT2 = "#fbbf24"; // amber
