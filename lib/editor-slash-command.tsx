@@ -5,7 +5,14 @@ import { ReactRenderer } from "@tiptap/react";
 import Suggestion, { type SuggestionKeyDownProps, type SuggestionProps } from "@tiptap/suggestion";
 import { Command } from "cmdk";
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
-import tippy, { type Instance } from "tippy.js";
+import {
+  autoUpdate,
+  computePosition,
+  flip,
+  offset,
+  shift,
+  type VirtualElement,
+} from "@floating-ui/dom";
 
 export interface SuggestionItem {
   title: string;
@@ -147,45 +154,75 @@ const SlashCommandList = forwardRef<SlashCommandListHandle, SlashCommandListProp
 
 function createSlashRenderer() {
   let component: ReactRenderer<SlashCommandListHandle> | null = null;
-  let popup: Instance | null = null;
+  let floatingEl: HTMLDivElement | null = null;
+  let cleanupAutoUpdate: (() => void) | null = null;
+  let getClientRect: (() => DOMRect) | null = null;
+  let updatePosition: (() => void) | null = null;
 
   const destroy = () => {
-    const currentPopup = popup;
     const currentComponent = component;
-    popup = null;
+    const currentFloatingEl = floatingEl;
+    const currentCleanup = cleanupAutoUpdate;
     component = null;
-    currentPopup?.destroy();
+    floatingEl = null;
+    cleanupAutoUpdate = null;
+    getClientRect = null;
+    updatePosition = null;
+    document.removeEventListener("mousedown", onDocumentMouseDown, true);
+    currentCleanup?.();
+    currentFloatingEl?.remove();
     currentComponent?.destroy();
   };
+
+  // Mirrors tippy's hideOnClick: dismiss when clicking outside the popup.
+  function onDocumentMouseDown(event: MouseEvent) {
+    if (floatingEl && !floatingEl.contains(event.target as Node)) {
+      destroy();
+    }
+  }
 
   return {
     onStart(props: SlashCommandListProps) {
       destroy();
       if (!props.clientRect || props.editor.isActive("codeBlock")) return;
 
+      getClientRect = () => props.clientRect?.() ?? new DOMRect();
+
       component = new ReactRenderer(SlashCommandList, {
         props,
         editor: props.editor,
       });
-      popup = tippy(document.body, {
-        getReferenceClientRect: () => props.clientRect?.() ?? new DOMRect(),
-        appendTo: () => document.body,
-        content: component.element,
-        showOnCreate: true,
-        interactive: true,
-        trigger: "manual",
-        placement: "bottom-start",
-        maxWidth: "none",
-        hideOnClick: true,
-        onHidden: destroy,
-      });
+
+      floatingEl = document.createElement("div");
+      floatingEl.style.position = "absolute";
+      floatingEl.style.top = "0";
+      floatingEl.style.left = "0";
+      floatingEl.style.zIndex = "50";
+      floatingEl.appendChild(component.element);
+      document.body.appendChild(floatingEl);
+
+      const reference: VirtualElement = {
+        getBoundingClientRect: () => getClientRect?.() ?? new DOMRect(),
+      };
+
+      updatePosition = () => {
+        if (!floatingEl) return;
+        void computePosition(reference, floatingEl, {
+          placement: "bottom-start",
+          middleware: [offset(4), flip(), shift({ padding: 8 })],
+        }).then(({ x, y }) => {
+          if (!floatingEl) return;
+          floatingEl.style.transform = `translate(${x}px, ${y}px)`;
+        });
+      };
+
+      cleanupAutoUpdate = autoUpdate(reference, floatingEl, updatePosition);
+      document.addEventListener("mousedown", onDocumentMouseDown, true);
     },
     onUpdate(props: SlashCommandListProps) {
       component?.updateProps(props);
-      popup?.setProps({
-        getReferenceClientRect: () => props.clientRect?.() ?? new DOMRect(),
-      });
-      popup?.popperInstance?.update();
+      getClientRect = () => props.clientRect?.() ?? new DOMRect();
+      updatePosition?.();
     },
     onKeyDown(props: SuggestionKeyDownProps) {
       if (props.event.key === "Escape") {
