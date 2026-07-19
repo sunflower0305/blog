@@ -37,7 +37,7 @@
     "lint": "vp check --no-fmt --no-error-on-unmatched-pattern -- --ignore-pattern 'dist/**' --ignore-pattern '.wrangler/**' --ignore-pattern 'worker-configuration.d.ts'"
   },
   "dependencies": {
-    "@floating-ui/dom": "^1.6.0",
+    "@floating-ui/dom": "^1.8.0",
     "@radix-ui/react-dialog": "^1.1.19",
     "@tiptap/core": "^3.28.0",
     "@tiptap/extension-character-count": "^3.28.0",
@@ -54,7 +54,7 @@
     "@tiptap/react": "^3.28.0",
     "@tiptap/starter-kit": "^3.28.0",
     "@tiptap/suggestion": "^3.28.0",
-    "@vinext/cloudflare": "^1.0.0-beta.2",
+    "@vinext/cloudflare": "1.0.0-beta.2",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "highlight.js": "^11.11.1",
@@ -62,11 +62,11 @@
     "juice": "^12.1.1",
     "katex": "^0.17.0",
     "lowlight": "^3.3.0",
-    "lucide-react": "^1.24.0",
+    "lucide-react": "^1.25.0",
     "markdown-it": "^14.3.0",
     "nanoid": "^6.0.0",
     "next": "^16.2.10",
-    "openai": "^6.47.0",
+    "openai": "^6.48.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-easy-crop": "^6.2.2",
@@ -80,28 +80,28 @@
     "tiptap-extension-global-drag-handle": "^0.1.18",
     "tiptap-markdown": "^0.9.0",
     "turndown": "^7.2.4",
-    "vinext": "^1.0.0-beta.2"
+    "vinext": "1.0.0-beta.2"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.45.0",
-    "@tailwindcss/postcss": "^4.3.2",
+    "@cloudflare/vite-plugin": "^1.45.1",
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^26.1.1",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@types/turndown": "^5.0.6",
     "@vitejs/plugin-react": "^6.0.3",
-    "@vitejs/plugin-rsc": "^0.5.27",
+    "@vitejs/plugin-rsc": "^0.5.28",
     "happy-dom": "^20.10.6",
     "react-server-dom-webpack": "^19.2.7",
-    "tailwindcss": "^4.3.2",
+    "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
-    "vite": "^8.1.4",
+    "vite": "^8.1.5",
     "vite-plus": "^0.2.5",
     "vitest": "4.1.10",
-    "wrangler": "^4.111.0"
+    "wrangler": "^4.112.0"
   },
-  "packageManager": "pnpm@11.13.1",
+  "packageManager": "pnpm@11.15.0",
   "cloudflare": {
     "bindings": {
       "NEXT_PUBLIC_SITE_URL": {
