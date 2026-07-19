@@ -49,7 +49,12 @@ describe("/api/admin/posts/[slug] route", () => {
       db: { kind: "db" },
       ctx: { waitUntil: vi.fn() },
     });
-    mocks.getPostBySlug.mockResolvedValue({ id: 7, slug: "old-slug" });
+    mocks.getPostBySlug.mockResolvedValue({
+      id: 7,
+      slug: "old-slug",
+      content: "已有正文",
+      description: "已有摘要",
+    });
     mocks.parseJsonBody.mockResolvedValue({
       slug: "next_slug",
       title: "文章标题",
@@ -89,5 +94,29 @@ describe("/api/admin/posts/[slug] route", () => {
     );
     expect(mocks.enqueueBackgroundJob).toHaveBeenCalledTimes(1);
     expect(body).toEqual({ success: true, slug: "next_slug" });
+  });
+
+  it("preserves the description when a partial update only changes publication status", async () => {
+    mocks.parseJsonBody.mockResolvedValue({ status: "published" });
+
+    const request = {
+      cookies: {
+        get: vi.fn(() => ({ value: "token" })),
+      },
+    } as never;
+
+    const response = await PUT(request, {
+      params: Promise.resolve({ slug: "old-slug" }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.updatePost).toHaveBeenCalledWith(
+      { kind: "db" },
+      7,
+      expect.objectContaining({
+        status: "published",
+        description: undefined,
+      }),
+    );
   });
 });
