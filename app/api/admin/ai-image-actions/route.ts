@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     if (
       error instanceof Error &&
-      /UNIQUE constraint failed: ai_image_actions\\.action_key/i.test(error.message)
+      /UNIQUE constraint failed: ai_image_actions\.action_key/i.test(error.message)
     ) {
       return NextResponse.json({ error: "操作标识已存在" }, { status: 409 });
     }
