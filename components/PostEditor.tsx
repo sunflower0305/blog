@@ -34,23 +34,11 @@ import { ImageGenerationModal } from "@/components/ImageGenerationModal";
 import { ImageCropModal } from "@/components/ImageCropModal";
 import { WeChatPublishModal } from "@/components/WeChatPublishModal";
 import { useToast } from "@/components/Toast";
-import { startBackgroundTask } from "@/lib/client-background-task";
 import { AIModal } from "@/lib/ai-modal";
 import {
-  COVER_IMAGE_OPTIMIZE_OPTIONS,
-  EDITOR_IMAGE_OPTIMIZE_OPTIONS,
-  optimizeImageForUpload,
-} from "@/lib/client-image";
-import {
-  createUploadPlaceholderMarker,
   insertGeneratedImageAfterNode,
   insertGeneratedImageAtPosition,
-  insertUploadPlaceholder,
-  insertUploadedFileIntoEditor,
-  removeUploadPlaceholder,
   replaceImageNodeAtPosition,
-  uploadEditorFile,
-  getEditorImageSourceUrl,
   getEditorImagePreviewUrl,
 } from "@/lib/editor-file-upload";
 import { copyAsWechatArticleFormat, downloadArticleAsPdf } from "@/lib/wechat-copy";
@@ -65,7 +53,8 @@ import { buildAutoDescription, normalizePostSlug, sanitizePostSlugInput } from "
 import { getSiteDisplayUrl, getSiteUrl } from "@/lib/site-config";
 import { resizeTextareaHeight, useAutoResizeTextarea } from "@/lib/textarea-autosize";
 import { setEditorHtmlContent } from "@/lib/editor-content";
-import { getEditorImageValidationError } from "@/lib/editor-image-upload-plugin";
+import { usePostEditorUploads } from "@/lib/use-post-editor-uploads";
+import { usePostEditorMetadata } from "@/lib/use-post-editor-metadata";
 
 type SaveFeedback = { type: "success" | "error"; message: string; slug?: string } | null;
 
@@ -119,20 +108,18 @@ type DraftMetaState = {
   coverImage: string;
 };
 
-type MetaGenerationTarget = "summary" | "tags" | "slug" | "cover";
-
 export function PostEditor({ initialData }: PostEditorProps = {}) {
   // ── Core state ──
   const [draftReady, setDraftReady] = useState(false);
-  const [initialContent, setInitialContent] = useState<JSONContent>(EMPTY_DOCUMENT);
+  const [initialContent] = useState<JSONContent>(EMPTY_DOCUMENT);
   const editorRef = useRef<Editor | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const fileUploadRef = useRef<HTMLInputElement | null>(null);
 
   // ── Fields ──
   const [editSlug, setEditSlug] = useState(initialData?.slug ?? null);
-  const [title, setTitle] = useState("");
-  const latestTitleRef = useRef("");
+  const [title, setTitle] = useState(initialData?.title ?? "");
+  const latestTitleRef = useRef(initialData?.title ?? "");
   const [charCount, setCharCount] = useState(0);
   const [category, setCategory] = useState(initialData?.category || "未分类");
   const [publishStatus, setPublishStatus] = useState<PublishStatus>(
@@ -154,9 +141,6 @@ export function PostEditor({ initialData }: PostEditorProps = {}) {
   const [publishPanelOpen, setPublishPanelOpen] = useState(false);
   const [wechatPublishOpen, setWechatPublishOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [pendingMetadataTargets, setPendingMetadataTargets] = useState<MetaGenerationTarget[]>([]);
   const [feedback, setFeedback] = useState<SaveFeedback>(null);
   const [saveState, setSaveState] = useState<SaveState>("saved");
   const [lastSavedAt, setLastSavedAt] = useState<number>(Date.now());
@@ -188,21 +172,13 @@ export function PostEditor({ initialData }: PostEditorProps = {}) {
 
   // ── Init ──
   useEffect(() => {
-    if (initialData) {
-      latestTitleRef.current = initialData.title;
-      setTitle(initialData.title);
-      setInitialContent(EMPTY_DOCUMENT);
-    } else {
-      // 新文章，使用空文档
-      setInitialContent(EMPTY_DOCUMENT);
-    }
     setDraftReady(true);
 
     // Load sidebar preference
     if (typeof window !== "undefined") {
       setSidebarOpen(window.localStorage.getItem(SIDEBAR_KEY) === "true");
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // Persist sidebar preference
   useEffect(() => {
@@ -226,7 +202,7 @@ export function PostEditor({ initialData }: PostEditorProps = {}) {
   useEffect(() => {
     const id = window.setInterval(() => setTick((t) => t + 1), 30000);
     return () => clearInterval(id);
-  }, [title]);
+  }, []);
 
   // Cleanup timers
   useEffect(() => {
@@ -235,7 +211,7 @@ export function PostEditor({ initialData }: PostEditorProps = {}) {
       if (retrySaveTimerRef.current !== null) window.clearTimeout(retrySaveTimerRef.current);
       autosaveAbortRef.current?.abort();
     };
-  }, [title]);
+  }, []);
 
   // Auto-focus title on new post
   useEffect(() => {
@@ -563,6 +539,38 @@ export function PostEditor({ initialData }: PostEditorProps = {}) {
     [scheduleDraftSave],
   );
 
+  const clearFeedback = useCallback(() => setFeedback(null), []);
+  const setErrorFeedback = useCallback(
+    (message: string) => setFeedback({ type: "error", message }),
+    [],
+  );
+  const handleCoverUploaded = useCallback(
+    (url: string) => {
+      setCoverImage(url);
+      markDirty({ coverImage: url });
+    },
+    [markDirty],
+  );
+  const {
+    coverInputRef,
+    handleCoverUpload,
+    handleImageValidationError,
+    handleSelectedFiles,
+    insertNonImageFile,
+    uploadImageAndGetUrl,
+    uploadProgress,
+    uploadingImage,
+  } = usePostEditorUploads({
+    editorRef,
+    fileInputRef,
+    fileUploadRef,
+    latestTitleRef,
+    onClearFeedback: clearFeedback,
+    onCoverUploaded: handleCoverUploaded,
+    onError: setErrorFeedback,
+    scheduleDraftSave,
+  });
+
   const imageExtensions = useMemo(
     () =>
       createEditorExtensions({
@@ -582,230 +590,6 @@ export function PostEditor({ initialData }: PostEditorProps = {}) {
       }),
     [markDirty],
   );
-
-  const setMetadataTargetPending = useCallback((target: MetaGenerationTarget, pending: boolean) => {
-    setPendingMetadataTargets((current) => {
-      if (pending) {
-        return current.includes(target) ? current : [...current, target];
-      }
-      return current.filter((item) => item !== target);
-    });
-  }, []);
-
-  const isMetadataTargetPending = useCallback(
-    (target: MetaGenerationTarget) => pendingMetadataTargets.includes(target),
-    [pendingMetadataTargets],
-  );
-
-  // ── File upload ──
-  const uploadImageAndGetUrl = useCallback(
-    async (file: File): Promise<string> => {
-      setUploadingImage(true);
-      setUploadProgress(0);
-      setFeedback(null);
-      try {
-        const validationError = getEditorImageValidationError(file);
-        if (validationError) throw new Error(validationError);
-        const optimizedFile = await optimizeImageForUpload(file, EDITOR_IMAGE_OPTIMIZE_OPTIONS);
-        const result = await uploadEditorFile(optimizedFile, (p) => setUploadProgress(p));
-        if (editorRef.current) scheduleDraftSave(latestTitleRef.current, editorRef.current);
-        return getEditorImageSourceUrl(result);
-      } catch (error) {
-        setFeedback({
-          type: "error",
-          message: error instanceof Error ? error.message : "图片上传失败",
-        });
-        throw error;
-      } finally {
-        setUploadingImage(false);
-        setUploadProgress(0);
-        if (fileInputRef.current) fileInputRef.current.value = "";
-        if (fileUploadRef.current) fileUploadRef.current.value = "";
-      }
-    },
-    [scheduleDraftSave],
-  );
-
-  const handleImageValidationError = useCallback((_file: File, message: string) => {
-    setFeedback({ type: "error", message });
-  }, []);
-
-  const insertNonImageFile = useCallback(
-    async (file: File, requestedPos?: number): Promise<number | null> => {
-      if (file.type.startsWith("image/")) {
-        try {
-          const url = await uploadImageAndGetUrl(file);
-          editorRef.current?.chain().focus().setImage({ src: url, alt: file.name }).run();
-        } catch {}
-        return null;
-      }
-      const editor = editorRef.current;
-      if (!editor) {
-        setFeedback({ type: "error", message: "编辑器还没准备好" });
-        return null;
-      }
-      setUploadingImage(true);
-      setUploadProgress(0);
-      setFeedback(null);
-      const marker = createUploadPlaceholderMarker();
-      insertUploadPlaceholder(editor, file, marker, requestedPos);
-      try {
-        const result = await uploadEditorFile(file, (p) => setUploadProgress(p));
-        const placeholderPos = removeUploadPlaceholder(editor, marker);
-        if (placeholderPos == null) return null;
-        const insertedEnd = insertUploadedFileIntoEditor(editor, file, result, placeholderPos);
-        scheduleDraftSave(latestTitleRef.current, editor);
-        return insertedEnd;
-      } catch (error) {
-        try {
-          removeUploadPlaceholder(editor, marker);
-        } catch {}
-        setFeedback({
-          type: "error",
-          message: error instanceof Error ? error.message : "文件上传失败",
-        });
-        return null;
-      } finally {
-        setUploadingImage(false);
-        setUploadProgress(0);
-        if (fileInputRef.current) fileInputRef.current.value = "";
-        if (fileUploadRef.current) fileUploadRef.current.value = "";
-      }
-    },
-    [scheduleDraftSave, uploadImageAndGetUrl],
-  );
-
-  const handleSelectedFiles = async (files: FileList | File[] | null | undefined) => {
-    const queue = files ? Array.from(files) : [];
-    for (const file of queue) {
-      // 顺序上传，避免多文件时占位和进度条互相打架
-      await insertNonImageFile(file);
-    }
-  };
-
-  // ── Cover image upload ──
-  const coverInputRef = useRef<HTMLInputElement>(null);
-  const handleCoverUpload = async (file: File) => {
-    setUploadingImage(true);
-    setUploadProgress(0);
-    try {
-      const optimizedFile = await optimizeImageForUpload(file, COVER_IMAGE_OPTIMIZE_OPTIONS);
-      const result = await uploadEditorFile(optimizedFile, (p) => setUploadProgress(p));
-      setCoverImage(result.url);
-      markDirty({ coverImage: result.url });
-    } catch (error) {
-      setFeedback({
-        type: "error",
-        message: error instanceof Error ? error.message : "封面上传失败",
-      });
-    } finally {
-      setUploadingImage(false);
-      setUploadProgress(0);
-      if (coverInputRef.current) coverInputRef.current.value = "";
-    }
-  };
-
-  const handleGenerateMetadata = (target: MetaGenerationTarget) => {
-    const editor = editorRef.current;
-    const normalizedTitle = latestTitleRef.current.trim() || title.trim();
-    const content = editor?.getText({ blockSeparator: "\n\n" }).trim() || "";
-
-    if (!normalizedTitle && !content) {
-      setFeedback({ type: "error", message: "先写标题或正文，再生成内容。" });
-      return;
-    }
-
-    if (isMetadataTargetPending(target)) {
-      return;
-    }
-
-    setFeedback(null);
-
-    setMetadataTargetPending(target, true);
-
-    startBackgroundTask({
-      toast,
-      errorPrefix: "AI 生成失败",
-      run: async () => {
-        const res = await fetch("/api/editor/ai-post-metadata", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            target,
-            title: normalizedTitle,
-            content,
-            category,
-            description,
-            tags,
-            currentSlug: normalizePostSlug(slug) || editSlug || "",
-          }),
-        });
-
-        const data = (await res.json().catch(() => ({}))) as {
-          error?: string;
-          value?: string | string[];
-          image?: { url?: string };
-        };
-
-        if (!res.ok) {
-          throw new Error(data.error || "AI 生成失败");
-        }
-
-        return data;
-      },
-      onSuccess: (data) => {
-        if (target === "summary") {
-          const nextDescription = typeof data.value === "string" ? data.value.trim() : "";
-          if (!nextDescription) {
-            throw new Error("摘要生成结果为空");
-          }
-          setDescription(nextDescription);
-          markDirty({ description: nextDescription });
-          return;
-        }
-
-        if (target === "tags") {
-          const nextTags = Array.isArray(data.value)
-            ? data.value.map((item) => String(item).trim()).filter(Boolean)
-            : [];
-
-          if (nextTags.length === 0) {
-            throw new Error("标签生成结果为空");
-          }
-
-          setTagInput("");
-          setTags(nextTags);
-          markDirty({ tags: nextTags });
-          return;
-        }
-
-        if (target === "slug") {
-          const nextSlug = typeof data.value === "string" ? normalizePostSlug(data.value) : "";
-          if (!nextSlug) {
-            throw new Error("slug 生成结果为空");
-          }
-
-          setSlug(nextSlug);
-          markDirty({ slug: nextSlug });
-          return;
-        }
-
-        const nextCoverImage = typeof data.image?.url === "string" ? data.image.url : "";
-        if (!nextCoverImage) {
-          throw new Error("封面生成失败");
-        }
-
-        setCoverImage(nextCoverImage);
-        markDirty({ coverImage: nextCoverImage });
-      },
-      onError: (message) => {
-        setFeedback({ type: "error", message });
-      },
-      onSettled: () => {
-        setMetadataTargetPending(target, false);
-      },
-    });
-  };
 
   // ── Save ──
   const handleSave = async () => {
@@ -1006,6 +790,24 @@ export function PostEditor({ initialData }: PostEditorProps = {}) {
 
   // ── Tag input ──
   const [tagInput, setTagInput] = useState("");
+  const { handleGenerateMetadata, isMetadataTargetPending } = usePostEditorMetadata({
+    category,
+    description,
+    editSlug,
+    editorRef,
+    latestTitleRef,
+    markDirty,
+    onClearFeedback: clearFeedback,
+    onError: setErrorFeedback,
+    setCoverImage,
+    setDescription,
+    setSlug,
+    setTagInput,
+    setTags,
+    slug,
+    tags,
+    toast,
+  });
   const addTag = (value: string) => {
     const t = value.trim().slice(0, 20);
     if (!t || tags.includes(t) || tags.length >= 10) return;
