@@ -178,7 +178,7 @@ export function ImageGenerationResultPanel({
                 <button
                   type="button"
                   onClick={() => onInsert(result.url, result.alt, placementMode)}
-                  className="rounded-xl bg-[var(--editor-accent)] px-4 py-2 text-sm font-semibold text-white transition hover:brightness-105"
+                  className="rounded-xl bg-[var(--editor-accent)] px-4 py-2 text-sm font-semibold text-[var(--editor-accent-ink)] transition hover:brightness-105"
                 >
                   {placementMode === "replace" ? "替换当前图" : "插入正文"}
                 </button>

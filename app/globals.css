@@ -10,7 +10,7 @@
   --editor-ink: #141413;
   --editor-muted: #5e5d59;
   --editor-accent: #c96442;
-  --editor-accent-ink: #faf9f5;
+  --editor-accent-ink: var(--editor-ink);
   --editor-link: #c96442;
   --editor-code-bg: #faf9f5;
   --editor-code-border: #e8e6dc;

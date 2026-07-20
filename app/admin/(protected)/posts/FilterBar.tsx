@@ -176,7 +176,7 @@ export function FilterBar({
                 onClick={() => updateFilter("status", item.value)}
                 className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors ${
                   activeStatus === item.value
-                    ? "bg-[var(--editor-accent)] text-white font-medium"
+                    ? "bg-[var(--editor-accent)] text-[var(--editor-accent-ink)] font-medium"
                     : "bg-[var(--editor-panel)] text-[var(--editor-muted)] hover:bg-[var(--editor-soft)] hover:text-[var(--editor-ink)]"
                 }`}
               >

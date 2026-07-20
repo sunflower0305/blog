@@ -565,7 +565,7 @@ export function ImageGenerationModal({
                       type="button"
                       onClick={() => void handleGenerate()}
                       disabled={!canGenerate || generating}
-                      className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[var(--editor-accent)] px-4 py-2 text-sm font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[var(--editor-accent)] px-4 py-2 text-sm font-semibold text-[var(--editor-accent-ink)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {generating ? (
                         <Loader2 className="h-4 w-4 animate-spin" />

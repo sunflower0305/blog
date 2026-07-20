@@ -116,7 +116,7 @@ export function ApiTokensManager() {
             </code>
             <button
               onClick={() => copyToken(newToken)}
-              className="shrink-0 px-3 py-2 text-sm bg-[var(--editor-accent)] text-white rounded-lg hover:brightness-105"
+              className="shrink-0 px-3 py-2 text-sm bg-[var(--editor-accent)] text-[var(--editor-accent-ink)] rounded-lg hover:brightness-105"
             >
               复制
             </button>
@@ -144,7 +144,7 @@ export function ApiTokensManager() {
         <button
           onClick={createToken}
           disabled={creating || !newName.trim()}
-          className="px-4 py-2 text-sm bg-[var(--editor-accent)] text-white rounded-lg font-medium
+          className="px-4 py-2 text-sm bg-[var(--editor-accent)] text-[var(--editor-accent-ink)] rounded-lg font-medium
                      hover:brightness-105 disabled:opacity-50"
         >
           {creating ? "创建中..." : "生成 Token"}

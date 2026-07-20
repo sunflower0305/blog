@@ -103,7 +103,7 @@ export function ThemeManager({ initialTheme, initialFont, onSave, saving }: Prop
       <button
         onClick={() => void onSave({ theme: selectedTheme, font: selectedFont })}
         disabled={saving}
-        className="rounded-lg bg-[var(--editor-accent)] px-4 py-2 text-sm font-medium text-white hover:brightness-105 disabled:opacity-50"
+        className="rounded-lg bg-[var(--editor-accent)] px-4 py-2 text-sm font-medium text-[var(--editor-accent-ink)] hover:brightness-105 disabled:opacity-50"
       >
         {saving ? "保存中..." : "保存主题管理设置"}
       </button>

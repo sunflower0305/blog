@@ -59,7 +59,7 @@ export function PasswordPrompt({ error }: PasswordPromptProps) {
             <button
               type="submit"
               disabled={!password.trim()}
-              className="w-full px-4 py-3 rounded-lg bg-[var(--editor-accent)] text-white font-medium hover:brightness-105 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-4 py-3 rounded-lg bg-[var(--editor-accent)] text-[var(--editor-accent-ink)] font-medium hover:brightness-105 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               解锁文章
             </button>

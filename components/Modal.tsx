@@ -41,7 +41,7 @@ export function Modal({
   const buttonColor = {
     danger: "bg-rose-500 hover:bg-rose-600 text-white",
     warning: "bg-amber-500 hover:bg-amber-600 text-white",
-    info: "bg-[var(--editor-accent)] hover:brightness-105 text-white",
+    info: "bg-[var(--editor-accent)] hover:brightness-105 text-[var(--editor-accent-ink)]",
   }[type];
 
   const handleConfirm = async () => {

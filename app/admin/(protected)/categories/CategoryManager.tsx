@@ -168,7 +168,7 @@ export function CategoryManager({ initialCategories }: { initialCategories: Cate
           <button
             type="submit"
             disabled={loading || !name.trim() || !slug.trim()}
-            className="inline-flex h-10 min-w-20 items-center justify-center rounded-lg border border-transparent bg-[var(--editor-accent)] px-4 text-sm font-semibold text-[#141413] transition hover:brightness-105 disabled:cursor-not-allowed disabled:border-[var(--editor-line)] disabled:bg-[var(--editor-soft)] disabled:text-[var(--editor-muted)] disabled:hover:brightness-100"
+            className="inline-flex h-10 min-w-20 items-center justify-center rounded-lg border border-transparent bg-[var(--editor-accent)] px-4 text-sm font-semibold text-[var(--editor-accent-ink)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:border-[var(--editor-line)] disabled:bg-[var(--editor-soft)] disabled:text-[var(--editor-muted)] disabled:hover:brightness-100"
           >
             {loading ? "添加中…" : "添加"}
           </button>

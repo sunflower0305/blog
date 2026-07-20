@@ -611,7 +611,7 @@ export function AIModal({
                       <button
                         type="button"
                         onClick={() => replaceWithAi(item.output)}
-                        className="rounded-lg bg-[var(--editor-accent)] px-3 py-1.5 text-sm font-medium text-white hover:brightness-105 transition"
+                        className="rounded-lg bg-[var(--editor-accent)] px-3 py-1.5 text-sm font-medium text-[var(--editor-accent-ink)] hover:brightness-105 transition"
                       >
                         替换
                       </button>
@@ -674,7 +674,7 @@ export function AIModal({
                   <button
                     type="button"
                     onClick={() => replaceWithAi()}
-                    className="rounded-lg bg-[var(--editor-accent)] px-3 py-1.5 text-sm font-medium text-white hover:brightness-105 transition"
+                    className="rounded-lg bg-[var(--editor-accent)] px-3 py-1.5 text-sm font-medium text-[var(--editor-accent-ink)] hover:brightness-105 transition"
                   >
                     替换选区
                   </button>
@@ -693,7 +693,7 @@ export function AIModal({
                   <button
                     type="button"
                     onClick={() => insertAtCursor()}
-                    className="rounded-lg bg-[var(--editor-accent)] px-3 py-1.5 text-sm font-medium text-white hover:brightness-105 transition"
+                    className="rounded-lg bg-[var(--editor-accent)] px-3 py-1.5 text-sm font-medium text-[var(--editor-accent-ink)] hover:brightness-105 transition"
                   >
                     插入到光标处
                   </button>

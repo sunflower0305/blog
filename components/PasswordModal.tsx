@@ -174,7 +174,7 @@ export function PasswordModal({
                 type="button"
                 onClick={handleToggleEncryption}
                 disabled={loading}
-                className="w-full px-4 py-2 text-sm font-semibold bg-[var(--editor-accent)] text-white rounded-lg hover:brightness-105 transition-all disabled:opacity-50"
+                className="w-full px-4 py-2 text-sm font-semibold bg-[var(--editor-accent)] text-[var(--editor-accent-ink)] rounded-lg hover:brightness-105 transition-all disabled:opacity-50"
               >
                 {loading ? "处理中..." : "启用密码保护"}
               </button>

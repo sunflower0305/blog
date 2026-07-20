@@ -251,7 +251,7 @@ export function WeChatBridgeManager() {
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="rounded-lg bg-[var(--editor-accent)] px-3 py-2 text-sm font-semibold text-white transition hover:brightness-105 disabled:opacity-50"
+            className="rounded-lg bg-[var(--editor-accent)] px-3 py-2 text-sm font-semibold text-[var(--editor-accent-ink)] transition hover:brightness-105 disabled:opacity-50"
           >
             {saving ? "保存中…" : "保存配置"}
           </button>

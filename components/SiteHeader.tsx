@@ -265,7 +265,7 @@ export function SiteHeader({
                   onClick={() => setMobileMenuOpen(false)}
                   className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                     activeCategorySlug === null
-                      ? "bg-[var(--editor-accent)] text-white"
+                      ? "bg-[var(--editor-accent)] text-[var(--editor-accent-ink)]"
                       : "bg-[var(--editor-panel)] text-[var(--editor-muted)]"
                   }`}
                 >
@@ -278,7 +278,7 @@ export function SiteHeader({
                     onClick={() => setMobileMenuOpen(false)}
                     className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                       activeCategorySlug === category.slug
-                        ? "bg-[var(--editor-accent)] text-white"
+                        ? "bg-[var(--editor-accent)] text-[var(--editor-accent-ink)]"
                         : "bg-[var(--editor-panel)] text-[var(--editor-muted)]"
                     }`}
                   >

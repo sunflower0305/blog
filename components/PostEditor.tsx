@@ -1023,7 +1023,7 @@ export function PostEditor({ initialData }: PostEditorProps = {}) {
                   type="button"
                   onClick={handleSave}
                   disabled={saving || uploadingImage}
-                  className="inline-flex items-center gap-1.5 rounded-l-lg bg-[var(--editor-accent)] pl-3 pr-2 py-1.5 text-sm font-semibold text-white transition hover:brightness-105 disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 rounded-l-lg bg-[var(--editor-accent)] pl-3 pr-2 py-1.5 text-sm font-semibold text-[var(--editor-accent-ink)] transition hover:brightness-105 disabled:opacity-60"
                 >
                   <Globe className="h-3.5 w-3.5" />
                   {saving ? "保存中…" : editSlug ? "更新" : "发布"}
@@ -1031,7 +1031,7 @@ export function PostEditor({ initialData }: PostEditorProps = {}) {
                 <button
                   type="button"
                   onClick={() => setPublishPanelOpen(!publishPanelOpen)}
-                  className="inline-flex items-center rounded-r-lg bg-[var(--editor-accent)] px-1.5 py-1.5 text-white border-l border-white/25 hover:brightness-105 transition"
+                  className="inline-flex items-center rounded-r-lg bg-[var(--editor-accent)] px-1.5 py-1.5 text-[var(--editor-accent-ink)] border-l border-[var(--editor-accent-ink)]/20 hover:brightness-105 transition"
                 >
                   <ChevronUp
                     className={`h-3.5 w-3.5 transition-transform ${publishPanelOpen ? "rotate-180" : ""}`}
@@ -1089,7 +1089,7 @@ export function PostEditor({ initialData }: PostEditorProps = {}) {
                         type="button"
                         onClick={handleSave}
                         disabled={saving}
-                        className="px-3 py-1.5 text-sm font-semibold text-white bg-[var(--editor-accent)] rounded-lg hover:brightness-105 transition disabled:opacity-50"
+                        className="px-3 py-1.5 text-sm font-semibold text-[var(--editor-accent-ink)] bg-[var(--editor-accent)] rounded-lg hover:brightness-105 transition disabled:opacity-50"
                       >
                         {saving ? "保存中…" : editSlug ? "更新文章" : "发布"}
                       </button>

@@ -52,7 +52,7 @@ export default async function AdminProtectedLayout({ children }: { children: Rea
             <div className="w-px h-4 bg-[var(--editor-line)] mx-2 hidden md:block" />
             <Link
               href="/editor"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--editor-accent)] text-white rounded-lg text-sm font-medium hover:brightness-105 transition-all whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[var(--editor-accent)] text-[var(--editor-accent-ink)] rounded-lg text-sm font-medium hover:brightness-105 transition-all whitespace-nowrap"
             >
               <PenLine className="w-4 h-4" />
               <span className="hidden md:inline">写文章</span>

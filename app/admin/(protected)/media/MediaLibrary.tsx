@@ -256,7 +256,7 @@ export function MediaLibrary() {
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--editor-accent)] text-white rounded-lg text-sm font-medium hover:brightness-105 transition-all disabled:opacity-60"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--editor-accent)] text-[var(--editor-accent-ink)] rounded-lg text-sm font-medium hover:brightness-105 transition-all disabled:opacity-60"
         >
           <Upload className="w-4 h-4" />
           {uploading ? "上传中…" : "上传文件"}
@@ -315,7 +315,7 @@ export function MediaLibrary() {
               }}
               className={`px-3 py-2 flex items-center gap-1.5 transition-colors ${
                 category === cat
-                  ? "bg-[var(--editor-accent)] text-white"
+                  ? "bg-[var(--editor-accent)] text-[var(--editor-accent-ink)]"
                   : "bg-[var(--editor-panel)] text-[var(--editor-muted)] hover:bg-[var(--editor-soft)] hover:text-[var(--editor-ink)]"
               }`}
             >

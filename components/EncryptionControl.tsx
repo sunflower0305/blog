@@ -61,7 +61,7 @@ export function EncryptionControl({
         onClick={handleToggle}
         className={`p-2 rounded-md transition-colors ${
           isEncrypted
-            ? "bg-[var(--editor-accent)] text-white"
+            ? "bg-[var(--editor-accent)] text-[var(--editor-accent-ink)]"
             : "bg-[var(--editor-soft)] text-[var(--editor-muted)] hover:bg-[var(--editor-line)]"
         }`}
         title={isEncrypted ? "已加密" : "加密文章"}

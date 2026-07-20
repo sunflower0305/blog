@@ -313,7 +313,7 @@ export function WeChatPublishModal({
             type="button"
             onClick={() => void handleSubmit()}
             disabled={submitting || loadingAccounts || accounts.length === 0}
-            className="rounded-lg bg-[var(--editor-accent)] px-3 py-2 text-sm font-semibold text-white transition hover:brightness-105 disabled:opacity-50"
+            className="rounded-lg bg-[var(--editor-accent)] px-3 py-2 text-sm font-semibold text-[var(--editor-accent-ink)] transition hover:brightness-105 disabled:opacity-50"
           >
             {submitting ? "提交中…" : publishNow ? "提交发布" : "创建草稿"}
           </button>

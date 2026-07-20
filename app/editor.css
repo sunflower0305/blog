@@ -9,7 +9,7 @@
   --editor-ink: #17120d;
   --editor-muted: #68635b;
   --editor-accent: #c96442;
-  --editor-accent-ink: #fffaf5;
+  --editor-accent-ink: var(--editor-ink);
   --stone-gray: #87867f;
   color: var(--editor-ink);
 }
