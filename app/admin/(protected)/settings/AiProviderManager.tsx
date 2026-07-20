@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useToast } from "@/components/Toast";
 import { Modal } from "@/components/Modal";
 import {
@@ -104,7 +104,7 @@ export function AiProviderManager() {
     return createModelOptions(models, editing?.model || "");
   }, [editing?.model, models]);
 
-  const loadProfiles = async () => {
+  const loadProfiles = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/ai-provider");
       if (!res.ok) throw new Error("加载失败");
@@ -121,12 +121,11 @@ export function AiProviderManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
-    loadProfiles();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    void loadProfiles();
+  }, [loadProfiles]);
 
   const openCreate = () => {
     setEditing(createEmptyForm());

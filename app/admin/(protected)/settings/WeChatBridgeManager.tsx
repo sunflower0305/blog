@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useToast } from "@/components/Toast";
 import { normalizeBaseUrl } from "@/lib/ai-provider-profiles";
 
@@ -37,7 +37,7 @@ export function WeChatBridgeManager() {
   const [accounts, setAccounts] = useState<BridgeAccount[]>([]);
   const [testMessage, setTestMessage] = useState("");
 
-  const loadAccounts = async () => {
+  const loadAccounts = useCallback(async () => {
     setRefreshingAccounts(true);
     try {
       const res = await fetch("/api/admin/wechat-bridge/accounts");
@@ -53,9 +53,9 @@ export function WeChatBridgeManager() {
     } finally {
       setRefreshingAccounts(false);
     }
-  };
+  }, [toast]);
 
-  const loadConfig = async () => {
+  const loadConfig = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/admin/wechat-bridge");
@@ -80,12 +80,11 @@ export function WeChatBridgeManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [loadAccounts, toast]);
 
   useEffect(() => {
     void loadConfig();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadConfig]);
 
   const handleSave = async () => {
     setSaving(true);

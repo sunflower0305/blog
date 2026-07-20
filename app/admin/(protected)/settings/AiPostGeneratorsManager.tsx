@@ -162,8 +162,7 @@ export function AiPostGeneratorsManager() {
     };
 
     void load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [toast]);
 
   const updateItem = (target: GeneratorTarget, patch: Partial<GeneratorConfig>) => {
     setItems((current) => {
