@@ -1,3 +1,7 @@
+/** 文章发布状态的合法取值，供写入路径的输入收窄复用。 */
+export const POST_STATUS_VALUES = ["draft", "published", "deleted"] as const;
+export type PostStatus = (typeof POST_STATUS_VALUES)[number];
+
 export interface Post {
   id: number;
   slug: string;
@@ -7,7 +11,7 @@ export interface Post {
   description: string | null;
   category: string | null;
   tags: string | null;
-  status: "draft" | "published" | "deleted";
+  status: PostStatus;
   password: string | null;
   is_pinned: number;
   is_hidden: number;

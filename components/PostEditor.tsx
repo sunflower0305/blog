@@ -55,6 +55,7 @@ import { resizeTextareaHeight, useAutoResizeTextarea } from "@/lib/textarea-auto
 import { setEditorHtmlContent } from "@/lib/editor-content";
 import { usePostEditorUploads } from "@/lib/use-post-editor-uploads";
 import { usePostEditorMetadata } from "@/lib/use-post-editor-metadata";
+import type { PostStatus } from "@/lib/db";
 
 type SaveFeedback = { type: "success" | "error"; message: string; slug?: string } | null;
 
@@ -90,7 +91,7 @@ interface PostEditorProps {
     title: string;
     html: string;
     category?: string;
-    status?: "draft" | "published" | "deleted";
+    status?: PostStatus;
     password?: string | null;
     is_hidden?: number;
     tags?: string[];

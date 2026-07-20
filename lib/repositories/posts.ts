@@ -6,6 +6,7 @@ import type {
   Post,
   PostAiSnapshotRow,
   PostCategoryRow,
+  PostStatus,
   PostWithTags,
   StatsRow,
 } from "@/lib/repositories/types";
@@ -126,7 +127,7 @@ export async function createPost(
     description?: string;
     category?: string;
     tags?: string[];
-    status?: "draft" | "published";
+    status?: Exclude<PostStatus, "deleted">;
     password?: string | null;
     is_hidden?: number;
     cover_image?: string | null;
@@ -179,7 +180,7 @@ export async function updatePostBySlug(
     description: string;
     category: string;
     tags: string[];
-    status: "draft" | "published" | "deleted";
+    status: PostStatus;
     password: string | null;
     is_pinned: number;
     is_hidden: number;
@@ -212,7 +213,7 @@ export async function updatePost(
     description: string;
     category: string;
     tags: string[];
-    status: "draft" | "published" | "deleted";
+    status: PostStatus;
     password: string | null;
     is_pinned: number;
     is_hidden: number;

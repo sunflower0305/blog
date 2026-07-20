@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/lib/db", () => ({
   createPost: mocks.createPost,
   updatePostBySlug: mocks.updatePostBySlug,
+  POST_STATUS_VALUES: ["draft", "published", "deleted"],
 }));
 
 vi.mock("@/lib/server/route-helpers", () => ({
@@ -138,5 +139,29 @@ describe("/api/posts route", () => {
       }),
     );
     expect(body).toEqual({ success: true, slug: "new_slug" });
+  });
+
+  it("coerces a non-array tags payload to [] before it reaches updatePostBySlug", async () => {
+    mocks.parseJsonBody.mockResolvedValue({
+      current_slug: "old-slug",
+      tags: "notanarray",
+    });
+
+    await PATCH({} as never);
+
+    const [, , updates] = mocks.updatePostBySlug.mock.calls[0];
+    expect(updates.tags).toEqual([]);
+  });
+
+  it("trims and filters a valid tags array on the patch path", async () => {
+    mocks.parseJsonBody.mockResolvedValue({
+      current_slug: "old-slug",
+      tags: [" a ", "", "b", 3, null],
+    });
+
+    await PATCH({} as never);
+
+    const [, , updates] = mocks.updatePostBySlug.mock.calls[0];
+    expect(updates.tags).toEqual(["a", "b"]);
   });
 });

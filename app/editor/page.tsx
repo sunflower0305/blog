@@ -1,6 +1,6 @@
 import "../content.css";
 import "../editor.css";
-import { getPostBySlug } from "@/lib/db";
+import { getPostBySlug, type PostStatus } from "@/lib/db";
 import { getAppCloudflareEnv } from "@/lib/cloudflare";
 import { isAdminAuthenticated, COOKIE_NAME } from "@/lib/admin-auth";
 import { cookies } from "next/headers";
@@ -34,7 +34,7 @@ export default async function EditorPage({
         title: string;
         html: string;
         category?: string;
-        status?: "draft" | "published" | "deleted";
+        status?: PostStatus;
         password?: string | null;
         is_hidden?: number;
         tags?: string[];

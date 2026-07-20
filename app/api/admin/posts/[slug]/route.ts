@@ -1,4 +1,10 @@
-import { deletePost, getPostBySlug, updatePost } from "@/lib/db";
+import {
+  deletePost,
+  getPostBySlug,
+  POST_STATUS_VALUES,
+  type PostStatus,
+  updatePost,
+} from "@/lib/db";
 import { isAdminAuthenticated, COOKIE_NAME } from "@/lib/admin-auth";
 import { invalidatePublicContentCache } from "@/lib/cache";
 import { buildAutoDescription, normalizePostSlug } from "@/lib/post-utils";
@@ -9,6 +15,7 @@ import {
   jsonOk,
   parseJsonBody,
 } from "@/lib/server/route-helpers";
+import { asBit, asOptionalEnum, asStringArray, whenDefined } from "@/lib/server/input-coerce";
 import type { NextRequest } from "next/server";
 
 async function checkAuth(req: NextRequest): Promise<boolean> {
@@ -68,7 +75,7 @@ export async function PUT(req: NextRequest, { params }: Ctx) {
       content?: string;
       html?: string;
       category?: string;
-      status?: "draft" | "published" | "deleted";
+      status?: PostStatus;
       password?: string | null;
       is_pinned?: number;
       is_hidden?: number;
@@ -89,12 +96,12 @@ export async function PUT(req: NextRequest, { params }: Ctx) {
       content,
       html,
       category,
-      status,
+      status: asOptionalEnum(status, POST_STATUS_VALUES),
       password,
-      is_pinned,
-      is_hidden,
+      is_pinned: whenDefined(is_pinned, asBit),
+      is_hidden: whenDefined(is_hidden, asBit),
       cover_image,
-      tags,
+      tags: whenDefined(tags, asStringArray),
       description: normalizedDescription,
     });
 

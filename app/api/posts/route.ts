@@ -1,4 +1,4 @@
-import { createPost, updatePostBySlug } from "@/lib/db";
+import { createPost, POST_STATUS_VALUES, updatePostBySlug } from "@/lib/db";
 import { invalidatePublicContentCache } from "@/lib/cache";
 import { enqueueBackgroundJob } from "@/lib/background-jobs";
 import { nanoid } from "nanoid";
@@ -13,6 +13,7 @@ import {
   jsonOk,
   parseJsonBody,
 } from "@/lib/server/route-helpers";
+import { asOptionalEnum, asStringArray } from "@/lib/server/input-coerce";
 import type { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -163,15 +164,10 @@ export async function PATCH(req: NextRequest) {
       updates.description = rawDescription || buildAutoDescription(rawContent);
     }
     if (payload.category !== undefined) updates.category = payload.category;
-    if (payload.tags !== undefined) updates.tags = payload.tags;
+    if (payload.tags !== undefined) updates.tags = asStringArray(payload.tags);
     if (payload.cover_image !== undefined) updates.cover_image = payload.cover_image;
-    if (
-      payload.status === "draft" ||
-      payload.status === "published" ||
-      payload.status === "deleted"
-    ) {
-      updates.status = payload.status;
-    }
+    const status = asOptionalEnum(payload.status, POST_STATUS_VALUES);
+    if (status !== undefined) updates.status = status;
 
     if (Object.keys(updates).length === 0) {
       return jsonOk({ success: true, slug: currentSlug });

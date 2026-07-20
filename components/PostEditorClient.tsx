@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { PostStatus } from "@/lib/db";
 
 const PostEditor = dynamic(
   () => import("@/components/PostEditor").then((m) => ({ default: m.PostEditor })),
@@ -20,7 +21,7 @@ export function PostEditorClient(props: {
     title: string;
     html: string;
     category?: string;
-    status?: "draft" | "published" | "deleted";
+    status?: PostStatus;
     password?: string | null;
     is_hidden?: number;
     tags?: string[];

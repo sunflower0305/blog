@@ -4,10 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import { Modal } from "@/components/Modal";
+import type { PostStatus } from "@/lib/db";
 
 interface StatusToggleProps {
   slug: string;
-  currentStatus: "draft" | "published";
+  currentStatus: Exclude<PostStatus, "deleted">;
 }
 
 export function StatusToggle({ slug, currentStatus }: StatusToggleProps) {

@@ -2,11 +2,13 @@ export { getDB, ensureSchema, type Database } from "@/lib/repositories/schema";
 export {
   isPubliclyAccessiblePost,
   isSearchIndexablePost,
+  POST_STATUS_VALUES,
   type CategoryRow,
   type CountRow,
   type Post,
   type PostAiSnapshotRow,
   type PostCategoryRow,
+  type PostStatus,
   type PostWithTags,
   type SettingRow,
   type StatsRow,

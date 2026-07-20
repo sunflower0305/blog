@@ -15,6 +15,7 @@ vi.mock("@/lib/db", () => ({
   deletePost: mocks.deletePost,
   getPostBySlug: mocks.getPostBySlug,
   updatePost: mocks.updatePost,
+  POST_STATUS_VALUES: ["draft", "published", "deleted"],
 }));
 
 vi.mock("@/lib/admin-auth", () => ({
@@ -118,5 +119,46 @@ describe("/api/admin/posts/[slug] route", () => {
         description: undefined,
       }),
     );
+  });
+
+  it("coerces illegal status/bit/tags fields before they reach updatePost", async () => {
+    mocks.parseJsonBody.mockResolvedValue({
+      title: "标题",
+      status: "not-a-status",
+      is_pinned: "yes",
+      is_hidden: 1,
+      tags: "notanarray",
+    });
+
+    const request = {
+      cookies: { get: vi.fn(() => ({ value: "token" })) },
+    } as never;
+
+    await PUT(request, { params: Promise.resolve({ slug: "old-slug" }) });
+
+    const [, , data] = mocks.updatePost.mock.calls[0];
+    // illegal enum → dropped (undefined) so the column is left untouched
+    expect(data.status).toBeUndefined();
+    // "yes" is not 1/true → 0; a real 1 stays 1
+    expect(data.is_pinned).toBe(0);
+    expect(data.is_hidden).toBe(1);
+    // non-array tags become [] instead of a raw string reaching JSON.stringify
+    expect(data.tags).toEqual([]);
+  });
+
+  it("leaves omitted bit/tags fields undefined so a partial update skips them", async () => {
+    mocks.parseJsonBody.mockResolvedValue({ title: "只改标题" });
+
+    const request = {
+      cookies: { get: vi.fn(() => ({ value: "token" })) },
+    } as never;
+
+    await PUT(request, { params: Promise.resolve({ slug: "old-slug" }) });
+
+    const [, , data] = mocks.updatePost.mock.calls[0];
+    expect(data.is_pinned).toBeUndefined();
+    expect(data.is_hidden).toBeUndefined();
+    expect(data.tags).toBeUndefined();
+    expect(data.status).toBeUndefined();
   });
 });
