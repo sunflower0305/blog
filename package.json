@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@floating-ui/dom": "^1.8.0",
-    "@radix-ui/react-dialog": "^1.1.19",
+    "@radix-ui/react-dialog": "^1.1.20",
     "@tiptap/core": "^3.28.0",
     "@tiptap/extension-character-count": "^3.28.0",
     "@tiptap/extension-code-block-lowlight": "^3.28.0",
@@ -60,7 +60,7 @@
     "highlight.js": "^11.11.1",
     "html2pdf.js": "^0.14.0",
     "juice": "^12.1.1",
-    "katex": "^0.18.0",
+    "katex": "^0.18.1",
     "lowlight": "^3.3.0",
     "lucide-react": "^1.25.0",
     "markdown-it": "^14.3.0",
