@@ -17,10 +17,15 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ k
   const { key: encodedKey } = await params;
   const r2Key = decodeURIComponent(encodedKey);
 
+  // Delete the R2 object first, and only drop the DB row if that succeeds.
+  // R2 delete() is idempotent (a missing object resolves without throwing), so a
+  // thrown error is a genuine failure — swallowing it and deleting the row anyway
+  // would orphan the object with no DB record, leaking storage unreachably.
   try {
     await env.IMAGES.delete(r2Key);
-  } catch {
-    // ignore R2 delete errors (file may already be gone)
+  } catch (error) {
+    console.error("R2 delete failed:", error);
+    return NextResponse.json({ error: "删除存储文件失败，请重试" }, { status: 502 });
   }
 
   await env.DB.prepare("DELETE FROM media WHERE key = ?").bind(r2Key).run();
