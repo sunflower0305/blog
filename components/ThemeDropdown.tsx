@@ -11,8 +11,6 @@ import {
   type Theme,
 } from "@/lib/appearance";
 
-export type { Theme };
-
 function dispatchThemeChange(theme: Theme) {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent(THEME_CHANGE_EVENT, { detail: { theme } }));

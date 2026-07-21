@@ -7,8 +7,6 @@ import type { PostWithTags } from "@/lib/db";
 import type { SiteCategoryLink, SiteNavLink } from "@/lib/site";
 import { HomeDefault } from "@/components/themes/HomeDefault";
 
-export type { Theme };
-
 export interface HomeProps {
   initialTheme: Theme;
   posts: PostWithTags[];

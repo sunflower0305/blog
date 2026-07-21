@@ -1,10 +1,9 @@
-import type { GeneratedEditorImage } from "@/lib/ai-image";
 import type { AIImageAspectRatio, AIImageResolution } from "@/lib/ai-image-options";
 
 export type AiPostGeneratorTarget = "summary" | "tags" | "slug" | "cover";
 export type AiPostGeneratorProviderMode = "workers_ai" | "profile";
 
-export type ImageBucket = {
+type ImageBucket = {
   put: (
     key: string,
     value: File | ArrayBuffer | ArrayBufferView | ReadableStream,
@@ -59,9 +58,4 @@ export interface GeneratePostCoverInput {
   db: D1Database;
   images: ImageBucket;
   env?: Partial<CloudflareEnv> | null;
-}
-
-export interface GeneratedPostCoverResult {
-  generator: AiPostGeneratorRow;
-  image: GeneratedEditorImage;
 }

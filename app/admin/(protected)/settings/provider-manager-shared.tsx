@@ -40,7 +40,7 @@ export interface ModelsResponse {
   error?: string;
 }
 
-export interface ProviderTemplatePreset {
+interface ProviderTemplatePreset {
   id: string;
   name: string;
   category: string;

@@ -30,11 +30,6 @@ export interface CountRow {
   count: number;
 }
 
-export interface StatsRow {
-  total_posts: number;
-  total_views: number;
-}
-
 export interface CategoryRow {
   name: string;
   slug: string;

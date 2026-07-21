@@ -6,7 +6,7 @@ import {
   type AppExecutionContext,
 } from "@/lib/cloudflare";
 
-export type RouteDbEnv = Partial<CloudflareEnv> & { DB: D1Database };
+type RouteDbEnv = Partial<CloudflareEnv> & { DB: D1Database };
 
 type RouteEnvWithDbResult =
   | {

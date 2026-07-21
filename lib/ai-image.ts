@@ -37,7 +37,7 @@ type ImageBucket = {
   ) => Promise<void>;
 };
 
-export interface AIImageEnv {
+interface AIImageEnv {
   AI_CONFIG_ENCRYPTION_SECRET?: string;
   ADMIN_TOKEN_SALT?: string;
   ENABLE_CF_IMAGE_PIPELINE?: string;
