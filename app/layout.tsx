@@ -137,7 +137,9 @@ export default async function RootLayout({
       bodyFont = appearance.bodyFont;
       defaultTheme = appearance.defaultTheme;
     }
-  } catch {}
+  } catch {
+    // Best-effort: keep rendering with the default appearance when settings are unavailable.
+  }
 
   const font = FONT_CONFIG[bodyFont];
   const validThemes = THEME_OPTIONS.map((theme) => theme.id);
@@ -184,7 +186,9 @@ export default async function RootLayout({
       window.localStorage.setItem(themeStorageKey, savedTheme);
     }
     if (isTheme(savedTheme)) applyTheme(savedTheme);
-  } catch (e) {}
+  } catch {
+    // Best-effort: localStorage may be unavailable due to browser privacy settings.
+  }
 })();
 `;
 

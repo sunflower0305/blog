@@ -18,7 +18,9 @@ async function getAdminAuthConfig(): Promise<AdminAuthConfig> {
     const env = await getAppCloudflareEnv();
     envPassword = env?.ADMIN_PASSWORD?.trim() || "";
     envSalt = env?.ADMIN_TOKEN_SALT?.trim() || "";
-  } catch {}
+  } catch {
+    // Best-effort: fall back to process.env when Workers bindings are unavailable.
+  }
 
   return {
     password: envPassword || process.env.ADMIN_PASSWORD?.trim() || "",
