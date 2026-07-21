@@ -33,6 +33,8 @@
     "cf:init": "bash scripts/cf-init.sh",
     "config:generate": "node scripts/runtime-env-config.mjs generate-env-example",
     "config:check": "node scripts/runtime-env-config.mjs validate",
+    "quality:report": "bash scripts/code-quality-report.sh --report",
+    "quality:check": "bash scripts/code-quality-report.sh --check",
     "start": "vp exec vinext start",
     "lint": "vp check --no-fmt --no-error-on-unmatched-pattern -- --ignore-pattern 'dist/**' --ignore-pattern '.wrangler/**' --ignore-pattern 'worker-configuration.d.ts'"
   },
@@ -92,7 +94,9 @@
     "@types/turndown": "^5.0.6",
     "@vitejs/plugin-react": "^6.0.3",
     "@vitejs/plugin-rsc": "^0.5.28",
+    "@vitest/coverage-v8": "4.1.10",
     "happy-dom": "^20.11.0",
+    "knip": "^6.27.0",
     "react-server-dom-webpack": "^19.2.7",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",

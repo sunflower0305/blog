@@ -155,6 +155,8 @@ pnpm run preview
 | `pnpm run verify`          | 跑完整验证链路                                                 |
 | `pnpm run config:generate` | 根据环境变量契约生成 `.env.example`                            |
 | `pnpm run config:check`    | 检查环境变量配置是否与契约一致                                 |
+| `pnpm run quality:report`  | 生成 scc 规模/复杂度与 jscpd 重复代码报告                      |
+| `pnpm run quality:check`   | 生成质量报告，并以 6% 重复代码率作为质量门槛                   |
 | `pnpm run cf:init`         | 初始化 DB、IMAGES、CACHE 和模板默认设置                        |
 | `pnpm run preview`         | Worker 运行时预览                                              |
 | `pnpm run deploy`          | 部署到 Cloudflare Workers                                      |

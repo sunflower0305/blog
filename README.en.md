@@ -155,6 +155,8 @@ No API keys are committed to the repository. Add them during the first deploymen
 | `pnpm run verify`          | Run the full verification pipeline                                            |
 | `pnpm run config:generate` | Generate `.env.example` from the environment variable contract                |
 | `pnpm run config:check`    | Validate that environment variable configuration matches the contract         |
+| `pnpm run quality:report`  | Generate scc size/complexity and jscpd duplication reports                    |
+| `pnpm run quality:check`   | Generate reports and enforce a 6% duplication threshold                       |
 | `pnpm run cf:init`         | Initialize DB, IMAGES, CACHE, and template defaults                           |
 | `pnpm run preview`         | Preview with the Worker runtime                                               |
 | `pnpm run deploy`          | Deploy to Cloudflare Workers                                                  |

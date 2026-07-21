@@ -1,0 +1,16 @@
+{
+  "minLines": 8,
+  "minTokens": 60,
+  "mode": "strict",
+  "threshold": 6,
+  "reporters": ["console", "json", "html", "markdown"],
+  "formats": ["typescript", "javascript"],
+  "ignore": [
+    "**/*.d.ts",
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/.vinext/**",
+    "**/.wrangler/**",
+    "**/dist/**"
+  ]
+}
