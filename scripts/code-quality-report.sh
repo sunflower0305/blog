@@ -78,6 +78,9 @@ jscpd tests \
   --no-tips \
   --no-colors
 
+echo "==> knip: dead-code report"
+bash scripts/dead-code-report.sh
+
 node scripts/code-quality-summary.mjs "${REPORT_DIR}"
 
 echo "Quality report: ${REPORT_DIR}/summary.md"
