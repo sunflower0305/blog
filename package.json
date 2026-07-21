@@ -103,7 +103,7 @@
     "@vitest/coverage-v8": "4.1.10",
     "happy-dom": "^20.11.0",
     "knip": "^6.27.0",
-    "oxc-parser": "0.137.0",
+    "oxc-parser": "0.140.0",
     "react-server-dom-webpack": "^19.2.7",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
