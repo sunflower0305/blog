@@ -74,7 +74,7 @@ function getSnapshot() {
   return snapshot;
 }
 
-export async function refreshAdminSession() {
+async function refreshAdminSession() {
   await loadAdminSession(true);
 }
 

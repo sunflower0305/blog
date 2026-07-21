@@ -264,20 +264,13 @@ const BG_COLORS = [
   { label: "灰色", value: "#f3f4f6" },
 ];
 
-export {
-  TRIGGER_AI_MODAL_EVENT,
-  TRIGGER_FILE_UPLOAD_EVENT,
-  TRIGGER_IMAGE_GENERATION_EVENT,
-  TRIGGER_IMAGE_UPLOAD_EVENT,
-  TRIGGER_INPUT_MODAL_EVENT,
-} from "./editor-events";
 export type {
   InputModalDetail,
   TriggerAIModalDetail,
   TriggerImageGenerationDetail,
 } from "./editor-events";
 
-export const suggestionItems = createSuggestionItems([
+const suggestionItems = createSuggestionItems([
   {
     title: "正文",
     description: "切回普通段落继续写作。",
@@ -517,8 +510,6 @@ export function createEditorExtensions(options: EditorExtensionOptions = {}) {
     slashCommand,
   ];
 }
-
-export const editorExtensions = createEditorExtensions();
 
 export function getEditorCharacterCount(editor: Editor) {
   return editor.storage.characterCount.characters();
@@ -1147,33 +1138,5 @@ export function FormattingBubble() {
         </div>
       )}
     </BubbleMenu>
-  );
-}
-
-export type DraftSaveStatus = "idle" | "saving" | "saved";
-
-export function EditorFooter({ saveStatus }: { saveStatus: DraftSaveStatus }) {
-  const { editor } = useCurrentEditor();
-  if (!editor) return null;
-
-  const chars = getEditorCharacterCount(editor);
-
-  return (
-    <div className="pointer-events-none absolute right-4 top-3 flex items-center gap-2 z-10">
-      <span className="rounded-full bg-[var(--editor-soft)] px-2.5 py-1 text-[11px] tabular-nums text-[var(--stone-gray)]">
-        {chars.toLocaleString()} 字
-      </span>
-      <span
-        className={`rounded-full px-2.5 py-1 text-[11px] transition-opacity duration-300 ${
-          saveStatus === "idle" ? "opacity-0" : "opacity-100"
-        } ${
-          saveStatus === "saving"
-            ? "bg-[var(--editor-soft)] text-[var(--stone-gray)]"
-            : "bg-emerald-50 text-emerald-600"
-        }`}
-      >
-        {saveStatus === "saving" ? "正在保存…" : "已保存"}
-      </span>
-    </div>
   );
 }

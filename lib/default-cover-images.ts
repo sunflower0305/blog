@@ -45,7 +45,7 @@ export function pickDefaultPostCoverPath(input: string | CoverSeedInput) {
   return DEFAULT_POST_COVER_IMAGES[index];
 }
 
-export function absolutizeSiteAssetUrl(input: string, baseUrl?: string) {
+function absolutizeSiteAssetUrl(input: string, baseUrl?: string) {
   const normalized = normalizeSeedValue(input);
   if (!normalized) return "";
   if (!baseUrl) return normalized;
@@ -71,4 +71,4 @@ export function resolveDefaultSiteCoverImage(baseUrl?: string) {
   return absolutizeSiteAssetUrl(DEFAULT_SITE_COVER_IMAGE, baseUrl);
 }
 
-export { DEFAULT_POST_COVER_IMAGES, DEFAULT_SITE_COVER_IMAGE };
+export { DEFAULT_POST_COVER_IMAGES };

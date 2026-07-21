@@ -85,7 +85,7 @@ export function buildDocumentContextText(title: string, text: string) {
     .join("\n\n");
 }
 
-export function formatHistoryTime(timestamp: number) {
+function formatHistoryTime(timestamp: number) {
   try {
     return new Date(timestamp).toLocaleString("zh-CN", {
       month: "short",

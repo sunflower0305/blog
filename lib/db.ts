@@ -1,4 +1,4 @@
-export { getDB, ensureSchema, type Database } from "@/lib/repositories/schema";
+export type { Database } from "@/lib/repositories/schema";
 export {
   isPubliclyAccessiblePost,
   isSearchIndexablePost,
@@ -14,11 +14,6 @@ export {
   type StatsRow,
 } from "@/lib/repositories/types";
 export {
-  mapPostWithTags,
-  normalizePostStatus,
-  parsePostTags,
-} from "@/lib/repositories/post-mappers";
-export {
   createPost,
   deletePost,
   getPostAiSnapshot,
@@ -27,9 +22,6 @@ export {
   getPostsByCategory,
   getPostsCount,
   getPostsCountByCategory,
-  getStats,
-  incrementViewCount,
-  permanentlyDeletePost,
   restorePost,
   updatePost,
   updatePostBySlug,

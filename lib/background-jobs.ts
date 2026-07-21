@@ -25,16 +25,6 @@ export interface BackgroundJobEnv extends Partial<CloudflareEnv> {
   VECTOR_INDEX?: VectorizeIndex;
 }
 
-interface BackgroundJobMessage<T> {
-  body: T;
-  ack?: () => void;
-  retry?: () => void;
-}
-
-interface BackgroundJobBatch<T> {
-  messages: Array<BackgroundJobMessage<T>>;
-}
-
 interface EnqueueBackgroundJobOptions {
   waitUntil?: (promise: Promise<unknown>) => void;
 }
@@ -89,7 +79,7 @@ async function runDeletePostRelatedIndexJob(env: BackgroundJobEnv, postId: numbe
   await deletePostFromRelatedIndex(env, postId);
 }
 
-export async function runBackgroundJob(env: BackgroundJobEnv, job: BackgroundJob): Promise<void> {
+async function runBackgroundJob(env: BackgroundJobEnv, job: BackgroundJob): Promise<void> {
   switch (job.type) {
     case "process-post-ai":
       await runProcessPostAiJob(env, job.postId);
@@ -132,19 +122,4 @@ export async function enqueueBackgroundJob(
     console.error("Background job failed:", error);
   });
   return "inline";
-}
-
-export async function consumeBackgroundJobBatch(
-  batch: BackgroundJobBatch<BackgroundJob>,
-  env: BackgroundJobEnv,
-): Promise<void> {
-  for (const message of batch.messages) {
-    try {
-      await runBackgroundJob(env, message.body);
-      message.ack?.();
-    } catch (error) {
-      console.error("Queue background job failed:", error);
-      message.retry?.();
-    }
-  }
 }

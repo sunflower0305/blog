@@ -1,7 +1,7 @@
 import { DOMParser as ProseMirrorDOMParser } from "@tiptap/pm/model";
 import type { Editor, JSONContent } from "@tiptap/core";
 
-export function parseEditorHtml(html: string, editor: Editor): JSONContent {
+function parseEditorHtml(html: string, editor: Editor): JSONContent {
   // A normal detached <div> still starts loading image src attributes as soon
   // as innerHTML is assigned. Template contents stay inert until rendered, so
   // ProseMirror can read the stored source URLs without downloading them first.

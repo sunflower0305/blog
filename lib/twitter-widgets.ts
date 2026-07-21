@@ -24,7 +24,7 @@ declare global {
 
 let widgetScriptPromise: Promise<void> | null = null;
 
-export function loadTwitterWidgets(): Promise<void> {
+function loadTwitterWidgets(): Promise<void> {
   if (typeof window === "undefined") return Promise.resolve();
   if (window.twttr?.widgets) return Promise.resolve();
   if (widgetScriptPromise) return widgetScriptPromise;

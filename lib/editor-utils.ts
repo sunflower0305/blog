@@ -29,7 +29,7 @@ export function hasMarkdownTable(text: string): boolean {
   return pipeLines >= 3 && hasSeparator;
 }
 
-export function isValidHttpUrl(value: string) {
+function isValidHttpUrl(value: string) {
   return /^https?:\/\//i.test(value);
 }
 

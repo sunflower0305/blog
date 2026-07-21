@@ -96,7 +96,7 @@ export function extractCloudflareAccountId(baseUrl: string): string {
   return /<account_id>/i.test(accountId) ? "" : accountId;
 }
 
-export function extractWorkersAiModelItems(payload: unknown): RawWorkersAiModelItem[] {
+function extractWorkersAiModelItems(payload: unknown): RawWorkersAiModelItem[] {
   if (Array.isArray(payload)) return payload as RawWorkersAiModelItem[];
   if (!payload || typeof payload !== "object") return [];
 
@@ -112,7 +112,7 @@ export function extractWorkersAiModelItems(payload: unknown): RawWorkersAiModelI
   );
 }
 
-export function filterWorkersAiModels(
+function filterWorkersAiModels(
   items: RawWorkersAiModelItem[],
   kind: "text" | "image",
 ): RawWorkersAiModelItem[] {

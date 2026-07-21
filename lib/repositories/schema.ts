@@ -1,10 +1,5 @@
 export type Database = D1Database;
 
-// 获取数据库实例（从 Cloudflare Workers 环境）
-export function getDB(env: CloudflareEnv) {
-  return env.DB;
-}
-
 // 自动迁移：确保所有表和列存在
 // 注意：在 Cloudflare Workers 无状态环境中，进程级标志无效
 // 最佳实践：通过 wrangler d1 migrations 管理 schema

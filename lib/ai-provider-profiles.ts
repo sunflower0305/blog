@@ -233,7 +233,7 @@ export async function decryptApiKey(value: string, secret: string): Promise<stri
   }
 }
 
-export async function ensureAiProviderProfilesTable(db: D1Database): Promise<void> {
+async function ensureAiProviderProfilesTable(db: D1Database): Promise<void> {
   await db
     .prepare(`
     CREATE TABLE IF NOT EXISTS ai_provider_profiles (

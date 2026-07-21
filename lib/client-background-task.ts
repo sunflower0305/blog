@@ -82,7 +82,7 @@ export function readStoredHistory<T>(storageKey: string): T[] {
   }
 }
 
-export function writeStoredHistory<T>(storageKey: string, items: T[]) {
+function writeStoredHistory<T>(storageKey: string, items: T[]) {
   if (typeof window === "undefined") return;
 
   try {

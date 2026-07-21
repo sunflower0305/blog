@@ -13,7 +13,7 @@ import {
 
 export type { Theme };
 
-export function dispatchThemeChange(theme: Theme) {
+function dispatchThemeChange(theme: Theme) {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent(THEME_CHANGE_EVENT, { detail: { theme } }));
 }

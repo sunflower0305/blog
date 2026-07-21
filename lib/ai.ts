@@ -257,7 +257,7 @@ function parseJsonObject(text: string): Record<string, unknown> | null {
 }
 
 /** 优先读数据库后台配置，环境变量降级 */
-export async function resolveConfig(
+async function resolveConfig(
   env?: AIEnv,
   db?: D1Database,
   profileId?: number,

@@ -8,7 +8,6 @@ import type {
   PostCategoryRow,
   PostStatus,
   PostWithTags,
-  StatsRow,
 } from "@/lib/repositories/types";
 
 // 获取文章列表（默认只返回已发布文章）
@@ -310,11 +309,6 @@ export async function updatePost(
   }
 }
 
-// 增加浏览量
-export async function incrementViewCount(db: Database, slug: string): Promise<void> {
-  await db.prepare("UPDATE posts SET view_count = view_count + 1 WHERE slug = ?").bind(slug).run();
-}
-
 // 删除文章
 export async function deletePost(db: Database, slug: string): Promise<void> {
   const post = await db
@@ -330,21 +324,6 @@ export async function deletePost(db: Database, slug: string): Promise<void> {
       .bind(post.category)
       .run();
   }
-}
-
-// 获取统计数据
-export async function getStats(
-  db: Database,
-): Promise<{ total_posts: number; total_views: number }> {
-  const result = await db
-    .prepare(
-      "SELECT COUNT(*) as total_posts, COALESCE(SUM(view_count), 0) as total_views FROM posts WHERE deleted_at IS NULL",
-    )
-    .first<StatsRow>();
-  return {
-    total_posts: (result?.total_posts as number) ?? 0,
-    total_views: (result?.total_views as number) ?? 0,
-  };
 }
 
 // 获取文章总数（默认只统计已发布）
@@ -423,21 +402,4 @@ export async function restorePost(db: Database, slug: string): Promise<void> {
     .prepare("UPDATE posts SET status = 'draft', deleted_at = NULL WHERE slug = ?")
     .bind(slug)
     .run();
-}
-
-// 永久删除文章（硬删除）
-export async function permanentlyDeletePost(db: Database, slug: string): Promise<void> {
-  const post = await db
-    .prepare("SELECT category FROM posts WHERE slug = ?")
-    .bind(slug)
-    .first<PostCategoryRow>();
-
-  await db.prepare("DELETE FROM posts WHERE slug = ?").bind(slug).run();
-
-  if (post?.category) {
-    await db
-      .prepare("UPDATE categories SET post_count = post_count - 1 WHERE name = ?")
-      .bind(post.category)
-      .run();
-  }
 }

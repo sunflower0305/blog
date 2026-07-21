@@ -111,7 +111,7 @@ const DEFAULT_IMAGE_ACTIONS: DefaultImageActionSeed[] = [
   },
 ];
 
-export async function ensureAiImageProviderProfilesTable(db: D1Database): Promise<void> {
+async function ensureAiImageProviderProfilesTable(db: D1Database): Promise<void> {
   await db
     .prepare(`
     CREATE TABLE IF NOT EXISTS ai_image_provider_profiles (
