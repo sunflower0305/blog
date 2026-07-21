@@ -20,6 +20,7 @@
     "check": "vp check",
     "test": "vp test",
     "test:run": "vp test run",
+    "test:coverage": "vp test run --coverage.enabled",
     "typecheck": "vp check --no-fmt --no-lint",
     "verify": "bash scripts/verify.sh full",
     "verify:quick": "bash scripts/verify.sh quick",
@@ -35,6 +36,9 @@
     "config:check": "node scripts/runtime-env-config.mjs validate",
     "quality:report": "bash scripts/code-quality-report.sh --report",
     "quality:check": "bash scripts/code-quality-report.sh --check",
+    "quality:dead-code": "bash scripts/dead-code-report.sh",
+    "quality:all": "pnpm run quality:report && pnpm run quality:dead-code && pnpm run test:coverage && node scripts/code-quality-summary.mjs reports/code-quality",
+    "security:secrets": "bash scripts/secret-scan.sh",
     "start": "vp exec vinext start",
     "lint": "vp check --no-fmt --no-error-on-unmatched-pattern -- --ignore-pattern 'dist/**' --ignore-pattern '.wrangler/**' --ignore-pattern 'worker-configuration.d.ts'"
   },

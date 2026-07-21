@@ -144,19 +144,23 @@ pnpm run preview
 
 ## 常用命令
 
-| 命令                       | 说明                                                           |
-| -------------------------- | -------------------------------------------------------------- |
-| `pnpm run dev`             | Vinext 本地开发                                                |
-| `pnpm run dev:remote`      | 使用 `wrangler.local.toml` 的远程 Cloudflare bindings 本地开发 |
-| `pnpm run build`           | 构建应用                                                       |
-| `pnpm run test:run`        | 通过 Vite+ / Vitest 跑测试                                     |
-| `pnpm run typecheck`       | 通过 Vite+ 检查全仓 TypeScript 类型                            |
-| `pnpm run verify:quick`    | 跑配置检查、格式、lint、全仓类型检查、test、build              |
-| `pnpm run verify`          | 跑完整验证链路                                                 |
-| `pnpm run config:generate` | 根据环境变量契约生成 `.env.example`                            |
-| `pnpm run config:check`    | 检查环境变量配置是否与契约一致                                 |
-| `pnpm run quality:report`  | 生成 scc 规模/复杂度与 jscpd 重复代码报告                      |
-| `pnpm run quality:check`   | 生成质量报告，并以 6% 重复代码率作为质量门槛                   |
-| `pnpm run cf:init`         | 初始化 DB、IMAGES、CACHE 和模板默认设置                        |
-| `pnpm run preview`         | Worker 运行时预览                                              |
-| `pnpm run deploy`          | 部署到 Cloudflare Workers                                      |
+| 命令                         | 说明                                                           |
+| ---------------------------- | -------------------------------------------------------------- |
+| `pnpm run dev`               | Vinext 本地开发                                                |
+| `pnpm run dev:remote`        | 使用 `wrangler.local.toml` 的远程 Cloudflare bindings 本地开发 |
+| `pnpm run build`             | 构建应用                                                       |
+| `pnpm run test:run`          | 通过 Vite+ / Vitest 跑测试                                     |
+| `pnpm run test:coverage`     | 生成生产代码测试覆盖率报告                                     |
+| `pnpm run typecheck`         | 通过 Vite+ 检查全仓 TypeScript 类型                            |
+| `pnpm run verify:quick`      | 跑配置检查、格式、lint、全仓类型检查、test、build              |
+| `pnpm run verify`            | 跑完整验证链路                                                 |
+| `pnpm run config:generate`   | 根据环境变量契约生成 `.env.example`                            |
+| `pnpm run config:check`      | 检查环境变量配置是否与契约一致                                 |
+| `pnpm run quality:report`    | 生成 scc 规模/复杂度与 jscpd 重复代码报告                      |
+| `pnpm run quality:check`     | 生成质量报告，并以 6% 重复代码率作为质量门槛                   |
+| `pnpm run quality:dead-code` | 生成 Knip 未使用文件、导出与依赖报告                           |
+| `pnpm run quality:all`       | 生成代码规模、重复、死代码与覆盖率报告                         |
+| `pnpm run security:secrets`  | 使用 Gitleaks 扫描 Git 历史中的密钥                            |
+| `pnpm run cf:init`           | 初始化 DB、IMAGES、CACHE 和模板默认设置                        |
+| `pnpm run preview`           | Worker 运行时预览                                              |
+| `pnpm run deploy`            | 部署到 Cloudflare Workers                                      |

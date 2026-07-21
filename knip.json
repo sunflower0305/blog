@@ -1,0 +1,27 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "app/**/{page,layout,route,loading,error,not-found,template,default}.{ts,tsx}",
+    "app/{robots,sitemap}.{ts,tsx}",
+    "scripts/runtime-env-config.mjs",
+    "scripts/cf-worker-name.mjs",
+    "scripts/code-quality-summary.mjs",
+    "tools/wechat-bridge/server.mjs",
+    "vite.config.ts",
+    "next.config.ts"
+  ],
+  "project": [
+    "app/**/*.{ts,tsx}",
+    "components/**/*.{ts,tsx}",
+    "lib/**/*.{ts,tsx}",
+    "scripts/**/*.mjs",
+    "tests/**/*.ts",
+    "tools/**/*.mjs",
+    "*.ts"
+  ],
+  "ignoreDependencies": ["cloudflare", "tailwindcss"],
+  "ignoreBinaries": ["vp"],
+  "rules": {
+    "cycles": "warn"
+  }
+}

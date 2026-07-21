@@ -69,6 +69,19 @@ export default defineConfig(({ mode }) => {
       environment: "node",
       include: ["tests/**/*.test.ts"],
       clearMocks: true,
+      coverage: {
+        provider: "v8",
+        reportsDirectory: "reports/code-quality/coverage",
+        reporter: ["text", "json-summary", "html"],
+        include: ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}", "lib/**/*.{ts,tsx}"],
+        exclude: ["**/*.d.ts"],
+        thresholds: {
+          statements: 18,
+          branches: 16,
+          functions: 17,
+          lines: 19,
+        },
+      },
     },
     resolve: {
       alias: {

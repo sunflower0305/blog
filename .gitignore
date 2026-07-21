@@ -54,8 +54,8 @@ worker-configuration.d.ts
 
 .claude/
 .codex/
-.github/
 article/
+.github/copilot-instructions.md
 CLAUDE.md
 review.md
 css-plan.md

@@ -144,19 +144,23 @@ No API keys are committed to the repository. Add them during the first deploymen
 
 ## Common Commands
 
-| Command                    | Description                                                                   |
-| -------------------------- | ----------------------------------------------------------------------------- |
-| `pnpm run dev`             | Local Vinext development                                                      |
-| `pnpm run dev:remote`      | Local development using remote Cloudflare bindings from `wrangler.local.toml` |
-| `pnpm run build`           | Build the application                                                         |
-| `pnpm run test:run`        | Run tests with Vite+ / Vitest                                                 |
-| `pnpm run typecheck`       | Type-check the entire repository through Vite+                                |
-| `pnpm run verify:quick`    | Run config, format, lint, full type checks, tests, and build                  |
-| `pnpm run verify`          | Run the full verification pipeline                                            |
-| `pnpm run config:generate` | Generate `.env.example` from the environment variable contract                |
-| `pnpm run config:check`    | Validate that environment variable configuration matches the contract         |
-| `pnpm run quality:report`  | Generate scc size/complexity and jscpd duplication reports                    |
-| `pnpm run quality:check`   | Generate reports and enforce a 6% duplication threshold                       |
-| `pnpm run cf:init`         | Initialize DB, IMAGES, CACHE, and template defaults                           |
-| `pnpm run preview`         | Preview with the Worker runtime                                               |
-| `pnpm run deploy`          | Deploy to Cloudflare Workers                                                  |
+| Command                      | Description                                                                   |
+| ---------------------------- | ----------------------------------------------------------------------------- |
+| `pnpm run dev`               | Local Vinext development                                                      |
+| `pnpm run dev:remote`        | Local development using remote Cloudflare bindings from `wrangler.local.toml` |
+| `pnpm run build`             | Build the application                                                         |
+| `pnpm run test:run`          | Run tests with Vite+ / Vitest                                                 |
+| `pnpm run test:coverage`     | Generate the production-code coverage report                                  |
+| `pnpm run typecheck`         | Type-check the entire repository through Vite+                                |
+| `pnpm run verify:quick`      | Run config, format, lint, full type checks, tests, and build                  |
+| `pnpm run verify`            | Run the full verification pipeline                                            |
+| `pnpm run config:generate`   | Generate `.env.example` from the environment variable contract                |
+| `pnpm run config:check`      | Validate that environment variable configuration matches the contract         |
+| `pnpm run quality:report`    | Generate scc size/complexity and jscpd duplication reports                    |
+| `pnpm run quality:check`     | Generate reports and enforce a 6% duplication threshold                       |
+| `pnpm run quality:dead-code` | Generate the Knip unused file, export, and dependency report                  |
+| `pnpm run quality:all`       | Generate size, duplication, dead-code, and coverage reports                   |
+| `pnpm run security:secrets`  | Scan Git history for secrets with Gitleaks                                    |
+| `pnpm run cf:init`           | Initialize DB, IMAGES, CACHE, and template defaults                           |
+| `pnpm run preview`           | Preview with the Worker runtime                                               |
+| `pnpm run deploy`            | Deploy to Cloudflare Workers                                                  |
