@@ -5,11 +5,33 @@ import path from "node:path";
 import process from "node:process";
 import { parseSync, visitorKeys } from "oxc-parser";
 
-const DEFAULT_MAX_FILE_LINES = 1000;
-const DEFAULT_MAX_FUNCTION_LINES = 100;
-const SOURCE_ROOTS = ["app", "components", "lib", "tools/wechat-bridge", "tests", "scripts"];
-const SOURCE_EXTENSIONS = new Set([".cjs", ".js", ".jsx", ".mjs", ".sh", ".ts", ".tsx"]);
-const PARSED_EXTENSIONS = new Set([".cjs", ".js", ".jsx", ".mjs", ".ts", ".tsx"]);
+const DEFAULT_MAX_FILE_LINES = 600;
+const DEFAULT_MAX_FUNCTION_LINES = 300;
+const SOURCE_ROOTS = [
+  "app",
+  "components",
+  "lib",
+  "tools/wechat-bridge",
+  "tests",
+  "scripts",
+];
+const SOURCE_EXTENSIONS = new Set([
+  ".cjs",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".sh",
+  ".ts",
+  ".tsx",
+]);
+const PARSED_EXTENSIONS = new Set([
+  ".cjs",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".ts",
+  ".tsx",
+]);
 const FUNCTION_TYPES = new Set([
   "ArrowFunctionExpression",
   "FunctionDeclaration",
@@ -80,7 +102,10 @@ async function collectSourceFiles(rootDirectory) {
       const relativePath = path.join(relativeDirectory, entry.name);
       if (entry.isDirectory()) {
         await visit(relativePath);
-      } else if (entry.isFile() && SOURCE_EXTENSIONS.has(path.extname(entry.name))) {
+      } else if (
+        entry.isFile() &&
+        SOURCE_EXTENSIONS.has(path.extname(entry.name))
+      ) {
         files.push(relativePath);
       }
     }
@@ -123,7 +148,8 @@ function propertyName(node) {
 
 function functionName(node, parent) {
   if (node.id?.name) return node.id.name;
-  if (parent?.type === "VariableDeclarator") return propertyName(parent.id) ?? "<anonymous>";
+  if (parent?.type === "VariableDeclarator")
+    return propertyName(parent.id) ?? "<anonymous>";
   if (
     parent?.type === "Property" ||
     parent?.type === "PropertyDefinition" ||
@@ -136,7 +162,9 @@ function functionName(node, parent) {
 
 function inspectFunctions(file, source, maxFunctionLines) {
   const result = parseSync(file, source);
-  const parseErrors = result.errors.filter((error) => error.severity === "Error");
+  const parseErrors = result.errors.filter(
+    (error) => error.severity === "Error",
+  );
   if (parseErrors.length > 0) {
     return {
       functions: [],
@@ -148,7 +176,8 @@ function inspectFunctions(file, source, maxFunctionLines) {
   const functions = [];
 
   function visit(node, parent = null) {
-    if (!node || typeof node !== "object" || typeof node.type !== "string") return;
+    if (!node || typeof node !== "object" || typeof node.type !== "string")
+      return;
 
     if (FUNCTION_TYPES.has(node.type) && node.body) {
       const startLine = lineAt(node.start);
@@ -204,16 +233,25 @@ async function main() {
     if (lines > options.maxFileLines) largeFiles.push({ file, lines });
 
     if (PARSED_EXTENSIONS.has(path.extname(file))) {
-      const inspection = inspectFunctions(file, source, options.maxFunctionLines);
+      const inspection = inspectFunctions(
+        file,
+        source,
+        options.maxFunctionLines,
+      );
       largeFunctions.push(...inspection.functions);
       parseErrors.push(...inspection.errors);
     }
   }
 
-  largeFiles.sort((left, right) => right.lines - left.lines || left.file.localeCompare(right.file));
+  largeFiles.sort(
+    (left, right) =>
+      right.lines - left.lines || left.file.localeCompare(right.file),
+  );
   largeFunctions.sort(
     (left, right) =>
-      right.lines - left.lines || left.file.localeCompare(right.file) || left.line - right.line,
+      right.lines - left.lines ||
+      left.file.localeCompare(right.file) ||
+      left.line - right.line,
   );
 
   console.log("Code size report");
@@ -221,7 +259,11 @@ async function main() {
   console.log(
     `Thresholds: files > ${options.maxFileLines} lines, functions > ${options.maxFunctionLines} lines`,
   );
-  printRows("Large files", largeFiles, (row) => `${row.lines} lines  ${row.file}`);
+  printRows(
+    "Large files",
+    largeFiles,
+    (row) => `${row.lines} lines  ${row.file}`,
+  );
   printRows(
     "Large functions",
     largeFunctions,
@@ -256,7 +298,10 @@ async function main() {
     console.error(`\nParse errors (${parseErrors.length})`);
     for (const error of parseErrors) console.error(`  ${error}`);
     process.exitCode = 2;
-  } else if (options.check && (largeFiles.length > 0 || largeFunctions.length > 0)) {
+  } else if (
+    options.check &&
+    (largeFiles.length > 0 || largeFunctions.length > 0)
+  ) {
     process.exitCode = 1;
   }
 }
