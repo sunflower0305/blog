@@ -156,12 +156,12 @@ pnpm run preview
 | `pnpm run verify`             | 跑完整验证链路                                                 |
 | `pnpm run config:generate`    | 根据环境变量契约生成 `.env.example`                            |
 | `pnpm run config:check`       | 检查环境变量配置是否与契约一致                                 |
-| `pnpm run quality:report`     | 生成 scc 规模/复杂度与 jscpd 重复代码报告                      |
-| `pnpm run quality:check`      | 生成质量报告，并以 6% 重复代码率作为质量门槛                   |
+| `pnpm run quality:report`     | 生成规模、重复、死代码、覆盖率与密钥扫描的完整质量报告         |
+| `pnpm run quality:check`      | 生成完整质量报告，并执行重复率与密钥扫描质量门槛               |
 | `pnpm run quality:size`       | 报告超过 1000 行的文件和超过 100 行的函数                      |
 | `pnpm run quality:size:check` | 检测大文件和大函数，发现超限项时以非零状态退出                 |
 | `pnpm run quality:dead-code`  | 生成 Knip 未使用文件、导出与依赖报告                           |
-| `pnpm run quality:all`        | 生成代码规模、重复、死代码与覆盖率报告                         |
+| `pnpm run quality:all`        | `quality:report` 的兼容别名                                    |
 | `pnpm run security:secrets`   | 使用 Gitleaks 扫描 Git 历史中的密钥                            |
 | `pnpm run cf:init`            | 初始化 DB、IMAGES、CACHE 和模板默认设置                        |
 | `pnpm run preview`            | Worker 运行时预览                                              |

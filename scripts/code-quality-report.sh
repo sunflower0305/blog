@@ -81,6 +81,12 @@ jscpd tests \
 echo "==> knip: dead-code report"
 bash scripts/dead-code-report.sh
 
+echo "==> coverage: tests"
+pnpm run test:coverage
+
+echo "==> gitleaks: repository history"
+bash scripts/secret-scan.sh "${MODE}"
+
 node scripts/code-quality-summary.mjs "${REPORT_DIR}"
 
 echo "Quality report: ${REPORT_DIR}/summary.md"

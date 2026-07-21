@@ -23,6 +23,7 @@ const productionJscpd = await readJson("jscpd", "production", "jscpd-report.json
 const testJscpd = await readJson("jscpd", "tests", "jscpd-report.json");
 const coverage = await readOptionalJson("coverage", "coverage-summary.json");
 const knip = await readOptionalJson("knip", "knip-report.json");
+const gitleaks = await readOptionalJson("gitleaks-report.json");
 const codeSize = await readOptionalJson("code-size-report.json");
 
 const sum = (languages, key) =>
@@ -102,6 +103,9 @@ const lines = [
         `| Knip — dependency issues | ${number.format(countKnipIssues("dependencies") + countKnipIssues("devDependencies") + countKnipIssues("unlisted"))} |`,
       ]
     : ["| Knip | Not generated |"]),
+  ...(gitleaks
+    ? [`| Gitleaks — findings | ${number.format(gitleaks.length)} |`]
+    : ["| Gitleaks | Not generated |"]),
   "",
   "## File and function size",
   "",
@@ -160,7 +164,7 @@ const lines = [
   "- File and function size: raw JSON in `code-size-report.json`",
   "- Coverage: [HTML](./coverage/index.html), raw summary in `coverage/coverage-summary.json`",
   "- Knip: [unused code Markdown](./knip/knip-report.md), [cycles Markdown](./knip/knip-cycles-report.md)",
-  "- Secrets: raw Gitleaks JSON in `gitleaks-report.json`",
+  ...(gitleaks ? ["- Secrets: raw Gitleaks JSON in `gitleaks-report.json`"] : []),
   "- Raw JSON files are stored beside the HTML reports.",
   "",
 ];
