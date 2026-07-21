@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { GlobalShortcuts } from "@/components/GlobalShortcuts";
 import { ToastProvider } from "@/components/Toast";
 import { CustomJsInjector } from "@/components/CustomJsInjector";
 import { FONT_CONFIG, THEME_OPTIONS, THEME_STORAGE_KEY, normalizeTheme } from "@/lib/appearance";
@@ -209,10 +208,7 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: appearanceApplyScript }} />
       </head>
       <body className="min-h-full flex flex-col">
-        <ToastProvider>
-          <GlobalShortcuts />
-          {children}
-        </ToastProvider>
+        <ToastProvider>{children}</ToastProvider>
         {customJs && <CustomJsInjector code={customJs} />}
       </body>
     </html>
