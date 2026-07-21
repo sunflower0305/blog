@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readdir, readFile, stat } from "node:fs/promises";
+import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { parseSync, visitorKeys } from "oxc-parser";
@@ -22,6 +22,7 @@ Options:
   --check                       Exit with status 1 when a threshold is exceeded
   --max-file-lines <number>     File line limit (default: ${DEFAULT_MAX_FILE_LINES})
   --max-function-lines <number> Function line limit (default: ${DEFAULT_MAX_FUNCTION_LINES})
+  --json-output <path>          Write the complete report as JSON
   -h, --help                    Show this help`;
 
 function parsePositiveInteger(value, option) {
@@ -35,6 +36,7 @@ function parsePositiveInteger(value, option) {
 function parseArguments(argv) {
   const options = {
     check: false,
+    jsonOutput: null,
     maxFileLines: DEFAULT_MAX_FILE_LINES,
     maxFunctionLines: DEFAULT_MAX_FUNCTION_LINES,
   };
@@ -47,6 +49,9 @@ function parseArguments(argv) {
       options.maxFileLines = parsePositiveInteger(argv[++index], argument);
     } else if (argument === "--max-function-lines") {
       options.maxFunctionLines = parsePositiveInteger(argv[++index], argument);
+    } else if (argument === "--json-output") {
+      options.jsonOutput = argv[++index];
+      if (!options.jsonOutput) throw new Error(`${argument} requires a path`);
     } else if (argument === "-h" || argument === "--help") {
       console.log(usage);
       process.exit(0);
@@ -222,6 +227,30 @@ async function main() {
     largeFunctions,
     (row) => `${row.lines} lines  ${row.file}:${row.line}  ${row.name}`,
   );
+
+  if (options.jsonOutput) {
+    const outputPath = path.resolve(repositoryRoot, options.jsonOutput);
+    await mkdir(path.dirname(outputPath), { recursive: true });
+    await writeFile(
+      outputPath,
+      `${JSON.stringify(
+        {
+          generatedAt: new Date().toISOString(),
+          scannedFiles: files.length,
+          thresholds: {
+            fileLines: options.maxFileLines,
+            functionLines: options.maxFunctionLines,
+          },
+          largeFiles,
+          largeFunctions,
+          parseErrors,
+        },
+        null,
+        2,
+      )}\n`,
+      "utf8",
+    );
+  }
 
   if (parseErrors.length > 0) {
     console.error(`\nParse errors (${parseErrors.length})`);

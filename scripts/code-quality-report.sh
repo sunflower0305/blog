@@ -51,6 +51,10 @@ run_scc_report production "${PRODUCTION_PATHS[@]}"
 run_scc_report tests "${TEST_PATHS[@]}"
 run_scc_report tooling "${TOOLING_PATHS[@]}"
 
+echo "==> code size: files and functions"
+node scripts/code-size-report.mjs \
+  --json-output "${REPORT_DIR}/code-size-report.json"
+
 JSPCD_THRESHOLD_ARGS=()
 JSPCD_THRESHOLD_LABEL="configured"
 if [[ "${MODE}" == "--report" ]]; then

@@ -23,6 +23,7 @@ const productionJscpd = await readJson("jscpd", "production", "jscpd-report.json
 const testJscpd = await readJson("jscpd", "tests", "jscpd-report.json");
 const coverage = await readOptionalJson("coverage", "coverage-summary.json");
 const knip = await readOptionalJson("knip", "knip-report.json");
+const codeSize = await readOptionalJson("code-size-report.json");
 
 const sum = (languages, key) =>
   languages.reduce((total, language) => total + (language[key] ?? 0), 0);
@@ -47,6 +48,17 @@ const duplicateRows = (report) =>
     .map(
       (clone) =>
         `| ${clone.lines} | \`${clone.firstFile.name}:${clone.firstFile.start}\` | \`${clone.secondFile.name}:${clone.secondFile.start}\` |`,
+    );
+
+const sizeFileRows = (report) =>
+  report.largeFiles.map((entry) => `| ${number.format(entry.lines)} | \`${entry.file}\` |`);
+
+const sizeFunctionRows = (report) =>
+  report.largeFunctions
+    .slice(0, 20)
+    .map(
+      (entry) =>
+        `| ${number.format(entry.lines)} | \`${entry.file}:${entry.line}\` | \`${entry.name}\` |`,
     );
 
 const lines = [
@@ -91,6 +103,34 @@ const lines = [
       ]
     : ["| Knip | Not generated |"]),
   "",
+  "## File and function size",
+  "",
+  ...(codeSize
+    ? [
+        `Scanned ${number.format(codeSize.scannedFiles)} source files. Thresholds: files over ${number.format(codeSize.thresholds.fileLines)} lines and functions over ${number.format(codeSize.thresholds.functionLines)} lines. Found ${number.format(codeSize.largeFiles.length)} large files and ${number.format(codeSize.largeFunctions.length)} large functions.`,
+        "",
+        "### Large files",
+        "",
+        "| Lines | File |",
+        "| ---: | --- |",
+        ...(codeSize.largeFiles.length > 0 ? sizeFileRows(codeSize) : ["| — | None |"]),
+        "",
+        "### Largest functions",
+        "",
+        "| Lines | Location | Function |",
+        "| ---: | --- | --- |",
+        ...(codeSize.largeFunctions.length > 0
+          ? sizeFunctionRows(codeSize)
+          : ["| — | None | None |"]),
+        ...(codeSize.largeFunctions.length > 20
+          ? [
+              "",
+              `Showing the largest 20 of ${number.format(codeSize.largeFunctions.length)} functions. See the raw JSON report for the complete list.`,
+            ]
+          : []),
+      ]
+    : ["Size report not generated. Run `pnpm run quality:report`."]),
+  "",
   "## Production languages",
   "",
   "| Language | Files | Code | Comments | Complexity |",
@@ -117,6 +157,7 @@ const lines = [
   "- Production: [scc HTML](./scc-production-report.html), [jscpd HTML](./jscpd/production/jscpd-report.html), [jscpd Markdown](./jscpd/production/jscpd-report.md)",
   "- Tests: [scc HTML](./scc-tests-report.html), [jscpd HTML](./jscpd/tests/jscpd-report.html), [jscpd Markdown](./jscpd/tests/jscpd-report.md)",
   "- Tooling: [scc HTML](./scc-tooling-report.html)",
+  "- File and function size: raw JSON in `code-size-report.json`",
   "- Coverage: [HTML](./coverage/index.html), raw summary in `coverage/coverage-summary.json`",
   "- Knip: [unused code Markdown](./knip/knip-report.md), [cycles Markdown](./knip/knip-cycles-report.md)",
   "- Secrets: raw Gitleaks JSON in `gitleaks-report.json`",
