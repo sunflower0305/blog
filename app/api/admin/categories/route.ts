@@ -5,7 +5,7 @@ import {
   getRouteEnvWithDb,
   jsonError,
   jsonOk,
-  parseJsonBody,
+  readJsonBody,
 } from "@/lib/server/route-helpers";
 import type { NextRequest } from "next/server";
 
@@ -47,7 +47,9 @@ export async function POST(req: NextRequest) {
     const authError = await ensureAuthenticatedRequest(req, route.db, "未授权");
     if (authError) return authError;
 
-    const { name, slug } = await parseJsonBody<CreateCategoryBody>(req);
+    const parsed = await readJsonBody<CreateCategoryBody>(req);
+    if (!parsed.ok) return parsed.response;
+    const { name, slug } = parsed.body;
     if (!name || !slug) {
       return jsonError("名称和slug不能为空", 400);
     }
@@ -67,7 +69,9 @@ export async function PATCH(req: NextRequest) {
     const authError = await ensureAuthenticatedRequest(req, route.db, "未授权");
     if (authError) return authError;
 
-    const { oldSlug, name, slug } = await parseJsonBody<UpdateCategoryBody>(req);
+    const parsed = await readJsonBody<UpdateCategoryBody>(req);
+    if (!parsed.ok) return parsed.response;
+    const { oldSlug, name, slug } = parsed.body;
     if (!oldSlug || !name || !slug) {
       return jsonError("参数不完整", 400);
     }
@@ -87,7 +91,9 @@ export async function DELETE(req: NextRequest) {
     const authError = await ensureAuthenticatedRequest(req, route.db, "未授权");
     if (authError) return authError;
 
-    const { slug } = await parseJsonBody<DeleteCategoryBody>(req);
+    const parsed = await readJsonBody<DeleteCategoryBody>(req);
+    if (!parsed.ok) return parsed.response;
+    const { slug } = parsed.body;
     if (!slug) {
       return jsonError("slug不能为空", 400);
     }

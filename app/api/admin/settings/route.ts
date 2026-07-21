@@ -1,7 +1,7 @@
 import { getSetting, setSetting } from "@/lib/db";
 import { invalidatePublicContentCache } from "@/lib/cache";
 import { isAdminAuthenticated, COOKIE_NAME } from "@/lib/admin-auth";
-import { getRouteEnvWithDb, jsonError, jsonOk, parseJsonBody } from "@/lib/server/route-helpers";
+import { getRouteEnvWithDb, jsonError, jsonOk, readJsonBody } from "@/lib/server/route-helpers";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 
@@ -39,7 +39,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { key, value } = await parseJsonBody<{ key?: string; value?: unknown }>(req);
+    const parsed = await readJsonBody<{ key?: string; value?: unknown }>(req);
+    if (!parsed.ok) return parsed.response;
+    const { key, value } = parsed.body;
     if (!key || value === undefined) {
       return jsonError("Missing key or value", 400);
     }

@@ -8,6 +8,7 @@ import {
   type AIImageProviderProfileRow,
 } from "@/lib/ai-image-config";
 import { normalizeBaseUrl, resolveAiConfigSecret } from "@/lib/ai-provider-profiles";
+import { readJsonBody } from "@/lib/server/route-helpers";
 
 interface SaveProfileBody {
   id?: number;
@@ -82,7 +83,9 @@ export async function POST(req: NextRequest) {
 
   await ensureAiImageConfigInfrastructure(db);
 
-  const body = (await req.json()) as SaveProfileBody;
+  const parsed = await readJsonBody<SaveProfileBody>(req);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.body;
   const payload = buildProfilePayload(body);
   if ("error" in payload) {
     return NextResponse.json({ error: payload.error }, { status: 400 });
@@ -150,7 +153,9 @@ export async function PUT(req: NextRequest) {
 
   await ensureAiImageConfigInfrastructure(db);
 
-  const body = (await req.json()) as SaveProfileBody;
+  const parsed = await readJsonBody<SaveProfileBody>(req);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.body;
   const id = Number(body.id);
   if (!Number.isFinite(id) || id <= 0) {
     return NextResponse.json({ error: "缺少有效的配置 ID" }, { status: 400 });
@@ -258,8 +263,9 @@ export async function DELETE(req: NextRequest) {
 
   await ensureAiImageConfigInfrastructure(db);
 
-  const body = (await req.json()) as { id?: number };
-  const id = Number(body.id);
+  const parsed = await readJsonBody<{ id?: number }>(req);
+  if (!parsed.ok) return parsed.response;
+  const id = Number(parsed.body.id);
   if (!Number.isFinite(id) || id <= 0) {
     return NextResponse.json({ error: "缺少有效的配置 ID" }, { status: 400 });
   }

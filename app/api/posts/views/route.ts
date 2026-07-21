@@ -1,10 +1,12 @@
-import { getRouteEnvWithDb, jsonError, jsonOk, parseJsonBody } from "@/lib/server/route-helpers";
+import { getRouteEnvWithDb, jsonError, jsonOk, readJsonBody } from "@/lib/server/route-helpers";
 import { normalizePostSlug } from "@/lib/post-utils";
 import type { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { slug } = await parseJsonBody<{ slug?: unknown }>(req);
+    const parsed = await readJsonBody<{ slug?: unknown }>(req);
+    if (!parsed.ok) return parsed.response;
+    const { slug } = parsed.body;
     const normalizedSlug = typeof slug === "string" ? normalizePostSlug(slug) : "";
 
     if (!normalizedSlug || normalizedSlug !== slug) {

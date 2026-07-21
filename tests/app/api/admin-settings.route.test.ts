@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({
   setSetting: vi.fn(),
   isAdminAuthenticated: vi.fn(),
   getRouteEnvWithDb: vi.fn(),
-  parseJsonBody: vi.fn(),
+  readJsonBody: vi.fn(),
   cookies: vi.fn(),
 }));
 
@@ -23,7 +23,7 @@ vi.mock("@/lib/server/route-helpers", () => ({
   getRouteEnvWithDb: mocks.getRouteEnvWithDb,
   jsonError: (message: string, status = 500) => Response.json({ error: message }, { status }),
   jsonOk: (data: unknown, status = 200) => Response.json(data, { status }),
-  parseJsonBody: mocks.parseJsonBody,
+  readJsonBody: async () => ({ ok: true, body: await mocks.readJsonBody() }),
 }));
 
 vi.mock("next/headers", () => ({
@@ -71,7 +71,7 @@ describe("/api/admin/settings route", () => {
   });
 
   it("stores non-string setting values as serialized JSON on POST", async () => {
-    mocks.parseJsonBody.mockResolvedValue({
+    mocks.readJsonBody.mockResolvedValue({
       key: "appearance",
       value: { theme: "paper", density: "comfortable" },
     });

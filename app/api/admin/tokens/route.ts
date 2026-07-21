@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAppCloudflareEnv } from "@/lib/cloudflare";
 import { isAdminAuthenticated, COOKIE_NAME, generateApiToken } from "@/lib/admin-auth";
+import { readJsonBody } from "@/lib/server/route-helpers";
 
 // 确保 api_tokens 表存在
 async function ensureTokensTable(db: D1Database) {
@@ -61,7 +62,9 @@ export async function POST(req: NextRequest) {
 
   await ensureTokensTable(env.DB);
 
-  const { name } = (await req.json()) as { name?: string };
+  const parsed = await readJsonBody<{ name?: string }>(req);
+  if (!parsed.ok) return parsed.response;
+  const { name } = parsed.body;
   if (!name || typeof name !== "string" || !name.trim()) {
     return NextResponse.json({ error: "请输入 Token 名称" }, { status: 400 });
   }
@@ -87,7 +90,9 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "数据库未配置" }, { status: 500 });
   }
 
-  const { id } = (await req.json()) as { id?: number | string };
+  const parsed = await readJsonBody<{ id?: number | string }>(req);
+  if (!parsed.ok) return parsed.response;
+  const { id } = parsed.body;
   if (!id) {
     return NextResponse.json({ error: "缺少 Token ID" }, { status: 400 });
   }

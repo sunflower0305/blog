@@ -4,7 +4,7 @@ import {
   getRouteEnvWithDb,
   jsonError,
   jsonOk,
-  parseJsonBody,
+  readJsonBody,
 } from "@/lib/server/route-helpers";
 import {
   fetchWechatBridgeJson,
@@ -26,7 +26,9 @@ export async function POST(req: NextRequest) {
   if (unauthorized) return unauthorized;
 
   try {
-    const body = await parseJsonBody<BridgeTestBody>(req);
+    const parsed = await readJsonBody<BridgeTestBody>(req);
+    if (!parsed.ok) return parsed.response;
+    const body = parsed.body;
     const stored = await getWechatBridgeConfig(route.db, route.env);
     const baseUrl = normalizeBaseUrl(body.base_url || stored.base_url || "");
     const token = (body.token || "").trim() || stored.token;

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   ensureAuthenticatedRequest: vi.fn(),
   getRouteEnvWithDb: vi.fn(),
-  parseJsonBody: vi.fn(),
+  readJsonBody: vi.fn(),
   getWechatBridgeConfig: vi.fn(),
   assertWechatBridgeReady: vi.fn(),
   fetchWechatBridgeJson: vi.fn(),
@@ -14,7 +14,7 @@ vi.mock("@/lib/server/route-helpers", () => ({
   getRouteEnvWithDb: mocks.getRouteEnvWithDb,
   jsonError: (message: string, status = 500) => Response.json({ error: message }, { status }),
   jsonOk: (data: unknown, status = 200) => Response.json(data, { status }),
-  parseJsonBody: mocks.parseJsonBody,
+  readJsonBody: async () => ({ ok: true, body: await mocks.readJsonBody() }),
 }));
 
 vi.mock("@/lib/wechat-bridge-config", () => ({
@@ -43,7 +43,7 @@ describe("/api/admin/wechat-publish route", () => {
   });
 
   it("rejects missing account_id", async () => {
-    mocks.parseJsonBody.mockResolvedValue({
+    mocks.readJsonBody.mockResolvedValue({
       title: "Test title",
       content_html: "<p>Hello</p>",
     });
@@ -57,7 +57,7 @@ describe("/api/admin/wechat-publish route", () => {
   });
 
   it("forwards publish payload to bridge", async () => {
-    mocks.parseJsonBody.mockResolvedValue({
+    mocks.readJsonBody.mockResolvedValue({
       account_id: "main",
       title: "  Test title  ",
       content_html: " <p>Hello</p> ",
@@ -109,7 +109,7 @@ describe("/api/admin/wechat-publish route", () => {
   });
 
   it("applies default author, comments, and cover image when omitted", async () => {
-    mocks.parseJsonBody.mockResolvedValue({
+    mocks.readJsonBody.mockResolvedValue({
       account_id: "main",
       title: "No Cover Post",
       content_html: "<p>Hello</p>",

@@ -14,6 +14,7 @@ import {
   normalizeAiImageAspectRatio,
   normalizeAiImageResolution,
 } from "@/lib/ai-image-options";
+import { readJsonBody } from "@/lib/server/route-helpers";
 
 export async function GET(req: NextRequest) {
   const env = await getAppCloudflareEnv();
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest) {
 
   await ensureAiImageConfigInfrastructure(db);
 
-  const body = (await req.json()) as {
+  const parsed = await readJsonBody<{
     action_key?: string;
     label?: string;
     description?: string;
@@ -58,7 +59,9 @@ export async function POST(req: NextRequest) {
     quality?: string;
     profile_id?: number;
     sort_order?: number;
-  };
+  }>(req);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.body;
 
   if (!body.action_key || !body.label || !body.description || !body.prompt) {
     return NextResponse.json({ error: "缺少必填字段" }, { status: 400 });
@@ -126,7 +129,9 @@ export async function PUT(req: NextRequest) {
 
   await ensureAiImageConfigInfrastructure(db);
 
-  const body = (await req.json()) as { items: Array<{ id: number; sort_order: number }> };
+  const parsed = await readJsonBody<{ items: Array<{ id: number; sort_order: number }> }>(req);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.body;
   if (!body.items?.length) {
     return NextResponse.json({ error: "缺少排序数据" }, { status: 400 });
   }

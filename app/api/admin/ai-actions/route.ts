@@ -6,6 +6,7 @@ import {
   ensureDefaultProfileId,
   resolveAiConfigSecret,
 } from "@/lib/ai-provider-profiles";
+import { readJsonBody } from "@/lib/server/route-helpers";
 
 interface AiActionRow {
   id: number;
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest) {
   }
   if (!db) return NextResponse.json({ error: "DB unavailable" }, { status: 500 });
 
-  const body = (await req.json()) as {
+  const parsed = await readJsonBody<{
     action_key?: string;
     label?: string;
     description?: string;
@@ -56,7 +57,9 @@ export async function POST(req: NextRequest) {
     temperature?: number;
     profile_id?: number;
     sort_order?: number;
-  };
+  }>(req);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.body;
   const temperature = Number.isFinite(body.temperature) ? Number(body.temperature) : 0.6;
 
   if (!body.action_key || !body.label || !body.description || !body.prompt) {
@@ -116,7 +119,9 @@ export async function PUT(req: NextRequest) {
   const secret = resolveAiConfigSecret(env);
   await ensureAiConfigInfrastructure(db, secret);
 
-  const body = (await req.json()) as { items: Array<{ id: number; sort_order: number }> };
+  const parsed = await readJsonBody<{ items: Array<{ id: number; sort_order: number }> }>(req);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.body;
   if (!body.items?.length) {
     return NextResponse.json({ error: "缺少排序数据" }, { status: 400 });
   }

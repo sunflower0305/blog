@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({
   updatePostBySlug: vi.fn(),
   ensureAuthenticatedRequest: vi.fn(),
   getRouteContextWithDb: vi.fn(),
-  parseJsonBody: vi.fn(),
+  readJsonBody: vi.fn(),
   invalidatePublicContentCache: vi.fn(),
   enqueueBackgroundJob: vi.fn(),
   nanoid: vi.fn(() => "abc123"),
@@ -22,7 +22,7 @@ vi.mock("@/lib/server/route-helpers", () => ({
   getRouteContextWithDb: mocks.getRouteContextWithDb,
   jsonError: (message: string, status = 500) => Response.json({ error: message }, { status }),
   jsonOk: (data: unknown, status = 200) => Response.json(data, { status }),
-  parseJsonBody: mocks.parseJsonBody,
+  readJsonBody: async () => ({ ok: true, body: await mocks.readJsonBody() }),
 }));
 
 vi.mock("@/lib/cache", () => ({
@@ -54,7 +54,7 @@ describe("/api/posts route", () => {
   });
 
   it("creates a post with normalized payload fields and enqueues follow-up jobs", async () => {
-    mocks.parseJsonBody.mockResolvedValue({
+    mocks.readJsonBody.mockResolvedValue({
       title: "  Ask AI 标题  ",
       content: "  正文内容  ",
       html: "<p>正文</p>",
@@ -113,7 +113,7 @@ describe("/api/posts route", () => {
   });
 
   it("patches a post with fallback description and normalized next slug", async () => {
-    mocks.parseJsonBody.mockResolvedValue({
+    mocks.readJsonBody.mockResolvedValue({
       current_slug: "old-slug",
       new_slug: "new_slug",
       title: "  新标题  ",
@@ -142,7 +142,7 @@ describe("/api/posts route", () => {
   });
 
   it("coerces a non-array tags payload to [] before it reaches updatePostBySlug", async () => {
-    mocks.parseJsonBody.mockResolvedValue({
+    mocks.readJsonBody.mockResolvedValue({
       current_slug: "old-slug",
       tags: "notanarray",
     });
@@ -154,7 +154,7 @@ describe("/api/posts route", () => {
   });
 
   it("trims and filters a valid tags array on the patch path", async () => {
-    mocks.parseJsonBody.mockResolvedValue({
+    mocks.readJsonBody.mockResolvedValue({
       current_slug: "old-slug",
       tags: [" a ", "", "b", 3, null],
     });

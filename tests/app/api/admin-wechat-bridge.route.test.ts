@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   ensureAuthenticatedRequest: vi.fn(),
   getRouteEnvWithDb: vi.fn(),
-  parseJsonBody: vi.fn(),
+  readJsonBody: vi.fn(),
   getWechatBridgePublicConfig: vi.fn(),
   saveWechatBridgeConfig: vi.fn(),
 }));
@@ -13,7 +13,7 @@ vi.mock("@/lib/server/route-helpers", () => ({
   getRouteEnvWithDb: mocks.getRouteEnvWithDb,
   jsonError: (message: string, status = 500) => Response.json({ error: message }, { status }),
   jsonOk: (data: unknown, status = 200) => Response.json(data, { status }),
-  parseJsonBody: mocks.parseJsonBody,
+  readJsonBody: async () => ({ ok: true, body: await mocks.readJsonBody() }),
 }));
 
 vi.mock("@/lib/wechat-bridge-config", () => ({
@@ -57,7 +57,7 @@ describe("/api/admin/wechat-bridge route", () => {
   });
 
   it("rejects enabling bridge without base URL", async () => {
-    mocks.parseJsonBody.mockResolvedValue({
+    mocks.readJsonBody.mockResolvedValue({
       enabled: true,
       base_url: "   ",
     });
@@ -69,7 +69,7 @@ describe("/api/admin/wechat-bridge route", () => {
   });
 
   it("saves bridge config on PUT", async () => {
-    mocks.parseJsonBody.mockResolvedValue({
+    mocks.readJsonBody.mockResolvedValue({
       enabled: true,
       base_url: " http://bridge.test:8788 ",
       token: "bridge-token",

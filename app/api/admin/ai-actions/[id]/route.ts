@@ -6,6 +6,7 @@ import {
   ensureDefaultProfileId,
   resolveAiConfigSecret,
 } from "@/lib/ai-provider-profiles";
+import { readJsonBody } from "@/lib/server/route-helpers";
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const env = await getAppCloudflareEnv();
@@ -18,7 +19,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   await ensureAiConfigInfrastructure(db, secret);
 
   const { id } = await params;
-  const body = (await req.json()) as {
+  const parsed = await readJsonBody<{
     action_key?: string;
     label?: string;
     description?: string;
@@ -26,7 +27,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     temperature?: number;
     profile_id?: number;
     is_enabled?: number;
-  };
+  }>(req);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.body;
   const nextTemperature = Number.isFinite(body.temperature) ? Number(body.temperature) : undefined;
 
   const sets: string[] = [];

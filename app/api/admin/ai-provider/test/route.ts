@@ -9,6 +9,7 @@ import {
   normalizeBaseUrl,
   resolveAiConfigSecret,
 } from "@/lib/ai-provider-profiles";
+import { readJsonBody } from "@/lib/server/route-helpers";
 
 function isGeminiBaseUrl(baseUrl: string): boolean {
   return /generativelanguage\.googleapis\.com/i.test(baseUrl);
@@ -112,14 +113,16 @@ export async function POST(req: NextRequest) {
   const secret = resolveAiConfigSecret(env);
   await ensureAiConfigInfrastructure(db, secret);
 
-  const body = (await req.json()) as {
+  const parsed = await readJsonBody<{
     profile_id?: number;
     base_url?: string;
     api_key?: string;
     model?: string;
     temperature?: number;
     max_tokens?: number;
-  };
+  }>(req);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.body;
 
   const profileId = Number(body.profile_id);
   let selectedProfile: {

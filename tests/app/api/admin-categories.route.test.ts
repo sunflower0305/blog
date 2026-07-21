@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   deleteCategory: vi.fn(),
   ensureAuthenticatedRequest: vi.fn(),
   getRouteEnvWithDb: vi.fn(),
-  parseJsonBody: vi.fn(),
+  readJsonBody: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -22,7 +22,7 @@ vi.mock("@/lib/server/route-helpers", () => ({
   getRouteEnvWithDb: mocks.getRouteEnvWithDb,
   jsonError: (message: string, status = 500) => Response.json({ error: message }, { status }),
   jsonOk: (data: unknown, status = 200) => Response.json(data, { status }),
-  parseJsonBody: mocks.parseJsonBody,
+  readJsonBody: async () => ({ ok: true, body: await mocks.readJsonBody() }),
 }));
 
 import { DELETE, GET, POST } from "@/app/api/admin/categories/route";
@@ -57,7 +57,7 @@ describe("/api/admin/categories route", () => {
   });
 
   it("validates required fields before creating a category", async () => {
-    mocks.parseJsonBody.mockResolvedValue({ name: "AI" });
+    mocks.readJsonBody.mockResolvedValue({ name: "AI" });
 
     const response = await POST({} as never);
 

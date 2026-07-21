@@ -9,12 +9,7 @@ import { isAdminAuthenticated, COOKIE_NAME } from "@/lib/admin-auth";
 import { invalidatePublicContentCache } from "@/lib/cache";
 import { buildAutoDescription, normalizePostSlug } from "@/lib/post-utils";
 import { enqueueBackgroundJob } from "@/lib/background-jobs";
-import {
-  getRouteContextWithDb,
-  jsonError,
-  jsonOk,
-  parseJsonBody,
-} from "@/lib/server/route-helpers";
+import { getRouteContextWithDb, jsonError, jsonOk, readJsonBody } from "@/lib/server/route-helpers";
 import { asBit, asOptionalEnum, asStringArray, whenDefined } from "@/lib/server/input-coerce";
 import type { NextRequest } from "next/server";
 
@@ -56,20 +51,7 @@ export async function PUT(req: NextRequest, { params }: Ctx) {
   if (!post) return jsonError("文章不存在", 404);
 
   try {
-    const {
-      slug: nextSlugRaw,
-      title,
-      content,
-      html,
-      category,
-      status,
-      password,
-      is_pinned,
-      is_hidden,
-      cover_image,
-      tags,
-      description,
-    } = await parseJsonBody<{
+    const parsed = await readJsonBody<{
       slug?: string;
       title?: string;
       content?: string;
@@ -83,6 +65,21 @@ export async function PUT(req: NextRequest, { params }: Ctx) {
       tags?: string[];
       description?: string;
     }>(req);
+    if (!parsed.ok) return parsed.response;
+    const {
+      slug: nextSlugRaw,
+      title,
+      content,
+      html,
+      category,
+      status,
+      password,
+      is_pinned,
+      is_hidden,
+      cover_image,
+      tags,
+      description,
+    } = parsed.body;
     const nextSlug = typeof nextSlugRaw === "string" ? normalizePostSlug(nextSlugRaw) : "";
     const normalizedDescription =
       description === undefined

@@ -4,7 +4,7 @@ import {
   getRouteEnvWithDb,
   jsonError,
   jsonOk,
-  parseJsonBody,
+  readJsonBody,
 } from "@/lib/server/route-helpers";
 import { getWechatBridgePublicConfig, saveWechatBridgeConfig } from "@/lib/wechat-bridge-config";
 
@@ -33,7 +33,9 @@ export async function PUT(req: NextRequest) {
   if (unauthorized) return unauthorized;
 
   try {
-    const body = await parseJsonBody<SaveWechatBridgeBody>(req);
+    const parsed = await readJsonBody<SaveWechatBridgeBody>(req);
+    if (!parsed.ok) return parsed.response;
+    const body = parsed.body;
     const baseUrl = (body.base_url || "").trim();
 
     if (body.enabled && !baseUrl) {

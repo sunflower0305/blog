@@ -4,7 +4,7 @@ import {
   getRouteEnvWithDb,
   jsonError,
   jsonOk,
-  parseJsonBody,
+  readJsonBody,
 } from "@/lib/server/route-helpers";
 import {
   assertWechatBridgeReady,
@@ -39,7 +39,9 @@ export async function POST(req: NextRequest) {
   if (unauthorized) return unauthorized;
 
   try {
-    const body = await parseJsonBody<PublishWechatBody>(req);
+    const parsed = await readJsonBody<PublishWechatBody>(req);
+    if (!parsed.ok) return parsed.response;
+    const body = parsed.body;
     const accountId = (body.account_id || "").trim();
     const title = (body.title || "").trim();
     const contentHtml = (body.content_html || "").trim();

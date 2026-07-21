@@ -39,14 +39,21 @@ export function jsonError(error: string, status = 500) {
   return NextResponse.json({ error }, { status });
 }
 
-export async function parseJsonBody<T>(
+type JsonBodyResult<T> = { ok: true; body: T } | { ok: false; response: NextResponse };
+
+/**
+ * 读取并解析 JSON 请求体，匹配 getRouteEnvWithDb 的早返回结果契约：
+ * 成功返回 `{ ok: true, body }`，解析失败返回 `{ ok: false, response }`（400），
+ * 路由统一用 `if (!parsed.ok) return parsed.response;`，畸形请求体不会退化成 500。
+ */
+export async function readJsonBody<T>(
   req: NextRequest,
   invalidMessage = "请求体不是有效 JSON",
-): Promise<T> {
+): Promise<JsonBodyResult<T>> {
   try {
-    return (await req.json()) as T;
+    return { ok: true, body: (await req.json()) as T };
   } catch {
-    throw new Error(invalidMessage);
+    return { ok: false, response: jsonError(invalidMessage, 400) };
   }
 }
 

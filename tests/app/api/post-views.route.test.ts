@@ -2,14 +2,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   getRouteEnvWithDb: vi.fn(),
-  parseJsonBody: vi.fn(),
+  readJsonBody: vi.fn(),
 }));
 
 vi.mock("@/lib/server/route-helpers", () => ({
   getRouteEnvWithDb: mocks.getRouteEnvWithDb,
   jsonError: (message: string, status = 500) => Response.json({ error: message }, { status }),
   jsonOk: (data: unknown, status = 200) => Response.json(data, { status }),
-  parseJsonBody: mocks.parseJsonBody,
+  readJsonBody: async () => ({ ok: true, body: await mocks.readJsonBody() }),
 }));
 
 import { POST } from "@/app/api/posts/views/route";
@@ -30,7 +30,7 @@ describe("/api/posts/views route", () => {
   });
 
   it("increments view count for a normalized public slug", async () => {
-    mocks.parseJsonBody.mockResolvedValue({ slug: "post-1" });
+    mocks.readJsonBody.mockResolvedValue({ slug: "post-1" });
 
     const response = await POST({} as never);
     const body = await response.json();
@@ -43,7 +43,7 @@ describe("/api/posts/views route", () => {
   });
 
   it("rejects slugs that would be normalized to a different value", async () => {
-    mocks.parseJsonBody.mockResolvedValue({ slug: "../post-1" });
+    mocks.readJsonBody.mockResolvedValue({ slug: "../post-1" });
 
     const response = await POST({} as never);
     const body = await response.json();

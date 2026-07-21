@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
   invalidatePublicContentCache: vi.fn(),
   enqueueBackgroundJob: vi.fn(),
   getRouteContextWithDb: vi.fn(),
-  parseJsonBody: vi.fn(),
+  readJsonBody: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -35,7 +35,7 @@ vi.mock("@/lib/server/route-helpers", () => ({
   getRouteContextWithDb: mocks.getRouteContextWithDb,
   jsonError: (message: string, status = 500) => Response.json({ error: message }, { status }),
   jsonOk: (data: unknown, status = 200) => Response.json(data, { status }),
-  parseJsonBody: mocks.parseJsonBody,
+  readJsonBody: async () => ({ ok: true, body: await mocks.readJsonBody() }),
 }));
 
 import { PUT } from "@/app/api/admin/posts/[slug]/route";
@@ -56,7 +56,7 @@ describe("/api/admin/posts/[slug] route", () => {
       content: "已有正文",
       description: "已有摘要",
     });
-    mocks.parseJsonBody.mockResolvedValue({
+    mocks.readJsonBody.mockResolvedValue({
       slug: "next_slug",
       title: "文章标题",
       content: "更新后的正文",
@@ -98,7 +98,7 @@ describe("/api/admin/posts/[slug] route", () => {
   });
 
   it("preserves the description when a partial update only changes publication status", async () => {
-    mocks.parseJsonBody.mockResolvedValue({ status: "published" });
+    mocks.readJsonBody.mockResolvedValue({ status: "published" });
 
     const request = {
       cookies: {
@@ -122,7 +122,7 @@ describe("/api/admin/posts/[slug] route", () => {
   });
 
   it("coerces illegal status/bit/tags fields before they reach updatePost", async () => {
-    mocks.parseJsonBody.mockResolvedValue({
+    mocks.readJsonBody.mockResolvedValue({
       title: "标题",
       status: "not-a-status",
       is_pinned: "yes",
@@ -147,7 +147,7 @@ describe("/api/admin/posts/[slug] route", () => {
   });
 
   it("leaves omitted bit/tags fields undefined so a partial update skips them", async () => {
-    mocks.parseJsonBody.mockResolvedValue({ title: "只改标题" });
+    mocks.readJsonBody.mockResolvedValue({ title: "只改标题" });
 
     const request = {
       cookies: { get: vi.fn(() => ({ value: "token" })) },

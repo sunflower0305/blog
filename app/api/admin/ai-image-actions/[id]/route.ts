@@ -13,6 +13,7 @@ import {
   normalizeAiImageAspectRatio,
   normalizeAiImageResolution,
 } from "@/lib/ai-image-options";
+import { readJsonBody } from "@/lib/server/route-helpers";
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const env = await getAppCloudflareEnv();
@@ -25,7 +26,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   await ensureAiImageConfigInfrastructure(db);
 
   const { id } = await params;
-  const body = (await req.json()) as {
+  const parsed = await readJsonBody<{
     action_key?: string;
     label?: string;
     description?: string;
@@ -36,7 +37,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     quality?: string;
     profile_id?: number;
     is_enabled?: number;
-  };
+  }>(req);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.body;
   const numericId = Number(id);
   const current = await db
     .prepare(`

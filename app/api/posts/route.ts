@@ -11,7 +11,7 @@ import {
   getRouteContextWithDb,
   jsonError,
   jsonOk,
-  parseJsonBody,
+  readJsonBody,
 } from "@/lib/server/route-helpers";
 import { asOptionalEnum, asStringArray } from "@/lib/server/input-coerce";
 import type { NextRequest } from "next/server";
@@ -26,7 +26,9 @@ export async function POST(req: NextRequest) {
     const authError = await ensureAuthenticatedRequest(req, db);
     if (authError) return authError;
 
-    const payload = await parseJsonBody<Record<string, unknown>>(req);
+    const parsed = await readJsonBody<Record<string, unknown>>(req);
+    if (!parsed.ok) return parsed.response;
+    const payload = parsed.body;
     const title = typeof payload.title === "string" ? payload.title.trim() : "";
     const content = typeof payload.content === "string" ? payload.content.trim() : "";
     const rawHtml = typeof payload.html === "string" ? payload.html.trim() : "";
@@ -137,7 +139,9 @@ export async function PATCH(req: NextRequest) {
     const authError = await ensureAuthenticatedRequest(req, db);
     if (authError) return authError;
 
-    const payload = await parseJsonBody<Record<string, unknown>>(req);
+    const parsed = await readJsonBody<Record<string, unknown>>(req);
+    if (!parsed.ok) return parsed.response;
+    const payload = parsed.body;
     const currentSlug =
       typeof payload.current_slug === "string"
         ? payload.current_slug.trim()
