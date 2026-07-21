@@ -180,6 +180,9 @@ importers:
       knip:
         specifier: ^6.27.0
         version: 6.27.0
+      oxc-parser:
+        specifier: 0.137.0
+        version: 0.137.0
       react-server-dom-webpack:
         specifier: ^19.2.7
         version: 19.2.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(webpack@5.108.3(esbuild@0.28.1)(lightningcss@1.32.0)(postcss@8.5.20))
