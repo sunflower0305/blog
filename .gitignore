@@ -57,5 +57,4 @@ worker-configuration.d.ts
 article/
 .github/copilot-instructions.md
 CLAUDE.md
-review.md
-css-plan.md
+todo.md
