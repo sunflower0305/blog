@@ -62,7 +62,7 @@
     "@tiptap/react": "^3.28.0",
     "@tiptap/starter-kit": "^3.28.0",
     "@tiptap/suggestion": "^3.28.0",
-    "@vinext/cloudflare": "1.0.0-beta.2",
+    "@vinext/cloudflare": "1.0.0-beta.3",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "highlight.js": "^11.11.1",
@@ -88,7 +88,7 @@
     "tiptap-extension-global-drag-handle": "^0.1.18",
     "tiptap-markdown": "^0.9.0",
     "turndown": "^7.2.4",
-    "vinext": "1.0.0-beta.2"
+    "vinext": "1.0.0-beta.3"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.46.0",
