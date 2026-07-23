@@ -162,22 +162,18 @@ const lines = [
   ...(lint
     ? [`| Oxlint — complexity warnings | ${number.format(complexityDiagnostics.length)} |`]
     : ["| Oxlint complexity | Not generated |"]),
-  "",
-  "## Dependency issues",
-  "",
-  ...(knip
+  ...(knipDependencyIssues.length > 0
     ? [
-        ...(knipDependencyIssues.length > 0
-          ? [
-              "| Type | Dependency | Location |",
-              "| --- | --- | --- |",
-              ...knipDependencyIssues.map(
-                (issue) => `| ${issue.type} | \`${issue.name}\` | \`${issue.location}\` |`,
-              ),
-            ]
-          : ["No dependency issues found."]),
+        "",
+        "## Dependency issues",
+        "",
+        "| Type | Dependency | Location |",
+        "| --- | --- | --- |",
+        ...knipDependencyIssues.map(
+          (issue) => `| ${issue.type} | \`${issue.name}\` | \`${issue.location}\` |`,
+        ),
       ]
-    : ["Knip report not generated. Run `pnpm run quality:report`."]),
+    : []),
   ...(knipUnusedIssues.length > 0
     ? [
         "",
