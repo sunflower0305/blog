@@ -4,14 +4,18 @@ import { describe, expect, it } from "vitest";
 describe("editor component boundaries", () => {
   it("keeps upload and AI metadata workflows outside PostEditor", () => {
     const editor = readFileSync("components/PostEditor.tsx", "utf8");
+    const controller = readFileSync("lib/use-post-editor-controller.tsx", "utf8");
     const metadataHook = readFileSync("lib/use-post-editor-metadata.ts", "utf8");
     const uploadHook = readFileSync("lib/use-post-editor-uploads.ts", "utf8");
 
-    expect(editor).toContain("usePostEditorUploads");
-    expect(editor).toContain("usePostEditorMetadata");
-    expect(editor).not.toContain("getLatestTitle");
-    expect(editor).not.toContain("eslint-disable-line react-hooks/exhaustive-deps");
-    expect(editor).not.toContain('fetch("/api/editor/ai-post-metadata"');
+    expect(editor).toContain("usePostEditorController");
+    expect(editor).not.toContain("usePostEditorUploads");
+    expect(editor).not.toContain("usePostEditorMetadata");
+    expect(controller).toContain("usePostEditorUploads");
+    expect(controller).toContain("usePostEditorMetadata");
+    expect(controller).not.toContain("getLatestTitle");
+    expect(controller).not.toContain("eslint-disable-line react-hooks/exhaustive-deps");
+    expect(controller).not.toContain('fetch("/api/editor/ai-post-metadata"');
     expect(uploadHook).toContain("latestTitleRef: RefObject<string>");
     expect(metadataHook).toContain("latestTitleRef: RefObject<string>");
     expect(metadataHook).not.toMatch(/^\s*title:\s*string;/m);
