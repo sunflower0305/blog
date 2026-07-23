@@ -19,7 +19,7 @@
     "tools/**/*.mjs",
     "*.ts"
   ],
-  "ignoreDependencies": ["cloudflare", "tailwindcss"],
+  "ignoreDependencies": ["cloudflare", "jscpd", "sloc", "tailwindcss"],
   "ignoreBinaries": ["vp"],
   "rules": {
     "cycles": "warn"
