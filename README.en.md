@@ -158,7 +158,7 @@ No API keys are committed to the repository. Add them during the first deploymen
 | `pnpm run config:check`       | Validate that environment variable configuration matches the contract         |
 | `pnpm run quality:report`     | Generate sloc size and jscpd duplication reports                              |
 | `pnpm run quality:check`      | Generate reports and enforce a 6% duplication threshold                       |
-| `pnpm run quality:size`       | Report files over 1000 lines and functions over 100 lines                     |
+| `pnpm run quality:size`       | Report files over 600 lines and functions over 300 lines                      |
 | `pnpm run quality:size:check` | Check file and function sizes, exiting nonzero when a limit is exceeded       |
 | `pnpm run quality:dead-code`  | Generate the Knip unused file, export, and dependency report                  |
 | `pnpm run quality:all`        | Generate size, duplication, dead-code, and coverage reports                   |
