@@ -9,6 +9,7 @@ import {
   isValidEditorImage,
   type UploadFn,
 } from "@/lib/editor-image-upload-plugin";
+import { unwrapStandaloneImages } from "@/lib/editor-content";
 import { hasMarkdownTable } from "@/lib/editor-utils";
 
 const md = markdownit({ html: true });
@@ -110,6 +111,7 @@ export function buildEditorProps(
         const { state, dispatch } = view;
         const wrapper = document.createElement("div");
         wrapper.innerHTML = html;
+        unwrapStandaloneImages(wrapper);
         const slice = PMDOMParser.fromSchema(state.schema).parseSlice(wrapper);
         const tr = state.tr.replaceSelection(slice);
         dispatch(tr);
@@ -141,6 +143,7 @@ export function buildEditorProps(
         });
 
         wrapper.querySelectorAll("style").forEach((el) => el.remove());
+        unwrapStandaloneImages(wrapper);
 
         const { state, dispatch } = view;
         const slice = PMDOMParser.fromSchema(state.schema).parseSlice(wrapper);

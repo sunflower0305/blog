@@ -16,7 +16,10 @@ import { setEditorHtmlContent } from "@/lib/editor-content";
 
 describe("setEditorHtmlContent", () => {
   beforeEach(() => {
-    const template = { innerHTML: "", content: { nodeType: 11 } };
+    const template = {
+      innerHTML: "",
+      content: { nodeType: 11, querySelectorAll: vi.fn(() => []) },
+    };
     vi.stubGlobal("document", {
       createElement: vi.fn(() => template),
     });

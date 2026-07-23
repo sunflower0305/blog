@@ -4,6 +4,7 @@ import { Editor } from "@tiptap/core";
 import { afterEach, describe, expect, it } from "vitest";
 import { buildEditorProps, createEditorExtensions } from "@/lib/editor-extensions";
 import { setEditorHtmlContent } from "@/lib/editor-content";
+import { replaceEditorRangeWithMarkdown } from "@/lib/editor-markdown";
 
 const REPRESENTATIVE_HTML = `
   <h1>标题</h1>
@@ -80,6 +81,30 @@ describe("editor HTML compatibility", () => {
     expect(secondHtml).toContain('class="language-typescript"');
   });
 
+  it("does not leave an empty paragraph before a block image", () => {
+    const editor = createEditor();
+    editors.push(editor);
+
+    setEditorHtmlContent(
+      editor,
+      '<p>图片前</p><p><img src="/image.png" alt="示例图片"></p><p>图片后</p>',
+    );
+
+    expect(editor.getJSON().content?.map((node) => node.type)).toEqual([
+      "paragraph",
+      "image",
+      "paragraph",
+    ]);
+  });
+
+  it("does not add an empty paragraph when inserting a Markdown image", () => {
+    const editor = createEditor();
+    editors.push(editor);
+
+    expect(replaceEditorRangeWithMarkdown(editor, "![示例图片](/image.png)")).toBe(true);
+    expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["image", "paragraph"]);
+  });
+
   it("converts pasted Markdown tables into table nodes", () => {
     const editor = createEditor();
     editors.push(editor);
@@ -96,5 +121,25 @@ describe("editor HTML compatibility", () => {
 
     expect(props.handlePaste(editor.view, event)).toBe(true);
     expect(collectNodeNames(editor)).toContain("table");
+  });
+
+  it("does not add an empty paragraph when pasting a standalone HTML image", () => {
+    const editor = createEditor();
+    editors.push(editor);
+    const props = buildEditorProps();
+    const event = {
+      preventDefault: () => undefined,
+      clipboardData: {
+        items: [],
+        files: [],
+        getData: (type: string) =>
+          type === "text/html"
+            ? '<p style="text-align: center"><img src="/image.png" alt="示例图片"></p>'
+            : "",
+      },
+    } as unknown as ClipboardEvent;
+
+    expect(props.handlePaste(editor.view, event)).toBe(true);
+    expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["image", "paragraph"]);
   });
 });

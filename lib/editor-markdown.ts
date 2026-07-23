@@ -2,6 +2,7 @@ import { DOMParser as PMDOMParser } from "@tiptap/pm/model";
 import { TextSelection } from "@tiptap/pm/state";
 import type { Editor } from "@tiptap/core";
 import markdownit from "markdown-it";
+import { unwrapStandaloneImages } from "@/lib/editor-content";
 
 const markdownParser = markdownit({
   html: false,
@@ -25,6 +26,7 @@ function resolveRange(editor: Editor, range?: { from: number; to: number } | nul
 function createMarkdownSlice(editor: Editor, markdown: string) {
   const wrapper = document.createElement("div");
   wrapper.innerHTML = markdownParser.render(markdown.trim());
+  unwrapStandaloneImages(wrapper);
   return PMDOMParser.fromSchema(editor.state.schema).parseSlice(wrapper);
 }
 
