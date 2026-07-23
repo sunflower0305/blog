@@ -143,4 +143,53 @@ describe("/api/uploads route", () => {
     });
     expect(put).not.toHaveBeenCalled();
   });
+
+  it("reports missing image storage", async () => {
+    mocks.getAppCloudflareEnv.mockResolvedValue({ DB: createDbMock() });
+
+    const response = await POST(
+      createFormRequest(new File(["x"], "cover.png", { type: "image/png" })),
+    );
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      error: "图片存储未配置，请用 Cloudflare preview/runtime 启动。",
+    });
+  });
+
+  it("rejects files larger than the worker limit", async () => {
+    const put = vi.fn(async () => undefined);
+    mocks.getAppCloudflareEnv.mockResolvedValue({
+      DB: createDbMock(),
+      IMAGES: { get: vi.fn(async () => null), put },
+    });
+    const file = new File(["x"], "large.mp4", { type: "video/mp4" });
+    Object.defineProperty(file, "size", { value: 101 * 1024 * 1024 });
+
+    const response = await POST(createFormRequest(file));
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({ error: "文件不能超过 100MB" });
+    expect(put).not.toHaveBeenCalled();
+  });
+
+  it("returns a stable error response when storage fails", async () => {
+    const get = vi.fn(async () => null);
+    const put = vi.fn(async () => {
+      throw new Error("R2 unavailable");
+    });
+    mocks.getAppCloudflareEnv.mockResolvedValue({
+      DB: createDbMock(),
+      IMAGES: { get, put },
+    });
+
+    const response = await POST(
+      createFormRequest(new File(["image"], "cover.png", { type: "image/png" })),
+    );
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      error: "文件上传失败: R2 unavailable",
+    });
+  });
 });

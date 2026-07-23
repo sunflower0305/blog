@@ -900,147 +900,186 @@ export async function runWorkersAiCompatImageRequest(
   return parseWorkersAiRunResponse(multipartResponse);
 }
 
-export async function generateEditorImage(
-  input: GenerateEditorImageInput,
-): Promise<GeneratedEditorImage> {
-  await ensureAiImageConfigInfrastructure(input.db);
+type ResolvedImageProfile = NonNullable<Awaited<ReturnType<typeof resolveAiImageProfileConfig>>>;
+type DefaultImageActionSeed = NonNullable<ReturnType<typeof getDefaultImageActionSeed>>;
 
-  const secret = resolveAiConfigSecret(input.env as Record<string, unknown> | undefined);
+interface ImageGenerationContext {
+  action: ResolvedImageAction | null;
+  seeded: DefaultImageActionSeed | null;
+  aspectRatio: AIImageAspectRatio;
+  resolution: AIImageResolution;
+  profile: ResolvedImageProfile;
+  finalPrompt: string;
+  referenceImageUrl: string;
+}
+
+interface GeneratedImagePayload {
+  bytes: Uint8Array;
+  contentType: string;
+  extension: string;
+  revisedPrompt: string;
+}
+
+function resolveSelectedProfileId(
+  requestedProfileId: number | null | undefined,
+  action: ResolvedImageAction | null,
+) {
+  return Number.isFinite(requestedProfileId) && Number(requestedProfileId) > 0
+    ? Number(requestedProfileId)
+    : (action?.profile_id ?? undefined);
+}
+
+async function resolveImageGenerationContext(
+  input: GenerateEditorImageInput,
+): Promise<ImageGenerationContext> {
+  await ensureAiImageConfigInfrastructure(input.db);
   const action = await resolveImageAction(input.db, input.action);
   const seeded = getDefaultImageActionSeed(action?.action_key);
-  const requestedAspectRatio = normalizeAiImageAspectRatio(
+  const aspectRatio = normalizeAiImageAspectRatio(
     input.aspectRatio || action?.aspect_ratio || seeded?.aspect_ratio,
   );
-  const requestedResolution = normalizeAiImageResolution(
+  const resolution = normalizeAiImageResolution(
     input.resolution || action?.resolution || seeded?.resolution,
   );
-  const selectedProfileId =
-    Number.isFinite(input.profileId) && Number(input.profileId) > 0
-      ? Number(input.profileId)
-      : (action?.profile_id ?? undefined);
-  const profile = await resolveAiImageProfileConfig(input.db, secret, selectedProfileId);
+  const secret = resolveAiConfigSecret(input.env as Record<string, unknown> | undefined);
+  const profile = await resolveAiImageProfileConfig(
+    input.db,
+    secret,
+    resolveSelectedProfileId(input.profileId, action),
+  );
+  if (!profile) throw new Error("请先在后台配置图片模型");
 
-  if (!profile) {
-    throw new Error("请先在后台配置图片模型");
+  return {
+    action,
+    seeded,
+    aspectRatio,
+    resolution,
+    profile,
+    finalPrompt: buildFinalImagePrompt(
+      input.actionPrompt || action?.prompt,
+      input.userPrompt,
+      input.articleTitle,
+      input.contextText,
+      aspectRatio,
+      resolution,
+    ),
+    referenceImageUrl:
+      typeof input.referenceImageUrl === "string" ? input.referenceImageUrl.trim() : "",
+  };
+}
+
+async function generateWorkersImagePayload(
+  context: ImageGenerationContext,
+): Promise<GeneratedImagePayload> {
+  if (context.referenceImageUrl) {
+    throw new Error("当前图片模型通道暂不支持参考图生成，请切换到 OpenAI 兼容图片模型");
   }
-
-  const finalPrompt = buildFinalImagePrompt(
-    input.actionPrompt || action?.prompt,
-    input.userPrompt,
-    input.articleTitle,
-    input.contextText,
-    requestedAspectRatio,
-    requestedResolution,
+  const { width, height } = resolveWorkersAiImageSize(context.aspectRatio, context.resolution);
+  const rawResult = await runWorkersAiCompatImageRequest(
+    {
+      apiKey: context.profile.api_key,
+      baseURL: context.profile.base_url,
+      model: context.profile.model,
+    },
+    { prompt: context.finalPrompt, width, height },
   );
-  const hasReferenceImage =
-    typeof input.referenceImageUrl === "string" && input.referenceImageUrl.trim().length > 0;
+  const asset = await extractWorkersAiImageAsset(rawResult, context.profile.model);
+  return {
+    bytes: await toUint8Array(asset.data),
+    contentType: asset.contentType,
+    extension: asset.extension,
+    revisedPrompt: context.finalPrompt,
+  };
+}
 
-  const imagePayload =
-    profile.provider === "workers_ai" || isWorkersAiBaseUrl(profile.base_url)
-      ? await (async () => {
-          if (hasReferenceImage) {
-            throw new Error("当前图片模型通道暂不支持参考图生成，请切换到 OpenAI 兼容图片模型");
-          }
+async function generateCompatibleImagePayload(
+  context: ImageGenerationContext,
+): Promise<GeneratedImagePayload> {
+  const client = new OpenAI({
+    apiKey: context.profile.api_key,
+    baseURL: normalizeBaseUrl(context.profile.base_url),
+  });
+  const size = resolveRequestedSize(
+    context.aspectRatio,
+    context.action?.size || context.seeded?.size,
+  );
+  const quality = resolveRequestedQuality(
+    context.resolution,
+    context.action?.quality || context.seeded?.quality,
+  );
+  const response = context.referenceImageUrl
+    ? await runEditWithFallback(client, {
+        image: await fetchReferenceImageFile(context.referenceImageUrl),
+        inputFidelity: "high",
+        model: context.profile.model,
+        prompt: context.finalPrompt,
+        size,
+        quality,
+      })
+    : await runGenerateWithFallback(
+        client,
+        {
+          apiKey: context.profile.api_key,
+          baseURL: context.profile.base_url,
+          providerType: context.profile.provider_type,
+        },
+        { model: context.profile.model, prompt: context.finalPrompt, size, quality },
+      );
+  return extractGeneratedImagePayload(response);
+}
 
-          const { width, height } = resolveWorkersAiImageSize(
-            requestedAspectRatio,
-            requestedResolution,
-          );
-          const rawResult = await runWorkersAiCompatImageRequest(
-            {
-              apiKey: profile.api_key,
-              baseURL: profile.base_url,
-              model: profile.model,
-            },
-            {
-              prompt: finalPrompt,
-              width,
-              height,
-            },
-          );
-          const asset = await extractWorkersAiImageAsset(rawResult, profile.model);
-          return {
-            bytes: await toUint8Array(asset.data),
-            contentType: asset.contentType,
-            extension: asset.extension,
-            revisedPrompt: finalPrompt,
-          };
-        })()
-      : await (async () => {
-          const client = new OpenAI({
-            apiKey: profile.api_key,
-            baseURL: normalizeBaseUrl(profile.base_url),
-          });
+function usesWorkersAi(profile: ResolvedImageProfile) {
+  return profile.provider === "workers_ai" || isWorkersAiBaseUrl(profile.base_url);
+}
 
-          const size = resolveRequestedSize(requestedAspectRatio, action?.size || seeded?.size);
-          const quality = resolveRequestedQuality(
-            requestedResolution,
-            action?.quality || seeded?.quality,
-          );
+async function generateImagePayload(context: ImageGenerationContext) {
+  return usesWorkersAi(context.profile)
+    ? generateWorkersImagePayload(context)
+    : generateCompatibleImagePayload(context);
+}
 
-          const response = hasReferenceImage
-            ? await runEditWithFallback(client, {
-                image: await fetchReferenceImageFile(String(input.referenceImageUrl).trim()),
-                inputFidelity: "high",
-                model: profile.model,
-                prompt: finalPrompt,
-                size,
-                quality,
-              })
-            : await runGenerateWithFallback(
-                client,
-                {
-                  apiKey: profile.api_key,
-                  baseURL: profile.base_url,
-                  providerType: profile.provider_type,
-                },
-                {
-                  model: profile.model,
-                  prompt: finalPrompt,
-                  size,
-                  quality,
-                },
-              );
-
-          return extractGeneratedImagePayload(response);
-        })();
+async function storeGeneratedImage(
+  input: GenerateEditorImageInput,
+  context: ImageGenerationContext,
+  payload: GeneratedImagePayload,
+): Promise<GeneratedEditorImage> {
+  const actionLabel = input.actionLabel || context.action?.label || "自定义生成";
   const alt = buildAltText(
-    imagePayload.revisedPrompt,
+    payload.revisedPrompt,
     input.userPrompt,
     input.articleTitle,
-    input.actionLabel || action?.label || "自定义生成",
+    actionLabel,
   );
-
   const { yyyy, mm } = getNowPrefix();
   const baseName = sanitizeFilename(alt).slice(0, 48);
-  const key = `image/${yyyy}/${mm}/ai-${nanoid(10)}-${baseName}.${imagePayload.extension}`;
-
-  await input.images.put(key, imagePayload.bytes, {
+  const key = `image/${yyyy}/${mm}/ai-${nanoid(10)}-${baseName}.${payload.extension}`;
+  await input.images.put(key, payload.bytes, {
     httpMetadata: {
-      contentType: imagePayload.contentType,
+      contentType: payload.contentType,
       cacheControl: "public, max-age=31536000, immutable",
     },
-    customMetadata: {
-      originalName: `${baseName}.${imagePayload.extension}`,
-      source: "ai-image",
-    },
+    customMetadata: { originalName: `${baseName}.${payload.extension}`, source: "ai-image" },
   });
-
   const encodedKey = key.split("/").map(encodeURIComponent).join("/");
-  const variants = buildAssetUrls(encodedKey, readFlag(input.env?.ENABLE_CF_IMAGE_PIPELINE));
-
   return {
     key,
     url: `/api/images/${encodedKey}`,
-    variants,
-    prompt: finalPrompt,
-    revisedPrompt: imagePayload.revisedPrompt,
+    variants: buildAssetUrls(encodedKey, readFlag(input.env?.ENABLE_CF_IMAGE_PIPELINE)),
+    prompt: context.finalPrompt,
+    revisedPrompt: payload.revisedPrompt,
     alt,
-    actionLabel: input.actionLabel || action?.label || "自定义生成",
-    aspectRatio: requestedAspectRatio,
-    resolution: requestedResolution,
-    size: resolveRequestedSize(requestedAspectRatio, action?.size || seeded?.size),
-    profileName: profile.name,
-    model: profile.model,
+    actionLabel,
+    aspectRatio: context.aspectRatio,
+    resolution: context.resolution,
+    size: resolveRequestedSize(context.aspectRatio, context.action?.size || context.seeded?.size),
+    profileName: context.profile.name,
+    model: context.profile.model,
   };
+}
+
+export async function generateEditorImage(
+  input: GenerateEditorImageInput,
+): Promise<GeneratedEditorImage> {
+  const context = await resolveImageGenerationContext(input);
+  return storeGeneratedImage(input, context, await generateImagePayload(context));
 }

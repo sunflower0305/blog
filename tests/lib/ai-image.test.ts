@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { runWorkersAiCompatImageRequest } from "@/lib/ai-image";
+import { extractWorkersAiImageAsset, runWorkersAiCompatImageRequest } from "@/lib/ai-image";
 
 describe("ai-image workers ai compat image request", () => {
   afterEach(() => {
@@ -84,5 +84,58 @@ describe("ai-image workers ai compat image request", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(result).toBeInstanceOf(Response);
     expect((result as Response).headers.get("content-type")).toBe("image/png");
+  });
+});
+
+describe("extractWorkersAiImageAsset", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("extracts response streams and typed image buffers", async () => {
+    const responseAsset = await extractWorkersAiImageAsset(
+      new Response(new Uint8Array([0xff, 0xd8, 0xff]), {
+        headers: { "content-type": "image/jpeg" },
+      }),
+      "image-model",
+    );
+    expect(responseAsset.contentType).toBe("image/jpeg");
+    expect(responseAsset.extension).toBe("jpg");
+    expect(responseAsset.data).toBeInstanceOf(ReadableStream);
+
+    const pngAsset = await extractWorkersAiImageAsset(
+      new Uint8Array([0x89, 0x50, 0x4e, 0x47]),
+      "image-model",
+    );
+    expect(pngAsset).toMatchObject({ contentType: "image/png", extension: "png" });
+  });
+
+  it("extracts base64 payloads and remote image URLs", async () => {
+    const base64Asset = await extractWorkersAiImageAsset(
+      { result: { image: Buffer.from([0xff, 0xd8, 0xff]).toString("base64") } },
+      "image-model",
+    );
+    expect(base64Asset).toMatchObject({ contentType: "image/jpeg", extension: "jpg" });
+
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(new Uint8Array([0x52, 0x49, 0x46, 0x46]), {
+        headers: { "content-type": "image/webp" },
+      }),
+    );
+    const remoteAsset = await extractWorkersAiImageAsset(
+      { url: "https://images.test/generated.webp" },
+      "image-model",
+    );
+    expect(remoteAsset).toMatchObject({ contentType: "image/webp", extension: "webp" });
+  });
+
+  it("rejects empty and failed remote payloads", async () => {
+    await expect(extractWorkersAiImageAsset({}, "image-model")).rejects.toThrow(
+      "Workers AI 图片模型未返回可用内容",
+    );
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("missing", { status: 404 }));
+    await expect(
+      extractWorkersAiImageAsset({ url: "https://images.test/missing" }, "image-model"),
+    ).rejects.toThrow("HTTP 404");
   });
 });

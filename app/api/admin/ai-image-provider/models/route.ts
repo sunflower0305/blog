@@ -7,77 +7,160 @@ import {
 } from "@/lib/ai-image-config";
 import { AI_IMAGE_PROVIDER_MAP } from "@/lib/ai-image-provider-presets";
 import { normalizeBaseUrl, resolveAiConfigSecret } from "@/lib/ai-provider-profiles";
+import {
+  buildPresetModels,
+  errorMessage,
+  fetchProviderModelItems,
+  type RawProviderModelItem,
+} from "@/lib/provider-model-discovery";
 
-type RawModelItem =
-  | string
-  | {
-      id?: string;
-      name?: string;
-      model?: string;
-      slug?: string;
-    };
-
-function buildProviderErrorMessage(
-  resStatus: number,
-  resStatusText: string,
-  rawBody: string,
-): string {
-  try {
-    if (rawBody) {
-      const parsed = JSON.parse(rawBody) as {
-        error?: { message?: string } | string;
-        message?: string;
-      };
-      if (typeof parsed.error === "object" && parsed.error?.message) {
-        return parsed.error.message;
-      }
-      if (typeof parsed.error === "string" && parsed.error.trim()) {
-        return parsed.error.trim();
-      }
-      if (typeof parsed.message === "string" && parsed.message.trim()) {
-        return parsed.message.trim();
-      }
-    }
-  } catch {
-    // noop
-  }
-
-  const fallbackRaw = rawBody.trim();
-  if (fallbackRaw) return fallbackRaw.slice(0, 500);
-  return `HTTP ${resStatus}: ${resStatusText}`;
+interface RawImageProfile {
+  id: number;
+  provider: string;
+  base_url: string;
+  api_key_encrypted: string;
 }
 
-function extractModelItems(payload: unknown): RawModelItem[] {
-  if (Array.isArray(payload)) return payload as RawModelItem[];
-  if (!payload || typeof payload !== "object") return [];
+interface ImageModelRequestConfig {
+  provider: string;
+  baseUrl: string;
+  apiKey: string;
+  fallbackModels: string[];
+  storedKeyUnavailable: boolean;
+}
 
-  const candidate = payload as {
-    data?: unknown;
-    models?: unknown;
-    items?: unknown;
+interface ImageModelQuery {
+  provider: string;
+  baseUrl: string;
+  apiKey: string;
+  profileId: number;
+}
+
+type ResolvedImageProfile = Awaited<ReturnType<typeof resolveAiImageProfileConfig>>;
+
+function readModelQuery(req: NextRequest): ImageModelQuery {
+  const params = new URL(req.url).searchParams;
+  return {
+    provider: readQueryParam(params, "provider"),
+    baseUrl: readQueryParam(params, "base_url"),
+    apiKey: readQueryParam(params, "api_key"),
+    profileId: Number(params.get("profile_id") || ""),
   };
+}
 
-  return [candidate.data, candidate.models, candidate.items].flatMap((value) =>
-    Array.isArray(value) ? (value as RawModelItem[]) : [],
+function readQueryParam(params: URLSearchParams, name: string) {
+  return params.get(name)?.trim() || "";
+}
+
+function firstValue(values: Array<string | null | undefined>, fallback = "") {
+  return values.find((value) => Boolean(value)) || fallback;
+}
+
+async function resolveStoredProfile(
+  db: D1Database,
+  secret: string,
+  profileId: number,
+  rawProfile: RawImageProfile | null,
+) {
+  return rawProfile ? await resolveAiImageProfileConfig(db, secret, profileId) : null;
+}
+
+function isStoredKeyUnavailable(
+  queryApiKey: string,
+  rawProfile: RawImageProfile | null,
+  profile: ResolvedImageProfile,
+) {
+  return !queryApiKey && Boolean(rawProfile?.api_key_encrypted?.trim()) && !profile?.api_key;
+}
+
+async function loadRawProfile(db: D1Database, profileId: number) {
+  if (!Number.isFinite(profileId) || profileId <= 0) return null;
+  return db
+    .prepare(`
+      SELECT id, provider, base_url, api_key_encrypted
+      FROM ai_image_provider_profiles
+      WHERE id = ?
+      LIMIT 1
+    `)
+    .bind(profileId)
+    .first<RawImageProfile>();
+}
+
+async function resolveModelRequest(
+  req: NextRequest,
+  db: D1Database,
+  secret: string,
+): Promise<ImageModelRequestConfig> {
+  const query = readModelQuery(req);
+  const rawProfile = await loadRawProfile(db, query.profileId);
+  const profile = await resolveStoredProfile(db, secret, query.profileId, rawProfile);
+  const provider = firstValue([query.provider, profile?.provider, rawProfile?.provider], "custom");
+
+  return {
+    provider,
+    baseUrl: normalizeBaseUrl(firstValue([query.baseUrl, profile?.base_url, rawProfile?.base_url])),
+    apiKey: firstValue([query.apiKey, profile?.api_key]),
+    fallbackModels: AI_IMAGE_PROVIDER_MAP[provider]?.quickModels || [],
+    storedKeyUnavailable: isStoredKeyUnavailable(query.apiKey, rawProfile, profile),
+  };
+}
+
+function missingKeyResponse(config: ImageModelRequestConfig) {
+  const warning = config.storedKeyUnavailable
+    ? "已保存 API Key 无法解密，请重新输入 API Key，或检查 AI_CONFIG_ENCRYPTION_SECRET / ADMIN_TOKEN_SALT 是否与保存时一致"
+    : "未提供 API Key，返回预设模型列表";
+  if (config.fallbackModels.length > 0) {
+    return fallbackResponse(config.fallbackModels, warning);
+  }
+  return NextResponse.json(
+    { error: config.storedKeyUnavailable ? warning : "缺少 API Key" },
+    { status: 400 },
   );
 }
 
-function buildModels(items: RawModelItem[]) {
-  const ids = new Set<string>();
+function buildModels(items: RawProviderModelItem[]) {
+  const ids = new Set(items.map(resolveModelId).filter(Boolean));
+  return buildPresetModels(Array.from(ids).sort((a, b) => a.localeCompare(b, "zh-CN")));
+}
 
-  for (const item of items) {
-    if (typeof item === "string" && item.trim()) {
-      ids.add(item.trim());
-      continue;
-    }
-    if (!item || typeof item !== "object") continue;
-    const maybeId = (item.id || item.model || item.slug || item.name || "").trim();
-    if (maybeId) ids.add(maybeId);
+function resolveModelId(item: RawProviderModelItem) {
+  if (typeof item === "string") return item.trim();
+  return (item.id || item.model || item.slug || item.name || "").trim();
+}
+
+function fallbackResponse(models: string[], warning: string) {
+  return NextResponse.json({ models: buildPresetModels(models), source: "preset", warning });
+}
+
+async function providerResponse(config: ImageModelRequestConfig) {
+  const result = await fetchProviderModelItems<RawProviderModelItem>({
+    urls: [`${config.baseUrl}/models`],
+    apiKey: config.apiKey,
+  });
+  const models = buildModels(result.items);
+  if (models.length > 0) return NextResponse.json({ models, source: "provider" });
+  return emptyProviderResponse(result.warnings[0], config.fallbackModels);
+}
+
+function emptyProviderResponse(warning: string | undefined, fallbackModels: string[]) {
+  if (fallbackModels.length > 0) {
+    return fallbackResponse(
+      fallbackModels,
+      warning ? `接口拉取失败，已回退预设：${warning}` : "接口返回为空，已回退预设模型",
+    );
   }
+  return NextResponse.json(
+    { error: warning ? `获取模型列表失败：${warning}` : undefined },
+    { status: warning ? 502 : 200 },
+  );
+}
 
-  return Array.from(ids)
-    .sort((a, b) => a.localeCompare(b, "zh-CN"))
-    .map((id) => ({ id, name: id }));
+function networkErrorResponse(error: unknown, fallbackModels: string[]) {
+  const message = errorMessage(error, "获取模型列表失败");
+  if (fallbackModels.length > 0) {
+    return fallbackResponse(fallbackModels, `网络异常，已回退预设：${message}`);
+  }
+  return NextResponse.json({ error: message }, { status: 502 });
 }
 
 export async function GET(req: NextRequest) {
@@ -89,112 +172,13 @@ export async function GET(req: NextRequest) {
   if (!db) return NextResponse.json({ error: "DB unavailable" }, { status: 500 });
 
   await ensureAiImageConfigInfrastructure(db);
-
-  const requestUrl = new URL(req.url);
-  const queryProvider = requestUrl.searchParams.get("provider")?.trim() || "";
-  const queryBaseUrl = requestUrl.searchParams.get("base_url")?.trim() || "";
-  const queryApiKey = requestUrl.searchParams.get("api_key")?.trim() || "";
-  const queryProfileId = Number(requestUrl.searchParams.get("profile_id") || "");
-
-  const secret = resolveAiConfigSecret(env);
-  const rawSelectedProfile =
-    Number.isFinite(queryProfileId) && queryProfileId > 0
-      ? await db
-          .prepare(`
-      SELECT id, provider, base_url, api_key_encrypted
-      FROM ai_image_provider_profiles
-      WHERE id = ?
-      LIMIT 1
-    `)
-          .bind(queryProfileId)
-          .first<{
-            id: number;
-            provider: string;
-            base_url: string;
-            api_key_encrypted: string;
-          }>()
-      : null;
-  const selectedProfile =
-    Number.isFinite(queryProfileId) && queryProfileId > 0
-      ? await resolveAiImageProfileConfig(db, secret, queryProfileId)
-      : null;
-
-  const provider =
-    queryProvider || selectedProfile?.provider || rawSelectedProfile?.provider || "custom";
-  const fallbackPreset = AI_IMAGE_PROVIDER_MAP[provider];
-  const fallbackModels = fallbackPreset?.quickModels || [];
-  const baseUrl = normalizeBaseUrl(
-    queryBaseUrl || selectedProfile?.base_url || rawSelectedProfile?.base_url || "",
-  );
-  const apiKey = queryApiKey || selectedProfile?.api_key || "";
-  const storedKeyUnavailable =
-    !queryApiKey &&
-    Boolean(rawSelectedProfile?.api_key_encrypted?.trim()) &&
-    !selectedProfile?.api_key;
-
-  if (!baseUrl) {
-    return NextResponse.json({ error: "缺少 base_url 参数" }, { status: 400 });
-  }
-
-  if (!apiKey) {
-    const warning = storedKeyUnavailable
-      ? "已保存 API Key 无法解密，请重新输入 API Key，或检查 AI_CONFIG_ENCRYPTION_SECRET / ADMIN_TOKEN_SALT 是否与保存时一致"
-      : "未提供 API Key，返回预设模型列表";
-    if (fallbackModels.length > 0) {
-      return NextResponse.json({
-        models: fallbackModels.map((id) => ({ id, name: id })),
-        source: "preset",
-        warning,
-      });
-    }
-    return NextResponse.json(
-      { error: storedKeyUnavailable ? warning : "缺少 API Key" },
-      { status: 400 },
-    );
-  }
+  const config = await resolveModelRequest(req, db, resolveAiConfigSecret(env));
+  if (!config.baseUrl) return NextResponse.json({ error: "缺少 base_url 参数" }, { status: 400 });
+  if (!config.apiKey) return missingKeyResponse(config);
 
   try {
-    const res = await fetch(`${baseUrl}/models`, {
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-      signal: AbortSignal.timeout(15000),
-    });
-
-    if (!res.ok) {
-      const rawBody = await res.text().catch(() => "");
-      const message = buildProviderErrorMessage(res.status, res.statusText, rawBody);
-      if (fallbackModels.length > 0) {
-        return NextResponse.json({
-          models: fallbackModels.map((id) => ({ id, name: id })),
-          source: "preset",
-          warning: `接口拉取失败，已回退预设：${message}`,
-        });
-      }
-      return NextResponse.json({ error: `获取模型列表失败：${message}` }, { status: 502 });
-    }
-
-    const data = await res.json().catch(() => null);
-    const models = buildModels(extractModelItems(data));
-
-    if (models.length === 0 && fallbackModels.length > 0) {
-      return NextResponse.json({
-        models: fallbackModels.map((id) => ({ id, name: id })),
-        source: "preset",
-        warning: "接口返回为空，已回退预设模型",
-      });
-    }
-
-    return NextResponse.json({ models, source: "provider" });
+    return await providerResponse(config);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "获取模型列表失败";
-    if (fallbackModels.length > 0) {
-      return NextResponse.json({
-        models: fallbackModels.map((id) => ({ id, name: id })),
-        source: "preset",
-        warning: `网络异常，已回退预设：${message}`,
-      });
-    }
-    return NextResponse.json({ error: message }, { status: 502 });
+    return networkErrorResponse(error, config.fallbackModels);
   }
 }

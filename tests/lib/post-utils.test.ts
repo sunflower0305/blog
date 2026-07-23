@@ -31,6 +31,12 @@ describe("optimizePostImageUrls", () => {
     expect(optimizePostImageUrls(html, SITE_URL)).toBe(html.replace("format=webp", "format=auto"));
   });
 
+  it("leaves image URLs unchanged when the configured site URL is invalid", () => {
+    const html = '<img src="/api/images/image/2026/07/architecture.png">';
+
+    expect(optimizePostImageUrls(html, "not a URL")).toBe(html);
+  });
+
   it("applies optimized delivery at the public article rendering boundary", () => {
     const page = readFileSync("app/[slug]/page.tsx", "utf8");
 
