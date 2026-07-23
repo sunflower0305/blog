@@ -7,7 +7,7 @@ allowBuilds:
 overrides:
   vitest: 4.1.10
 minimumReleaseAgeExclude:
-  - "@voidzero-dev/vite-plus-core@0.2.2 || 0.2.4 || 0.2.5"
+  - '@voidzero-dev/vite-plus-core@0.2.2 || 0.2.4 || 0.2.5 || 0.2.6'
   - "@next/env@16.2.10"
   - "@next/swc-darwin-arm64@16.2.10"
   - "@next/swc-darwin-x64@16.2.10"
@@ -20,18 +20,18 @@ minimumReleaseAgeExclude:
   - "@types/node@26.1.0"
   - lucide-react@1.23.0
   - next@16.2.10
-  - vite-plus@0.2.2 || 0.2.4 || 0.2.5
+  - vite-plus@0.2.2 || 0.2.4 || 0.2.5 || 0.2.6
   - vitest@4.1.10
   - vinext@1.0.0-beta.0 || 1.0.0-beta.1 || 1.0.0-beta.2
   - "@vinext/cloudflare@1.0.0-beta.0 || 1.0.0-beta.1 || 1.0.0-beta.2"
-  - "@voidzero-dev/vite-plus-darwin-arm64@0.2.4 || 0.2.5"
-  - "@voidzero-dev/vite-plus-darwin-x64@0.2.4 || 0.2.5"
-  - "@voidzero-dev/vite-plus-linux-arm64-gnu@0.2.4 || 0.2.5"
-  - "@voidzero-dev/vite-plus-linux-arm64-musl@0.2.4 || 0.2.5"
-  - "@voidzero-dev/vite-plus-linux-x64-gnu@0.2.4 || 0.2.5"
-  - "@voidzero-dev/vite-plus-linux-x64-musl@0.2.4 || 0.2.5"
-  - "@voidzero-dev/vite-plus-win32-arm64-msvc@0.2.4 || 0.2.5"
-  - "@voidzero-dev/vite-plus-win32-x64-msvc@0.2.4 || 0.2.5"
+  - '@voidzero-dev/vite-plus-darwin-arm64@0.2.4 || 0.2.5 || 0.2.6'
+  - '@voidzero-dev/vite-plus-darwin-x64@0.2.4 || 0.2.5 || 0.2.6'
+  - '@voidzero-dev/vite-plus-linux-arm64-gnu@0.2.4 || 0.2.5 || 0.2.6'
+  - '@voidzero-dev/vite-plus-linux-arm64-musl@0.2.4 || 0.2.5 || 0.2.6'
+  - '@voidzero-dev/vite-plus-linux-x64-gnu@0.2.4 || 0.2.5 || 0.2.6'
+  - '@voidzero-dev/vite-plus-linux-x64-musl@0.2.4 || 0.2.5 || 0.2.6'
+  - '@voidzero-dev/vite-plus-win32-arm64-msvc@0.2.4 || 0.2.5 || 0.2.6'
+  - '@voidzero-dev/vite-plus-win32-x64-msvc@0.2.4 || 0.2.5 || 0.2.6'
   - "@typescript/typescript-aix-ppc64@7.0.2"
   - "@typescript/typescript-darwin-arm64@7.0.2"
   - "@typescript/typescript-darwin-x64@7.0.2"
