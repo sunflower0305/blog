@@ -161,7 +161,6 @@ pnpm run preview
 | `pnpm run quality:size`       | 使用 Oxlint 报告超过 600 行的文件和超过 300 行的函数           |
 | `pnpm run quality:size:check` | 使用 Oxlint 检测大文件和大函数，发现超限项时以非零状态退出     |
 | `pnpm run quality:dead-code`  | 生成 Knip 未使用文件、导出与依赖报告                           |
-| `pnpm run quality:all`        | `quality:report` 的兼容别名                                    |
 | `pnpm run security:secrets`   | 使用 Gitleaks 扫描 Git 历史中的密钥                            |
 | `pnpm run cf:init`            | 初始化 DB、IMAGES、CACHE 和模板默认设置                        |
 | `pnpm run preview`            | Worker 运行时预览                                              |

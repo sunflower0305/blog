@@ -39,7 +39,6 @@
     "quality:size": "CODE_QUALITY_SIZE_ONLY=1 vp lint --no-error-on-unmatched-pattern app components lib tools/wechat-bridge tests scripts",
     "quality:size:check": "CODE_QUALITY_SIZE_ONLY=1 CODE_QUALITY_SIZE_CHECK=1 vp lint --no-error-on-unmatched-pattern app components lib tools/wechat-bridge tests scripts",
     "quality:dead-code": "bash scripts/dead-code-report.sh",
-    "quality:all": "pnpm run quality:report",
     "security:secrets": "bash scripts/secret-scan.sh",
     "start": "vp exec vinext start",
     "lint": "vp check --no-fmt --no-error-on-unmatched-pattern -- --ignore-pattern 'dist/**' --ignore-pattern '.wrangler/**' --ignore-pattern 'worker-configuration.d.ts'"

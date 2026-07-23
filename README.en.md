@@ -161,7 +161,6 @@ No API keys are committed to the repository. Add them during the first deploymen
 | `pnpm run quality:size`       | Use Oxlint to report files over 600 lines and functions over 300 lines        |
 | `pnpm run quality:size:check` | Use Oxlint to check sizes, exiting nonzero when a limit is exceeded           |
 | `pnpm run quality:dead-code`  | Generate the Knip unused file, export, and dependency report                  |
-| `pnpm run quality:all`        | Generate size, duplication, dead-code, and coverage reports                   |
 | `pnpm run security:secrets`   | Scan Git history for secrets with Gitleaks                                    |
 | `pnpm run cf:init`            | Initialize DB, IMAGES, CACHE, and template defaults                           |
 | `pnpm run preview`            | Preview with the Worker runtime                                               |
