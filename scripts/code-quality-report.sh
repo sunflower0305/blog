@@ -51,17 +51,17 @@ run_sloc_report production "${PRODUCTION_PATHS[@]}"
 run_sloc_report tests "${TEST_PATHS[@]}"
 run_sloc_report tooling "${TOOLING_PATHS[@]}"
 
-echo "==> complexity: Oxlint warnings"
-vp lint \
+echo "==> lint: Oxlint quality metrics"
+CODE_SIZE_CHECK=0
+if [[ "${MODE}" == "--check" ]]; then
+  CODE_SIZE_CHECK=1
+fi
+CODE_QUALITY_SIZE_CHECK="${CODE_SIZE_CHECK}" vp lint \
   --format json \
   --ignore-pattern 'dist/**' \
   --ignore-pattern '.wrangler/**' \
   --ignore-pattern 'worker-configuration.d.ts' \
   >"${REPORT_DIR}/lint-report.json"
-
-echo "==> code size: files and functions"
-node scripts/code-size-report.mjs \
-  --json-output "${REPORT_DIR}/code-size-report.json"
 
 JSPCD_THRESHOLD_ARGS=()
 JSPCD_THRESHOLD_LABEL="configured"

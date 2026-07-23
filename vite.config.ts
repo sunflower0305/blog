@@ -41,20 +41,42 @@ const vinextPostcssResolvePlugin = {
 
 export default defineConfig(({ mode }) => {
   const isTest = mode === "test" || process.env.VITEST === "true";
+  const isCodeSizeOnly = process.env.CODE_QUALITY_SIZE_ONLY === "1";
+  const isQualityMetricsEnabled = !isCodeSizeOnly && process.env.CODE_QUALITY_METRICS !== "0";
+  const codeSizeSeverity = process.env.CODE_QUALITY_SIZE_CHECK === "1" ? "error" : "warn";
 
   return {
     plugins: isTest ? [] : createVinextPlugins(),
     lint: {
       ignorePatterns: ["vite.config.ts"],
+      plugins: isQualityMetricsEnabled
+        ? ["typescript", "unicorn", "oxc", "import"]
+        : ["typescript", "unicorn", "oxc"],
       options: {
         typeAware: true,
         typeCheck: true,
       },
       rules: {
-        complexity: ["warn", { max: 15 }],
+        complexity: isQualityMetricsEnabled ? ["warn", { max: 15 }] : "off",
+        "max-depth": isQualityMetricsEnabled ? ["warn", { max: 4 }] : "off",
+        "max-lines": [codeSizeSeverity, { max: 600, skipBlankLines: false, skipComments: false }],
+        "max-lines-per-function": [
+          codeSizeSeverity,
+          {
+            max: 300,
+            skipBlankLines: false,
+            skipComments: false,
+            IIFEs: false,
+          },
+        ],
+        "max-params": isQualityMetricsEnabled ? ["warn", { max: 5 }] : "off",
+        "import/no-cycle": isQualityMetricsEnabled
+          ? ["warn", { ignoreExternal: true, ignoreTypes: true }]
+          : "off",
         "typescript/no-base-to-string": "off",
-        "typescript/no-floating-promises": "off",
+        "typescript/no-floating-promises": isQualityMetricsEnabled ? "warn" : "off",
         "typescript/no-meaningless-void-operator": "off",
+        "typescript/no-misused-promises": isQualityMetricsEnabled ? "warn" : "off",
         "typescript/no-redundant-type-constituents": "off",
         "typescript/unbound-method": "off",
       },

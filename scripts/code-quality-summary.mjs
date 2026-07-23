@@ -24,7 +24,6 @@ const testJscpd = await readJson("jscpd", "tests", "jscpd-report.json");
 const coverage = await readOptionalJson("coverage", "coverage-summary.json");
 const knip = await readOptionalJson("knip", "knip-report.json");
 const gitleaks = await readOptionalJson("gitleaks-report.json");
-const codeSize = await readOptionalJson("code-size-report.json");
 const lint = await readOptionalJson("lint-report.json");
 
 const number = new Intl.NumberFormat("en-US");
@@ -81,8 +80,26 @@ const extensionRows = (report) =>
       ([extension, details]) =>
         `| ${extension} | ${number.format(details.files.length)} | ${number.format(details.summary.total)} | ${number.format(details.summary.source)} | ${number.format(details.summary.comment)} | ${number.format(details.summary.empty)} |`,
     );
-const complexityDiagnostics =
-  lint?.diagnostics.filter((diagnostic) => diagnostic.code === "eslint(complexity)") ?? [];
+const diagnosticsFor = (code) =>
+  lint?.diagnostics.filter((diagnostic) => diagnostic.code === code) ?? [];
+const complexityDiagnostics = diagnosticsFor("eslint(complexity)");
+const maxDepthDiagnostics = diagnosticsFor("eslint(max-depth)");
+const largeFileDiagnostics = diagnosticsFor("eslint(max-lines)");
+const largeFunctionDiagnostics = diagnosticsFor("eslint(max-lines-per-function)");
+const maxParamsDiagnostics = diagnosticsFor("eslint(max-params)");
+const dependencyCycleDiagnostics = diagnosticsFor("import(no-cycle)");
+const floatingPromiseDiagnostics = diagnosticsFor("typescript(no-floating-promises)");
+const misusedPromiseDiagnostics = diagnosticsFor("typescript(no-misused-promises)");
+const displayedPromiseDiagnostics = [
+  ...floatingPromiseDiagnostics.slice(0, 10),
+  ...misusedPromiseDiagnostics.slice(0, 10),
+];
+const lineCountValue = (diagnostic) =>
+  Number.parseInt(diagnostic.message.match(/too many lines \((\d+)\)/)?.[1] ?? "0", 10);
+const diagnosticLocation = (diagnostic) => {
+  const line = diagnostic.labels[0]?.span.line;
+  return `${diagnostic.filename}${line === undefined ? "" : `:${line}`}`;
+};
 const complexityValue = (diagnostic) =>
   Number.parseInt(diagnostic.message.match(/complexity of (\d+)/)?.[1] ?? "0", 10);
 const complexityRows = complexityDiagnostics
@@ -102,15 +119,28 @@ const duplicateRows = (report) =>
         `| ${clone.lines} | \`${clone.firstFile.name}:${clone.firstFile.start}\` | \`${clone.secondFile.name}:${clone.secondFile.start}\` |`,
     );
 
-const sizeFileRows = (report) =>
-  report.largeFiles.map((entry) => `| ${number.format(entry.lines)} | \`${entry.file}\` |`);
-
-const sizeFunctionRows = (report) =>
-  report.largeFunctions
+const sizeRows = (diagnostics) =>
+  diagnostics
+    .toSorted((left, right) => lineCountValue(right) - lineCountValue(left))
     .slice(0, 20)
     .map(
-      (entry) =>
-        `| ${number.format(entry.lines)} | \`${entry.file}:${entry.line}\` | \`${entry.name}\` |`,
+      (diagnostic) =>
+        `| ${number.format(lineCountValue(diagnostic))} | \`${diagnosticLocation(diagnostic)}\` | ${escapeTableText(diagnostic.message)} |`,
+    );
+
+const diagnosticLabel = {
+  "eslint(max-depth)": "Nested blocks",
+  "eslint(max-params)": "Function parameters",
+  "import(no-cycle)": "Dependency cycle",
+  "typescript(no-floating-promises)": "Floating Promise",
+  "typescript(no-misused-promises)": "Misused Promise",
+};
+const diagnosticRows = (diagnostics, limit = 20) =>
+  diagnostics
+    .slice(0, limit)
+    .map(
+      (diagnostic) =>
+        `| ${diagnosticLabel[diagnostic.code] ?? diagnostic.code} | \`${diagnosticLocation(diagnostic)}\` | ${escapeTableText(diagnostic.message)} |`,
     );
 
 const lines = [
@@ -134,7 +164,7 @@ const lines = [
   "",
   "Code lines exclude comment-only and blank lines. Lines containing both code and comments appear in both Code lines and Comment lines, so the columns are not additive.",
   "",
-  "Production covers `app/`, `components/`, `lib/`, and `tools/wechat-bridge/`. Tests cover `tests/`. Tooling covers `scripts/` and root build configuration. Oxlint warns when per-function cyclomatic complexity exceeds 15. The 6% duplication gate applies only to production code; test duplication is report-only.",
+  "Production covers `app/`, `components/`, `lib/`, and `tools/wechat-bridge/`. Tests cover `tests/`. Tooling covers `scripts/` and root build configuration. Oxlint reports complexity, size, nesting, parameter count, dependency cycles, and Promise safety. The 6% duplication gate applies only to production code; test duplication is report-only.",
   "",
   "## Additional quality signals",
   "",
@@ -160,7 +190,16 @@ const lines = [
     ? [`| Gitleaks — findings | ${number.format(gitleaks.length)} |`]
     : ["| Gitleaks | Not generated |"]),
   ...(lint
-    ? [`| Oxlint — complexity warnings | ${number.format(complexityDiagnostics.length)} |`]
+    ? [
+        `| Oxlint — complexity warnings | ${number.format(complexityDiagnostics.length)} |`,
+        `| Oxlint — files over 600 lines | ${number.format(largeFileDiagnostics.length)} |`,
+        `| Oxlint — functions over 300 lines | ${number.format(largeFunctionDiagnostics.length)} |`,
+        `| Oxlint — nesting depth over 4 | ${number.format(maxDepthDiagnostics.length)} |`,
+        `| Oxlint — functions over 5 parameters | ${number.format(maxParamsDiagnostics.length)} |`,
+        `| Oxlint — dependency cycles | ${number.format(dependencyCycleDiagnostics.length)} |`,
+        `| Oxlint — floating Promises | ${number.format(floatingPromiseDiagnostics.length)} |`,
+        `| Oxlint — misused Promises | ${number.format(misusedPromiseDiagnostics.length)} |`,
+      ]
     : ["| Oxlint complexity | Not generated |"]),
   ...(knipDependencyIssues.length > 0
     ? [
@@ -221,31 +260,81 @@ const lines = [
   "",
   "## File and function size",
   "",
-  ...(codeSize
+  ...(lint
     ? [
-        `Scanned ${number.format(codeSize.scannedFiles)} source files. Thresholds: files over ${number.format(codeSize.thresholds.fileLines)} lines and functions over ${number.format(codeSize.thresholds.functionLines)} lines. Found ${number.format(codeSize.largeFiles.length)} large files and ${number.format(codeSize.largeFunctions.length)} large functions.`,
+        `Oxlint found ${number.format(largeFileDiagnostics.length)} files over 600 lines and ${number.format(largeFunctionDiagnostics.length)} functions over 300 lines.`,
         "",
         "### Large files",
         "",
-        "| Lines | File |",
-        "| ---: | --- |",
-        ...(codeSize.largeFiles.length > 0 ? sizeFileRows(codeSize) : ["| — | None |"]),
+        "| Lines | Location | Diagnostic |",
+        "| ---: | --- | --- |",
+        ...(largeFileDiagnostics.length > 0
+          ? sizeRows(largeFileDiagnostics)
+          : ["| — | None | None |"]),
         "",
         "### Largest functions",
         "",
-        "| Lines | Location | Function |",
+        "| Lines | Location | Diagnostic |",
         "| ---: | --- | --- |",
-        ...(codeSize.largeFunctions.length > 0
-          ? sizeFunctionRows(codeSize)
+        ...(largeFunctionDiagnostics.length > 0
+          ? sizeRows(largeFunctionDiagnostics)
           : ["| — | None | None |"]),
-        ...(codeSize.largeFunctions.length > 20
+        ...(largeFunctionDiagnostics.length > 20
           ? [
               "",
-              `Showing the largest 20 of ${number.format(codeSize.largeFunctions.length)} functions. See the raw JSON report for the complete list.`,
+              `Showing the largest 20 of ${number.format(largeFunctionDiagnostics.length)} functions. See \`lint-report.json\` for the complete list.`,
             ]
           : []),
       ]
     : ["Size report not generated. Run `pnpm run quality:report`."]),
+  "",
+  "## Structural maintainability",
+  "",
+  ...(lint
+    ? [
+        `Oxlint found ${number.format(maxDepthDiagnostics.length)} location${maxDepthDiagnostics.length === 1 ? "" : "s"} nested beyond 4 blocks and ${number.format(maxParamsDiagnostics.length)} functions with more than 5 parameters.`,
+        "",
+        "| Signal | Location | Diagnostic |",
+        "| --- | --- | --- |",
+        ...(maxDepthDiagnostics.length + maxParamsDiagnostics.length > 0
+          ? diagnosticRows([...maxDepthDiagnostics, ...maxParamsDiagnostics])
+          : ["| — | None | None |"]),
+      ]
+    : ["Structural maintainability report not generated. Run `pnpm run quality:report`."]),
+  "",
+  "## Dependency cycles",
+  "",
+  ...(lint
+    ? [
+        `Oxlint found ${number.format(dependencyCycleDiagnostics.length)} dependency cycles. Type-only and external imports are ignored.`,
+        "",
+        "| Signal | Location | Diagnostic |",
+        "| --- | --- | --- |",
+        ...(dependencyCycleDiagnostics.length > 0
+          ? diagnosticRows(dependencyCycleDiagnostics)
+          : ["| — | None | None |"]),
+      ]
+    : ["Dependency cycle report not generated. Run `pnpm run quality:report`."]),
+  "",
+  "## Promise safety",
+  "",
+  ...(lint
+    ? [
+        `Oxlint found ${number.format(floatingPromiseDiagnostics.length)} floating Promises and ${number.format(misusedPromiseDiagnostics.length)} misused Promises.`,
+        "",
+        "| Signal | Location | Diagnostic |",
+        "| --- | --- | --- |",
+        ...(displayedPromiseDiagnostics.length > 0
+          ? diagnosticRows(displayedPromiseDiagnostics)
+          : ["| — | None | None |"]),
+        ...(floatingPromiseDiagnostics.length + misusedPromiseDiagnostics.length > 20
+          ? [
+              "",
+              `Showing up to 10 diagnostics per Promise rule (${number.format(displayedPromiseDiagnostics.length)} of ${number.format(floatingPromiseDiagnostics.length + misusedPromiseDiagnostics.length)} total). See \`lint-report.json\` for the complete list.`,
+            ]
+          : []),
+      ]
+    : ["Promise safety report not generated. Run `pnpm run quality:report`."]),
   "",
   "## Production source extensions",
   "",
@@ -270,8 +359,7 @@ const lines = [
   "- Production: raw sloc JSON in `sloc-production-report.json`, [jscpd HTML](./jscpd/production/jscpd-report.html), [jscpd Markdown](./jscpd/production/jscpd-report.md)",
   "- Tests: raw sloc JSON in `sloc-tests-report.json`, [jscpd HTML](./jscpd/tests/jscpd-report.html), [jscpd Markdown](./jscpd/tests/jscpd-report.md)",
   "- Tooling: raw sloc JSON in `sloc-tooling-report.json`",
-  "- Complexity: raw Oxlint JSON in `lint-report.json`",
-  "- File and function size: raw JSON in `code-size-report.json`",
+  "- Complexity, size, structure, dependency cycles, and Promise safety: raw Oxlint JSON in `lint-report.json`",
   "- Coverage: [HTML](./coverage/index.html), raw summary in `coverage/coverage-summary.json`",
   "- Knip: [unused code Markdown](./knip/knip-report.md), [cycles Markdown](./knip/knip-cycles-report.md)",
   ...(gitleaks ? ["- Secrets: raw Gitleaks JSON in `gitleaks-report.json`"] : []),
