@@ -166,7 +166,7 @@ const lines = [
   "",
   "Production covers `app/`, `components/`, `lib/`, and `tools/wechat-bridge/`. Tests cover `tests/`. Tooling covers `scripts/` and root build configuration. Oxlint reports complexity, size, nesting, parameter count, dependency cycles, and Promise safety. The 6% duplication gate applies only to production code; test duplication is report-only.",
   "",
-  "## Additional quality signals",
+  "## Quality signals",
   "",
   "| Signal | Result |",
   "| --- | ---: |",
@@ -183,7 +183,7 @@ const lines = [
         `| Knip — unused files | ${number.format(countKnipIssues("files"))} |`,
         `| Knip — unused exports | ${number.format(countKnipIssues("exports"))} |`,
         `| Knip — unused exported types | ${number.format(countKnipIssues("types"))} |`,
-        `| Knip — dependency issues | ${number.format(knipDependencyIssues.length)} |`,
+        `| Knip — package dependency issues | ${number.format(knipDependencyIssues.length)} |`,
       ]
     : ["| Knip | Not generated |"]),
   ...(gitleaks
@@ -196,7 +196,7 @@ const lines = [
         `| Oxlint — functions over 300 lines | ${number.format(largeFunctionDiagnostics.length)} |`,
         `| Oxlint — nesting depth over 4 | ${number.format(maxDepthDiagnostics.length)} |`,
         `| Oxlint — functions over 5 parameters | ${number.format(maxParamsDiagnostics.length)} |`,
-        `| Oxlint — dependency cycles | ${number.format(dependencyCycleDiagnostics.length)} |`,
+        `| Oxlint — circular imports | ${number.format(dependencyCycleDiagnostics.length)} |`,
         `| Oxlint — floating Promises | ${number.format(floatingPromiseDiagnostics.length)} |`,
         `| Oxlint — misused Promises | ${number.format(misusedPromiseDiagnostics.length)} |`,
       ]
