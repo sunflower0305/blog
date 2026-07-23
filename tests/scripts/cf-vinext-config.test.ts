@@ -38,6 +38,11 @@ name = "test-worker"
 main = "vinext/server/app-router-entry"
 compatibility_date = "2026-04-14"
 
+[observability.logs]
+enabled = true
+invocation_logs = true
+head_sampling_rate = 0.1
+
 [vars]
 NEXT_PUBLIC_SITE_URL = "https://example.com"
 AI_BASE_URL = "https://api.openai.com/v1"
@@ -77,6 +82,13 @@ UNRELATED_SECRET=must-not-be-copied
     }).trim();
     const productionConfig = JSON.parse(readFileSync(productionOutputPath, "utf8"));
     expect(productionConfig.vars.ADMIN_PASSWORD).toBeUndefined();
+    expect(productionConfig.observability).toEqual({
+      logs: {
+        enabled: true,
+        invocation_logs: true,
+        head_sampling_rate: 0.1,
+      },
+    });
 
     const outputPath = execFileSync("bash", [script], {
       cwd: repo,

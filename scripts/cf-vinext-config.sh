@@ -56,7 +56,7 @@ function parseTomlValue(value) {
   if (stringValue !== undefined) return stringValue
   if (/^\s*true\b/.test(value)) return true
   if (/^\s*false\b/.test(value)) return false
-  const numberMatch = value.match(/^\s*([0-9]+)\b/)
+  const numberMatch = value.match(/^\s*(-?[0-9]+(?:\.[0-9]+)?)\s*$/)
   if (numberMatch) return Number(numberMatch[1])
   return undefined
 }
@@ -73,6 +73,7 @@ function parseWranglerToml(source) {
     assets: undefined,
     cache: undefined,
     ai: undefined,
+    observability: undefined,
     vars: {},
     kv_namespaces: [],
     d1_databases: [],
@@ -159,6 +160,17 @@ function parseWranglerToml(source) {
     } else if (section === 'ai') {
       result.ai ??= {}
       result.ai[key] = value
+    } else if (section === 'observability') {
+      result.observability ??= {}
+      result.observability[key] = value
+    } else if (section === 'observability.logs') {
+      result.observability ??= {}
+      result.observability.logs ??= {}
+      result.observability.logs[key] = value
+    } else if (section === 'observability.traces') {
+      result.observability ??= {}
+      result.observability.traces ??= {}
+      result.observability.traces[key] = value
     } else if ((section === 'd1_databases' || section === 'r2_buckets' || section === 'kv_namespaces') && current) {
       current[key] = value
     }
@@ -214,6 +226,7 @@ const vinextConfig = compactObject({
   assets: baseConfig.assets,
   cache: baseConfig.cache,
   ai: baseConfig.ai,
+  observability: baseConfig.observability,
   dev: Object.keys(baseConfig.dev ?? {}).length > 0 ? baseConfig.dev : undefined,
   d1_databases: baseConfig.d1_databases,
   r2_buckets: baseConfig.r2_buckets,

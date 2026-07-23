@@ -31,6 +31,11 @@ binding = "IMAGES"
 [[kv_namespaces]]
 binding = "CACHE"
 
+[observability.logs]
+enabled = true
+invocation_logs = true
+head_sampling_rate = 1
+
 # Optional Queue binding for background jobs. Uncomment after creating the queue.
 # [[queues.producers]]
 # binding = "BACKGROUND_QUEUE"
