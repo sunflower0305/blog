@@ -12,7 +12,7 @@ if [[ "${MODE}" != "--report" && "${MODE}" != "--check" ]]; then
   exit 2
 fi
 
-for command_name in scc jscpd node; do
+for command_name in sloc jscpd node vp; do
   if ! command -v "${command_name}" >/dev/null 2>&1; then
     echo "Missing required command: ${command_name}" >&2
     exit 127
@@ -37,19 +37,27 @@ TOOLING_PATHS=(
   next.config.ts
 )
 
-run_scc_report() {
+run_sloc_report() {
   local report_name="$1"
   shift
-  echo "==> scc: ${report_name}"
-  scc "$@" \
-    --include-ext ts,tsx,js,mjs,sh \
-    --no-cocomo \
-    --format-multi "tabular:stdout,json:${REPORT_DIR}/scc-${report_name}-report.json,html:${REPORT_DIR}/scc-${report_name}-report.html"
+  echo "==> sloc: ${report_name}"
+  sloc "$@" \
+    --include '.*\.(ts|tsx|js|mjs|sh)$' \
+    --format json \
+    >"${REPORT_DIR}/sloc-${report_name}-report.json"
 }
 
-run_scc_report production "${PRODUCTION_PATHS[@]}"
-run_scc_report tests "${TEST_PATHS[@]}"
-run_scc_report tooling "${TOOLING_PATHS[@]}"
+run_sloc_report production "${PRODUCTION_PATHS[@]}"
+run_sloc_report tests "${TEST_PATHS[@]}"
+run_sloc_report tooling "${TOOLING_PATHS[@]}"
+
+echo "==> complexity: Oxlint warnings"
+vp lint \
+  --format json \
+  --ignore-pattern 'dist/**' \
+  --ignore-pattern '.wrangler/**' \
+  --ignore-pattern 'worker-configuration.d.ts' \
+  >"${REPORT_DIR}/lint-report.json"
 
 echo "==> code size: files and functions"
 node scripts/code-size-report.mjs \

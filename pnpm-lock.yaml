@@ -177,6 +177,9 @@ importers:
       happy-dom:
         specifier: ^20.11.0
         version: 20.11.0
+      jscpd:
+        specifier: ^5.0.12
+        version: 5.0.12
       knip:
         specifier: ^6.27.0
         version: 6.27.0
@@ -186,6 +189,9 @@ importers:
       react-server-dom-webpack:
         specifier: ^19.2.8
         version: 19.2.8(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(webpack@5.108.3(esbuild@0.28.1)(lightningcss@1.33.0)(postcss@8.5.21))
+      sloc:
+        specifier: ^0.3.2
+        version: 0.3.2
       tailwindcss:
         specifier: ^4.3.3
         version: 4.3.3
@@ -200,7 +206,7 @@ importers:
         version: 0.2.5(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(esbuild@0.28.1)(happy-dom@20.11.0)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(typescript@7.0.2)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))(yaml@2.9.0)
       vitest:
         specifier: 4.1.10
-        version: 4.1.10(@types/node@26.1.1)(@vitest/browser-preview@4.1.10)(@vitest/coverage-v8@4.1.10)(happy-dom@20.11.0)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))
+        version: 4.1.10(@types/node@26.1.1)(@vitest/browser-preview@4.1.10(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))(vitest@4.1.10))(@vitest/coverage-v8@4.1.10)(happy-dom@20.11.0)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))
       wrangler:
         specifier: ^4.113.0
         version: 4.113.0
@@ -2778,6 +2784,9 @@ packages:
   ast-v8-to-istanbul@1.0.5:
     resolution: {integrity: sha512-UPAgKJFSEGMWSDr3LX4tqnAb4f7KGT8O40Tyx8wbYmmZ/yn58lNCm8h3svs3eXgiGd5AXxz8NDOvXWvicq+rJA==}
 
+  async@3.2.6:
+    resolution: {integrity: sha512-htCUDlxyyCLMgaM3xXg0C0LW2xqfuQ6p05pCEIsXuyQ+a1koYKTuBMzRNwmybfLgvJDMd0r1LTn4+E0Ti6C2AA==}
+
   bail@2.0.2:
     resolution: {integrity: sha512-0xO6mYd7JB2YesxDKplafRpsiOzPt9V02ddPCLbY1xYGPOX24NTyN50qnUxgCPcSoYMhKpAuBTjQoRZCAkUDRw==}
 
@@ -2860,6 +2869,10 @@ packages:
     resolution: {integrity: sha512-rNjApaLzuwaOTjCiT8lSDdGN1APCiqkChLMJxJPWLunPAt5fy8xgU9/jNOchV84wfIxrA0lRQB7oCT8jrn/wrQ==}
     engines: {node: '>=6.0'}
 
+  cli-table@0.3.11:
+    resolution: {integrity: sha512-IqLQi4lO0nIB4tcdTpN4LCB9FI3uqrJZK7RC515EnhZ6qBaglkIgICb1wjeAqpdoOabm1+SuQtkXIPdYC93jhQ==}
+    engines: {node: '>= 0.2.0'}
+
   client-only@0.0.1:
     resolution: {integrity: sha512-IV3Ou0jSMzZrd3pZ48nLkT9DA7Ag1pnPzaiQhpW7c3RbcqqzvzzVu+L8gfqMp/8IM2MQtSiqaCxrrcfu8I8rMA==}
 
@@ -2880,8 +2893,16 @@ packages:
   color-name@1.1.4:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
 
+  colors@1.0.3:
+    resolution: {integrity: sha512-pFGrxThWcWQ2MsAz6RtgeWe4NK2kUE1WfsrvvlctdII745EW9I0yflqhe7++M5LEc7bV2c/9/5zc8sFcpL0Drw==}
+    engines: {node: '>=0.1.90'}
+
   comma-separated-tokens@2.0.3:
     resolution: {integrity: sha512-Fu4hJdvzeylCfQPp9SGWidpzrMs7tTrlu6Vb8XGaRGck8QSNZJJp538Wrb60Lax4fPwR64ViY468OIUTbRlGZg==}
+
+  commander@11.0.0:
+    resolution: {integrity: sha512-9HMlXtt/BNoYr8ooyjjNRdIilOTkVJXB+GhxMTtOKwk0R4j4lS4NpjuqmRxroBfnfTSHQIHQB7wryHhXarNjmQ==}
+    engines: {node: '>=16'}
 
   commander@14.0.3:
     resolution: {integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==}
@@ -3280,6 +3301,44 @@ packages:
 
   js-tokens@9.0.1:
     resolution: {integrity: sha512-mxa9E9ITFOt0ban3j6L5MpjwegGz6lBQmM1IJkWeBZGcMxto50+eWdjC/52xDbS2vy0k7vIMK0Fe2wfL9OQSpQ==}
+
+  jscpd-darwin-arm64@5.0.12:
+    resolution: {integrity: sha512-CQCDYhQY9yOGGeauzkRGYW/QtXurPCjfDkEhUoM/M5UdmpzxfG3i9mnNsaheJ0RdFRf73mL7JaLVRP8U2l5/kA==}
+    cpu: [arm64]
+    os: [darwin]
+
+  jscpd-darwin-x64@5.0.12:
+    resolution: {integrity: sha512-7XNCDfChP9fPkIWLepd0zGnTov7/5mR7rJ5Utc1MdWFdgkN//qz6FAJ1FhQA0E/qjFedy9XTucfUCgLybSBsjw==}
+    cpu: [x64]
+    os: [darwin]
+
+  jscpd-linux-arm64-gnu@5.0.12:
+    resolution: {integrity: sha512-i/usHD0/8twzb2Qo4vFWcnuAD4IDLS6K/mTXwYy1CiJZDw4gmjfH45jtjdKUyoutTAiNs+ZWZgx1gIRljUbFuA==}
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
+  jscpd-linux-x64-gnu@5.0.12:
+    resolution: {integrity: sha512-TqaeSTaGawcqyXSrQvYJFtLRn4aQeHgphGGsq2ZtVAg+lPeuMmh81c3bl0yi2dL3gDX1RGBQKBVul1XQknOuoA==}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
+  jscpd-linux-x64-musl@5.0.12:
+    resolution: {integrity: sha512-WelugY1/rdoo0Y0sqJ2XQOIvyIZTfRe+vP3MJe4XvEUwPF0v+9SQoS34FnfblRhsddVixyNkgl7x/sHid9UMJw==}
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
+
+  jscpd-windows-x64-msvc@5.0.12:
+    resolution: {integrity: sha512-01x1klKjvfzI6Of5tI9u72x7TIQZQLLG6kMdsEPJKl/BXbskdknrfCepeTXRBbdFPKs25jfcd0klZ4OdDvww5w==}
+    cpu: [x64]
+    os: [win32]
+
+  jscpd@5.0.12:
+    resolution: {integrity: sha512-87dC+akj2mCywlt8p3xnRlDg0B55u4GDbfE9cuwOOeIxbEuWuIoNqGoYi65A0516aJ4EzAjGwBj1Qb/Ahc8WAQ==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   json-schema-traverse@1.0.0:
     resolution: {integrity: sha512-NM8/P9n3XjXhIZn1lLhkFaACTOURQXjWhV4BA/RnOv8xvgqtqpAX9IO4mRQxSx1Rlo4tqzeqb0sOlruaOy3dug==}
@@ -4002,6 +4061,10 @@ packages:
     resolution: {integrity: sha512-PWaYA1L/q9u2u7xYQi+Y3L3Yfnie7XyLeaJICV1MGD6LprsBxcAqGjYyr0eY3p+QdsA+x/Irkt4Qif8D63+Sbw==}
     engines: {node: '>=0.10.0'}
 
+  readdirp@3.6.0:
+    resolution: {integrity: sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==}
+    engines: {node: '>=8.10.0'}
+
   regenerator-runtime@0.13.11:
     resolution: {integrity: sha512-kY1AZVr2Ra+t+piVaJ4gxaFaReZVH40AKNo7UCX6W+dEwBo/2oZJzqfuN1qLq1oL45o56cPaTXELwrTh8Fpggg==}
 
@@ -4087,6 +4150,10 @@ packages:
   sirv@3.0.2:
     resolution: {integrity: sha512-2wcC/oGxHis/BoHkkPwldgiPSYcpZK3JU28WoMVv55yHJgcZ8rlXvuG9iZggz+sU1d4bRgIGASwyWqjxu3FM0g==}
     engines: {node: '>=18'}
+
+  sloc@0.3.2:
+    resolution: {integrity: sha512-tnB+gi6TiFpt3qmCGfaV+78dfKwLiH5HRohkW+PnJYHNAcEdk408uxWG+F/3pu4w1eyCO2NC5CpZKuiyMac5GQ==}
+    hasBin: true
 
   smol-toml@1.7.0:
     resolution: {integrity: sha512-aqVvWoyO21L23mb+drl4RmMXbf6N7FdHjAhTRA9ZBL7apWBgfWC16KjrASI+1p9GAroljyMHj6fK67i0UiTNvQ==}
@@ -6262,7 +6329,7 @@ snapshots:
       '@testing-library/dom': 10.4.1
       '@testing-library/user-event': 14.6.1(@testing-library/dom@10.4.1)
       '@vitest/browser': 4.1.10(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))(vitest@4.1.10)
-      vitest: 4.1.10(@types/node@26.1.1)(@vitest/browser-preview@4.1.10)(@vitest/coverage-v8@4.1.10)(happy-dom@20.11.0)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))
+      vitest: 4.1.10(@types/node@26.1.1)(@vitest/browser-preview@4.1.10(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))(vitest@4.1.10))(@vitest/coverage-v8@4.1.10)(happy-dom@20.11.0)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))
     transitivePeerDependencies:
       - bufferutil
       - msw
@@ -6278,7 +6345,7 @@ snapshots:
       pngjs: 7.0.0
       sirv: 3.0.2
       tinyrainbow: 3.1.0
-      vitest: 4.1.10(@types/node@26.1.1)(@vitest/browser-preview@4.1.10)(@vitest/coverage-v8@4.1.10)(happy-dom@20.11.0)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))
+      vitest: 4.1.10(@types/node@26.1.1)(@vitest/browser-preview@4.1.10(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))(vitest@4.1.10))(@vitest/coverage-v8@4.1.10)(happy-dom@20.11.0)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))
       ws: 8.21.1
     transitivePeerDependencies:
       - bufferutil
@@ -6298,7 +6365,7 @@ snapshots:
       obug: 2.1.4
       std-env: 4.2.0
       tinyrainbow: 3.1.0
-      vitest: 4.1.10(@types/node@26.1.1)(@vitest/browser-preview@4.1.10)(@vitest/coverage-v8@4.1.10)(happy-dom@20.11.0)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))
+      vitest: 4.1.10(@types/node@26.1.1)(@vitest/browser-preview@4.1.10(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))(vitest@4.1.10))(@vitest/coverage-v8@4.1.10)(happy-dom@20.11.0)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))
     optionalDependencies:
       '@vitest/browser': 4.1.10(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))(vitest@4.1.10)
 
@@ -6587,6 +6654,8 @@ snapshots:
       estree-walker: 3.0.3
       js-tokens: 10.0.0
 
+  async@3.2.6: {}
+
   bail@2.0.2: {}
 
   base64-arraybuffer@1.0.2: {}
@@ -6676,6 +6745,10 @@ snapshots:
 
   chrome-trace-event@1.0.4: {}
 
+  cli-table@0.3.11:
+    dependencies:
+      colors: 1.0.3
+
   client-only@0.0.1: {}
 
   clsx@2.1.1: {}
@@ -6698,7 +6771,11 @@ snapshots:
 
   color-name@1.1.4: {}
 
+  colors@1.0.3: {}
+
   comma-separated-tokens@2.0.3: {}
+
+  commander@11.0.0: {}
 
   commander@14.0.3: {}
 
@@ -7119,6 +7196,33 @@ snapshots:
   js-tokens@4.0.0: {}
 
   js-tokens@9.0.1: {}
+
+  jscpd-darwin-arm64@5.0.12:
+    optional: true
+
+  jscpd-darwin-x64@5.0.12:
+    optional: true
+
+  jscpd-linux-arm64-gnu@5.0.12:
+    optional: true
+
+  jscpd-linux-x64-gnu@5.0.12:
+    optional: true
+
+  jscpd-linux-x64-musl@5.0.12:
+    optional: true
+
+  jscpd-windows-x64-msvc@5.0.12:
+    optional: true
+
+  jscpd@5.0.12:
+    optionalDependencies:
+      jscpd-darwin-arm64: 5.0.12
+      jscpd-darwin-x64: 5.0.12
+      jscpd-linux-arm64-gnu: 5.0.12
+      jscpd-linux-x64-gnu: 5.0.12
+      jscpd-linux-x64-musl: 5.0.12
+      jscpd-windows-x64-msvc: 5.0.12
 
   json-schema-traverse@1.0.0: {}
 
@@ -8069,6 +8173,10 @@ snapshots:
 
   react@19.2.8: {}
 
+  readdirp@3.6.0:
+    dependencies:
+      picomatch: 2.3.2
+
   regenerator-runtime@0.13.11:
     optional: true
 
@@ -8243,6 +8351,13 @@ snapshots:
       '@polka/url': 1.0.0-next.29
       mrmime: 2.0.1
       totalist: 3.0.1
+
+  sloc@0.3.2:
+    dependencies:
+      async: 3.2.6
+      cli-table: 0.3.11
+      commander: 11.0.0
+      readdirp: 3.6.0
 
   smol-toml@1.7.0: {}
 
@@ -8546,7 +8661,7 @@ snapshots:
       oxfmt: 0.58.0(vite-plus@0.2.5(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(esbuild@0.28.1)(happy-dom@20.11.0)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(typescript@7.0.2)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))(yaml@2.9.0))
       oxlint: 1.73.0(oxlint-tsgolint@0.24.0)(vite-plus@0.2.5(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(esbuild@0.28.1)(happy-dom@20.11.0)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(typescript@7.0.2)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))(yaml@2.9.0))
       oxlint-tsgolint: 0.24.0
-      vitest: 4.1.10(@types/node@26.1.1)(@vitest/browser-preview@4.1.10)(@vitest/coverage-v8@4.1.10)(happy-dom@20.11.0)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))
+      vitest: 4.1.10(@types/node@26.1.1)(@vitest/browser-preview@4.1.10(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))(vitest@4.1.10))(@vitest/coverage-v8@4.1.10)(happy-dom@20.11.0)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))
     optionalDependencies:
       '@voidzero-dev/vite-plus-darwin-arm64': 0.2.5
       '@voidzero-dev/vite-plus-darwin-x64': 0.2.5
@@ -8607,7 +8722,7 @@ snapshots:
     optionalDependencies:
       vite: 8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0)
 
-  vitest@4.1.10(@types/node@26.1.1)(@vitest/browser-preview@4.1.10)(@vitest/coverage-v8@4.1.10)(happy-dom@20.11.0)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0)):
+  vitest@4.1.10(@types/node@26.1.1)(@vitest/browser-preview@4.1.10(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))(vitest@4.1.10))(@vitest/coverage-v8@4.1.10)(happy-dom@20.11.0)(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0)):
     dependencies:
       '@vitest/expect': 4.1.10
       '@vitest/mocker': 4.1.10(vite@8.1.5(@types/node@26.1.1)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))

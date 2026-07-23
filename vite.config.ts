@@ -51,6 +51,7 @@ export default defineConfig(({ mode }) => {
         typeCheck: true,
       },
       rules: {
+        complexity: ["warn", { max: 15 }],
         "typescript/no-base-to-string": "off",
         "typescript/no-floating-promises": "off",
         "typescript/no-meaningless-void-operator": "off",
