@@ -74,6 +74,7 @@ export function InlineArticleEditor({
   const originalCoverImageRef = useRef(initialCoverImage || "");
   const titleValueRef = useRef(initialTitle);
   const [title, setTitle] = useState(initialTitle);
+  const [savedHtml, setSavedHtml] = useState(html);
   const [selectedCategory, setSelectedCategory] = useState(category || "未分类");
   const originalCategoryRef = useRef(category || "未分类");
   const categoryValueRef = useRef(category || "未分类");
@@ -163,6 +164,7 @@ export function InlineArticleEditor({
       if (!res.ok || !result.success) throw new Error(result.error || "保存失败");
 
       originalHtmlRef.current = newHtml;
+      setSavedHtml(newHtml);
       originalTitleRef.current = trimmedTitle;
       originalCategoryRef.current = selectedCategory;
       originalCoverImageRef.current = coverImage;
@@ -554,7 +556,7 @@ export function InlineArticleEditor({
             <span>约 {Math.max(1, Math.ceil(content.length / 400))} 分钟</span>
           </>
         )}
-        <DownloadMarkdown title={title} html={html} />
+        <DownloadMarkdown title={title} html={savedHtml} />
         {password && (
           <>
             <span aria-hidden>·</span>
