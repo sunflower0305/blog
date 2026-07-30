@@ -131,7 +131,7 @@ export function Modal({
             </Dialog.Close>
             {onConfirm && (
               <button
-                onClick={handleConfirm}
+                onClick={() => void handleConfirm()}
                 disabled={submitting}
                 className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${buttonColor}`}
               >

@@ -60,18 +60,20 @@ export function SearchBar() {
       return;
     }
 
-    const timer = setTimeout(async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(trimmed)}`);
-        const data = (await res.json()) as { results?: SearchResult[] };
-        setResults(data.results || []);
-        setSelectedIndex(0);
-      } catch {
-        setResults([]);
-      } finally {
-        setLoading(false);
-      }
+    const timer = setTimeout(() => {
+      void (async () => {
+        setLoading(true);
+        try {
+          const res = await fetch(`/api/search?q=${encodeURIComponent(trimmed)}`);
+          const data = (await res.json()) as { results?: SearchResult[] };
+          setResults(data.results || []);
+          setSelectedIndex(0);
+        } catch {
+          setResults([]);
+        } finally {
+          setLoading(false);
+        }
+      })();
     }, 300);
 
     return () => clearTimeout(timer);

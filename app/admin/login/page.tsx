@@ -65,7 +65,7 @@ function AdminLoginForm() {
 
         {/* 登录表单 */}
         <div className="bg-[var(--editor-panel)] rounded-2xl border border-[var(--editor-line)] shadow-[0_8px_28px_rgba(37,32,24,0.08)] p-8">
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={(event) => void handleSubmit(event)} className="space-y-5">
             <div>
               <label
                 htmlFor="password"

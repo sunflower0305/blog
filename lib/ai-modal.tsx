@@ -580,7 +580,7 @@ export function AIModal({
                   <div className="mt-3 flex flex-wrap justify-end gap-2">
                     <button
                       type="button"
-                      onClick={() => copyToClipboard(item.output)}
+                      onClick={() => void copyToClipboard(item.output)}
                       className="rounded-lg border border-[var(--editor-line)] px-3 py-1.5 text-sm text-[var(--editor-ink)] hover:bg-[var(--editor-soft)] transition"
                     >
                       复制
@@ -650,7 +650,7 @@ export function AIModal({
               </div>
               <button
                 type="button"
-                onClick={() => copyToClipboard()}
+                onClick={() => void copyToClipboard()}
                 className="absolute top-2 right-2 flex items-center justify-center h-7 w-7 rounded-md bg-white/80 backdrop-blur border border-[var(--editor-line)] text-[var(--editor-muted)] hover:text-[var(--editor-ink)] hover:bg-white transition"
                 title="复制"
               >
