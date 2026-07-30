@@ -36,6 +36,7 @@
     "config:check": "node scripts/runtime-env-config.mjs validate",
     "quality:report": "bash scripts/code-quality-report.sh --report",
     "quality:check": "bash scripts/code-quality-report.sh --check",
+    "quality:lint-baseline": "node scripts/lint-baseline.mjs",
     "quality:size": "CODE_QUALITY_SIZE_ONLY=1 vp lint --no-error-on-unmatched-pattern app components lib tools/wechat-bridge tests scripts",
     "quality:size:check": "CODE_QUALITY_SIZE_ONLY=1 CODE_QUALITY_SIZE_CHECK=1 vp lint --no-error-on-unmatched-pattern app components lib tools/wechat-bridge tests scripts",
     "quality:dead-code": "bash scripts/dead-code-report.sh",

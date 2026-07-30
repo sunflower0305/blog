@@ -201,6 +201,9 @@ export function resolveAiConfigSecret(env?: {
 export async function encryptApiKey(apiKey: string, secret: string): Promise<string> {
   const normalized = apiKey.trim();
   if (!normalized) return "";
+  if (normalized.startsWith(`${ENCRYPTION_PREFIX}:`) && (await decryptApiKey(normalized, secret))) {
+    return normalized;
+  }
 
   const key = await deriveAesKey(secret);
   const iv = crypto.getRandomValues(new Uint8Array(12));

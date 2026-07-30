@@ -5,6 +5,7 @@ import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import vinext from "vinext";
 import { defineConfig } from "vite-plus";
+import codeQuality from "./config/code-quality.json";
 
 const require = createRequire(import.meta.url);
 const juiceRequire = createRequire(require.resolve("juice/package.json"));
@@ -44,6 +45,11 @@ export default defineConfig(({ mode }) => {
   const isCodeSizeOnly = process.env.CODE_QUALITY_SIZE_ONLY === "1";
   const isQualityMetricsEnabled = !isCodeSizeOnly && process.env.CODE_QUALITY_METRICS !== "0";
   const codeSizeSeverity = process.env.CODE_QUALITY_SIZE_CHECK === "1" ? "error" : "warn";
+  const requestedComplexityMax = Number.parseInt(process.env.CODE_QUALITY_COMPLEXITY_MAX ?? "", 10);
+  const complexityMax =
+    Number.isFinite(requestedComplexityMax) && requestedComplexityMax > 0
+      ? requestedComplexityMax
+      : codeQuality.complexity.warningMax;
 
   return {
     plugins: isTest ? [] : createVinextPlugins(),
@@ -57,7 +63,7 @@ export default defineConfig(({ mode }) => {
         typeCheck: true,
       },
       rules: {
-        complexity: isQualityMetricsEnabled ? ["warn", { max: 20 }] : "off",
+        complexity: isQualityMetricsEnabled ? ["warn", { max: complexityMax }] : "off",
         "max-depth": isQualityMetricsEnabled ? ["warn", { max: 4 }] : "off",
         "max-lines": [codeSizeSeverity, { max: 600, skipBlankLines: false, skipComments: false }],
         "max-lines-per-function": [
@@ -99,10 +105,10 @@ export default defineConfig(({ mode }) => {
         include: ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}", "lib/**/*.{ts,tsx}"],
         exclude: ["**/*.d.ts"],
         thresholds: {
-          statements: 18,
-          branches: 16,
-          functions: 17,
-          lines: 19,
+          statements: 30,
+          branches: 26,
+          functions: 28,
+          lines: 31,
         },
       },
     },

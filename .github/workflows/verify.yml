@@ -42,6 +42,9 @@ jobs:
           NEXT_TELEMETRY_DISABLED: "1"
         run: pnpm run verify:quick
 
+      - name: Check lint warning baseline
+        run: pnpm run quality:lint-baseline
+
       - name: Run coverage gate
         run: pnpm run test:coverage
 

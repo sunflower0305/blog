@@ -1,0 +1,15 @@
+{
+  "complexity": {
+    "warningMax": 20,
+    "targetMax": 15
+  },
+  "lintWarningBaseline": {
+    "eslint(complexity)": 21,
+    "eslint(max-depth)": 1,
+    "eslint(max-lines)": 8,
+    "eslint(max-lines-per-function)": 15,
+    "eslint(max-params)": 3,
+    "typescript(no-floating-promises)": 23,
+    "typescript(no-misused-promises)": 51
+  }
+}

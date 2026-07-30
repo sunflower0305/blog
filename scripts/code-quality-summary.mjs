@@ -1,5 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import codeQuality from "../config/code-quality.json" with { type: "json" };
+import { extractComplexityThreshold, formatComplexitySummary } from "./code-quality-format.mjs";
 
 const reportDir = path.resolve(process.argv[2] ?? "reports/code-quality");
 const readJson = async (...parts) =>
@@ -83,6 +85,10 @@ const extensionRows = (report) =>
 const diagnosticsFor = (code) =>
   lint?.diagnostics.filter((diagnostic) => diagnostic.code === code) ?? [];
 const complexityDiagnostics = diagnosticsFor("eslint(complexity)");
+const complexityThreshold = extractComplexityThreshold(
+  complexityDiagnostics,
+  codeQuality.complexity.warningMax,
+);
 const maxDepthDiagnostics = diagnosticsFor("eslint(max-depth)");
 const largeFileDiagnostics = diagnosticsFor("eslint(max-lines)");
 const largeFunctionDiagnostics = diagnosticsFor("eslint(max-lines-per-function)");
@@ -244,7 +250,7 @@ const lines = [
   "",
   ...(lint
     ? [
-        `Oxlint found ${number.format(complexityDiagnostics.length)} functions above the configured complexity threshold of 15.`,
+        formatComplexitySummary(number.format(complexityDiagnostics.length), complexityThreshold),
         "",
         "| Complexity | Location | Diagnostic |",
         "| ---: | --- | --- |",
