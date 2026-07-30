@@ -16,6 +16,94 @@ import {
 import { asOptionalEnum, asStringArray } from "@/lib/server/input-coerce";
 import type { NextRequest } from "next/server";
 
+type PostPayload = Record<string, unknown>;
+
+interface CreatePostPayload {
+  title: string;
+  content: string;
+  rawHtml: string;
+  category: string;
+  customSlug: string;
+  status: "draft" | "published";
+  password: string | null;
+  isHidden: number;
+  description: string;
+  tags: string[];
+  coverImage: string | null;
+}
+
+function trimmedString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function buildCreatePostPayload(payload: PostPayload): CreatePostPayload {
+  const content = trimmedString(payload.content);
+  return {
+    title: trimmedString(payload.title),
+    content,
+    rawHtml: trimmedString(payload.html),
+    category: trimmedString(payload.category),
+    customSlug: typeof payload.slug === "string" ? normalizePostSlug(payload.slug) : "",
+    status: payload.status === "draft" ? "draft" : "published",
+    password: trimmedString(payload.password) || null,
+    isHidden: payload.is_hidden === 1 ? 1 : 0,
+    description: trimmedString(payload.description) || buildAutoDescription(content),
+    tags: asStringArray(payload.tags),
+    coverImage: trimmedString(payload.cover_image) || null,
+  };
+}
+
+function createPostSlug(customSlug: string) {
+  if (customSlug) return customSlug;
+  const date = new Date().toISOString().split("T")[0];
+  return `${date}-${nanoid(6)}`;
+}
+
+async function renderPostHtml(rawHtml: string, content: string) {
+  if (rawHtml) return rawHtml;
+  return (
+    await remark().use(remarkGfm).use(remarkHtml, { sanitize: false }).process(content)
+  ).toString();
+}
+
+function resolvePatchSlugs(payload: PostPayload) {
+  const currentSlug =
+    typeof payload.current_slug === "string"
+      ? payload.current_slug.trim()
+      : trimmedString(payload.slug);
+  const nextSlug = typeof payload.new_slug === "string" ? normalizePostSlug(payload.new_slug) : "";
+  return { currentSlug, nextSlug };
+}
+
+function buildPostUpdates(payload: PostPayload, currentSlug: string, nextSlug: string) {
+  const updates: Record<string, unknown> = {};
+  if (nextSlug && nextSlug !== currentSlug) updates.slug = nextSlug;
+  if (payload.title !== undefined) updates.title = payload.title;
+  if (payload.content !== undefined) updates.content = payload.content;
+  if (payload.html !== undefined) updates.html = payload.html;
+  if (payload.description !== undefined) {
+    const rawDescription = trimmedString(payload.description);
+    const rawContent = typeof payload.content === "string" ? payload.content : "";
+    updates.description = rawDescription || buildAutoDescription(rawContent);
+  }
+  if (payload.category !== undefined) updates.category = payload.category;
+  if (payload.tags !== undefined) updates.tags = asStringArray(payload.tags);
+  if (payload.cover_image !== undefined) updates.cover_image = payload.cover_image;
+
+  const status = asOptionalEnum(payload.status, POST_STATUS_VALUES);
+  if (status !== undefined) updates.status = status;
+  return updates;
+}
+
+function postWriteError(error: unknown, action: "Save" | "Auto-save") {
+  if (error instanceof Error && /UNIQUE constraint failed: posts\.slug/i.test(error.message)) {
+    return jsonError("slug 已存在，请换一个", 409);
+  }
+  console.error(`${action} error:`, error);
+  const message = action === "Save" ? "保存失败: " : "自动保存失败: ";
+  return jsonError(message + (error as Error).message, 500);
+}
+
 export async function POST(req: NextRequest) {
   try {
     const route = await getRouteContextWithDb("数据库未配置");
@@ -26,64 +114,29 @@ export async function POST(req: NextRequest) {
     const authError = await ensureAuthenticatedRequest(req, db);
     if (authError) return authError;
 
-    const parsed = await readJsonBody<Record<string, unknown>>(req);
+    const parsed = await readJsonBody<PostPayload>(req);
     if (!parsed.ok) return parsed.response;
-    const payload = parsed.body;
-    const title = typeof payload.title === "string" ? payload.title.trim() : "";
-    const content = typeof payload.content === "string" ? payload.content.trim() : "";
-    const rawHtml = typeof payload.html === "string" ? payload.html.trim() : "";
-    const payloadCategory = typeof payload.category === "string" ? payload.category.trim() : "";
-    const customSlug = typeof payload.slug === "string" ? normalizePostSlug(payload.slug) : "";
-    const status = payload.status === "draft" ? "draft" : "published";
-    const password =
-      typeof payload.password === "string" && payload.password.trim()
-        ? payload.password.trim()
-        : null;
-    const is_hidden = payload.is_hidden === 1 ? 1 : 0;
-    const description =
-      typeof payload.description === "string" && payload.description.trim()
-        ? payload.description.trim()
-        : buildAutoDescription(content);
-    const tags = Array.isArray(payload.tags)
-      ? (payload.tags as unknown[])
-          .filter((tag): tag is string => typeof tag === "string")
-          .map((tag) => tag.trim())
-          .filter(Boolean)
-          .slice(0, 10)
-      : [];
-    const coverImage =
-      typeof payload.cover_image === "string" && payload.cover_image.trim()
-        ? payload.cover_image.trim()
-        : null;
-
-    if (!title || !content) {
+    const payload = buildCreatePostPayload(parsed.body);
+    if (!payload.title || !payload.content) {
       return jsonError("标题和内容不能为空", 400);
     }
 
-    // 2. 生成 slug（日期 + 随机）
-    const date = new Date().toISOString().split("T")[0];
-    const slug = customSlug || `${date}-${nanoid(6)}`;
-
-    // 3. 优先使用编辑器直接生成的 HTML，兼容旧版 Markdown 提交
-    const htmlContent =
-      rawHtml ||
-      (
-        await remark().use(remarkGfm).use(remarkHtml, { sanitize: false }).process(content)
-      ).toString();
+    const slug = createPostSlug(payload.customSlug);
+    const htmlContent = await renderPostHtml(payload.rawHtml, payload.content);
 
     // 4. 立即保存到 D1（不等 AI）
     const postId = await createPost(db, {
       slug,
-      title,
-      content,
+      title: payload.title,
+      content: payload.content,
       html: htmlContent,
-      description,
-      category: payloadCategory || "未分类",
-      tags,
-      status,
-      password,
-      is_hidden,
-      cover_image: coverImage,
+      description: payload.description,
+      category: payload.category || "未分类",
+      tags: payload.tags,
+      status: payload.status,
+      password: payload.password,
+      is_hidden: payload.isHidden,
+      cover_image: payload.coverImage,
     });
 
     // 6. 清除缓存
@@ -115,17 +168,13 @@ export async function POST(req: NextRequest) {
       success: true,
       slug,
       id: postId,
-      category: payloadCategory || "未分类",
-      tags,
-      description,
-      cover_image: coverImage,
+      category: payload.category || "未分类",
+      tags: payload.tags,
+      description: payload.description,
+      cover_image: payload.coverImage,
     });
   } catch (error) {
-    if (error instanceof Error && /UNIQUE constraint failed: posts\.slug/i.test(error.message)) {
-      return jsonError("slug 已存在，请换一个", 409);
-    }
-    console.error("Save error:", error);
-    return jsonError("保存失败: " + (error as Error).message, 500);
+    return postWriteError(error, "Save");
   }
 }
 
@@ -139,40 +188,16 @@ export async function PATCH(req: NextRequest) {
     const authError = await ensureAuthenticatedRequest(req, db);
     if (authError) return authError;
 
-    const parsed = await readJsonBody<Record<string, unknown>>(req);
+    const parsed = await readJsonBody<PostPayload>(req);
     if (!parsed.ok) return parsed.response;
     const payload = parsed.body;
-    const currentSlug =
-      typeof payload.current_slug === "string"
-        ? payload.current_slug.trim()
-        : typeof payload.slug === "string"
-          ? payload.slug.trim()
-          : "";
-    const nextSlug =
-      typeof payload.new_slug === "string" ? normalizePostSlug(payload.new_slug) : "";
+    const { currentSlug, nextSlug } = resolvePatchSlugs(payload);
 
     if (!currentSlug) {
       return jsonError("slug 不能为空", 400);
     }
 
-    // 构建更新对象（只包含提供的字段）
-    const updates: Record<string, unknown> = {};
-    if (nextSlug && nextSlug !== currentSlug) updates.slug = nextSlug;
-    if (payload.title !== undefined) updates.title = payload.title;
-    if (payload.content !== undefined) updates.content = payload.content;
-    if (payload.html !== undefined) updates.html = payload.html;
-    if (payload.description !== undefined) {
-      const rawDescription =
-        typeof payload.description === "string" ? payload.description.trim() : "";
-      const rawContent = typeof payload.content === "string" ? payload.content : "";
-      updates.description = rawDescription || buildAutoDescription(rawContent);
-    }
-    if (payload.category !== undefined) updates.category = payload.category;
-    if (payload.tags !== undefined) updates.tags = asStringArray(payload.tags);
-    if (payload.cover_image !== undefined) updates.cover_image = payload.cover_image;
-    const status = asOptionalEnum(payload.status, POST_STATUS_VALUES);
-    if (status !== undefined) updates.status = status;
-
+    const updates = buildPostUpdates(payload, currentSlug, nextSlug);
     if (Object.keys(updates).length === 0) {
       return jsonOk({ success: true, slug: currentSlug });
     }
@@ -184,10 +209,6 @@ export async function PATCH(req: NextRequest) {
 
     return jsonOk({ success: true, slug: nextSlug || currentSlug });
   } catch (error) {
-    if (error instanceof Error && /UNIQUE constraint failed: posts\.slug/i.test(error.message)) {
-      return jsonError("slug 已存在，请换一个", 409);
-    }
-    console.error("Auto-save error:", error);
-    return jsonError("自动保存失败: " + (error as Error).message, 500);
+    return postWriteError(error, "Auto-save");
   }
 }

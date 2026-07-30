@@ -164,4 +164,39 @@ describe("/api/posts route", () => {
     const [, , updates] = mocks.updatePostBySlug.mock.calls[0];
     expect(updates.tags).toEqual(["a", "b"]);
   });
+
+  it("returns success without writing or invalidating cache when a patch has no updates", async () => {
+    mocks.readJsonBody.mockResolvedValue({ current_slug: "same-slug" });
+
+    const response = await PATCH({} as never);
+
+    await expect(response.json()).resolves.toEqual({ success: true, slug: "same-slug" });
+    expect(mocks.updatePostBySlug).not.toHaveBeenCalled();
+    expect(mocks.invalidatePublicContentCache).not.toHaveBeenCalled();
+  });
+
+  it("does not fall back to slug when current_slug is explicitly empty", async () => {
+    mocks.readJsonBody.mockResolvedValue({ current_slug: "", slug: "fallback-slug" });
+
+    const response = await PATCH({} as never);
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({ error: "slug 不能为空" });
+    expect(mocks.updatePostBySlug).not.toHaveBeenCalled();
+  });
+
+  it("maps duplicate post slugs to a conflict response", async () => {
+    mocks.readJsonBody.mockResolvedValue({
+      title: "Title",
+      content: "Content",
+      html: "<p>Content</p>",
+      slug: "duplicate",
+    });
+    mocks.createPost.mockRejectedValue(new Error("UNIQUE constraint failed: posts.slug"));
+
+    const response = await POST({} as never);
+
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toEqual({ error: "slug 已存在，请换一个" });
+  });
 });

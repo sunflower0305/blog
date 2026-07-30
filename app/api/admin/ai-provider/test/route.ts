@@ -11,6 +11,30 @@ import {
 } from "@/lib/ai-provider-profiles";
 import { readJsonBody } from "@/lib/server/route-helpers";
 
+interface ProviderTestBody {
+  profile_id?: number;
+  base_url?: string;
+  api_key?: string;
+  model?: string;
+  temperature?: number;
+  max_tokens?: number;
+}
+
+interface ProviderTestProfile {
+  base_url: string;
+  model: string;
+  api_key_encrypted: string;
+}
+
+interface ProviderTestConfig {
+  baseUrl: string;
+  model: string;
+  key: string;
+  temperature: number;
+  maxTokens: number;
+  storedKeyUnavailable: boolean;
+}
+
 function isGeminiBaseUrl(baseUrl: string): boolean {
   return /generativelanguage\.googleapis\.com/i.test(baseUrl);
 }
@@ -99,128 +123,95 @@ function buildProviderErrorMessage(
   return `HTTP ${resStatus}: ${resStatusText}`;
 }
 
-export async function POST(req: NextRequest) {
-  const env = await getAppCloudflareEnv();
-  const db = env?.DB as D1Database | undefined;
-  if (!(await authenticateRequest(req, db))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (!db) {
-    return NextResponse.json({ error: "DB unavailable" }, { status: 500 });
-  }
-
-  const secret = resolveAiConfigSecret(env);
-  await ensureAiConfigInfrastructure(db, secret);
-
-  const parsed = await readJsonBody<{
-    profile_id?: number;
-    base_url?: string;
-    api_key?: string;
-    model?: string;
-    temperature?: number;
-    max_tokens?: number;
-  }>(req);
-  if (!parsed.ok) return parsed.response;
-  const body = parsed.body;
-
-  const profileId = Number(body.profile_id);
-  let selectedProfile: {
-    base_url: string;
-    model: string;
-    api_key_encrypted: string;
-  } | null = null;
-
-  if (Number.isFinite(profileId) && profileId > 0) {
-    selectedProfile = await db
-      .prepare(`
+async function loadProviderTestProfile(db: D1Database, profileId: number) {
+  if (!Number.isFinite(profileId) || profileId <= 0) return null;
+  return db
+    .prepare(`
       SELECT base_url, model, api_key_encrypted
       FROM ai_provider_profiles
       WHERE id = ?
       LIMIT 1
     `)
-      .bind(profileId)
-      .first<{
-        base_url: string;
-        model: string;
-        api_key_encrypted: string;
-      }>();
-  }
+    .bind(profileId)
+    .first<ProviderTestProfile>();
+}
 
-  const normalizedBaseUrl = normalizeBaseUrl(body.base_url || selectedProfile?.base_url || "");
-  const normalizedModel = (body.model || selectedProfile?.model || "").trim();
-  const temperature = clampTemperature(Number(body.temperature));
-  const maxTokens = Math.max(1, Math.min(256, Math.floor(clampMaxTokens(Number(body.max_tokens)))));
-
-  const profileApiKey = selectedProfile?.api_key_encrypted
-    ? await decryptApiKey(selectedProfile.api_key_encrypted, secret)
+async function resolveProviderTestConfig(
+  body: ProviderTestBody,
+  profile: ProviderTestProfile | null,
+  secret: string,
+): Promise<ProviderTestConfig> {
+  const enteredKey = (body.api_key || "").trim();
+  const profileApiKey = profile?.api_key_encrypted
+    ? await decryptApiKey(profile.api_key_encrypted, secret)
     : "";
-  const storedKeyUnavailable =
-    !(body.api_key || "").trim() &&
-    Boolean(selectedProfile?.api_key_encrypted?.trim()) &&
-    !profileApiKey;
-  const key = (body.api_key || "").trim() || profileApiKey;
 
-  if (storedKeyUnavailable && normalizedBaseUrl && normalizedModel) {
-    return NextResponse.json({
-      success: false,
-      error:
-        "已保存 API Key 无法解密，请重新输入 API Key，或检查 AI_CONFIG_ENCRYPTION_SECRET / ADMIN_TOKEN_SALT 是否与保存时一致",
-    });
-  }
+  return {
+    baseUrl: normalizeBaseUrl(body.base_url || profile?.base_url || ""),
+    model: (body.model || profile?.model || "").trim(),
+    key: enteredKey || profileApiKey,
+    temperature: clampTemperature(Number(body.temperature)),
+    maxTokens: Math.max(1, Math.min(256, Math.floor(clampMaxTokens(Number(body.max_tokens))))),
+    storedKeyUnavailable:
+      !enteredKey && Boolean(profile?.api_key_encrypted?.trim()) && !profileApiKey,
+  };
+}
 
-  if (!normalizedBaseUrl || !key || !normalizedModel) {
-    return NextResponse.json({ error: "缺少必要参数" }, { status: 400 });
-  }
-
-  try {
-    const t0 = Date.now();
-    let res: Response;
-
-    if (isGeminiBaseUrl(normalizedBaseUrl)) {
-      const geminiBase = ensureGeminiBase(normalizedBaseUrl);
-      const endpoint = `${geminiBase}/models/${encodeURIComponent(normalizedModel)}:generateContent?key=${encodeURIComponent(key)}`;
-      res = await fetch(endpoint, {
+function buildProviderTestRequest(config: ProviderTestConfig): [string, RequestInit] {
+  if (isGeminiBaseUrl(config.baseUrl)) {
+    const geminiBase = ensureGeminiBase(config.baseUrl);
+    return [
+      `${geminiBase}/models/${encodeURIComponent(config.model)}:generateContent?key=${encodeURIComponent(config.key)}`,
+      {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ role: "user", parts: [{ text: 'Say "OK"' }] }],
-          generationConfig: { temperature, maxOutputTokens: maxTokens },
+          generationConfig: {
+            temperature: config.temperature,
+            maxOutputTokens: config.maxTokens,
+          },
         }),
         signal: AbortSignal.timeout(15000),
-      });
-    } else {
-      res = await fetch(`${normalizedBaseUrl}/chat/completions`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${key}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: normalizedModel,
-          messages: [{ role: "user", content: 'Say "OK"' }],
-          temperature,
-          max_tokens: maxTokens,
-        }),
-        signal: AbortSignal.timeout(15000),
-      });
-    }
+      },
+    ];
+  }
 
+  return [
+    `${config.baseUrl}/chat/completions`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${config.key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: config.model,
+        messages: [{ role: "user", content: 'Say "OK"' }],
+        temperature: config.temperature,
+        max_tokens: config.maxTokens,
+      }),
+      signal: AbortSignal.timeout(15000),
+    },
+  ];
+}
+
+async function runProviderTest(config: ProviderTestConfig) {
+  try {
+    const startedAt = Date.now();
+    const res = await fetch(...buildProviderTestRequest(config));
     if (!res.ok) {
       const rawBody = await res.text().catch(() => "");
-      const message = buildProviderErrorMessage(res.status, res.statusText, rawBody);
       return NextResponse.json({
         success: false,
-        error: message,
+        error: buildProviderErrorMessage(res.status, res.statusText, rawBody),
       });
     }
 
     return NextResponse.json({
       success: true,
-      latency_ms: Date.now() - t0,
-      model: normalizedModel,
+      latency_ms: Date.now() - startedAt,
+      model: config.model,
     });
   } catch (error) {
     return NextResponse.json({
@@ -228,4 +219,36 @@ export async function POST(req: NextRequest) {
       error: error instanceof Error ? error.message : "连接失败",
     });
   }
+}
+
+export async function POST(req: NextRequest) {
+  const env = await getAppCloudflareEnv();
+  const db = env?.DB as D1Database | undefined;
+  if (!(await authenticateRequest(req, db))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!db) return NextResponse.json({ error: "DB unavailable" }, { status: 500 });
+
+  const secret = resolveAiConfigSecret(env);
+  await ensureAiConfigInfrastructure(db, secret);
+  const parsed = await readJsonBody<ProviderTestBody>(req);
+  if (!parsed.ok) return parsed.response;
+
+  const body = parsed.body;
+  const profileId = Number(body.profile_id);
+  const profile = await loadProviderTestProfile(db, profileId);
+  const config = await resolveProviderTestConfig(body, profile, secret);
+  if (config.storedKeyUnavailable && config.baseUrl && config.model) {
+    return NextResponse.json({
+      success: false,
+      error:
+        "已保存 API Key 无法解密，请重新输入 API Key，或检查 AI_CONFIG_ENCRYPTION_SECRET / ADMIN_TOKEN_SALT 是否与保存时一致",
+    });
+  }
+
+  if (!config.baseUrl || !config.key || !config.model) {
+    return NextResponse.json({ error: "缺少必要参数" }, { status: 400 });
+  }
+
+  return runProviderTest(config);
 }
