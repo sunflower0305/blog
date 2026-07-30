@@ -42,7 +42,7 @@ export default async function SearchPage({
       defaultTheme = headerData.defaultTheme;
 
       if (query) {
-        posts = await searchPosts(env.DB, query, 100);
+        posts = await searchPosts(env.DB, query, { limit: 100 });
       }
     }
   } catch (e) {

@@ -16,7 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (env?.DB) {
       // Only published, non-deleted, non-hidden, non-password posts
       const [posts, categories] = await Promise.all([
-        getPosts(env.DB, 1000, 0, false, false, false, false),
+        getPosts(env.DB, { limit: 1000 }),
         getPublicCategories(env.DB),
       ]);
       for (const post of posts) {

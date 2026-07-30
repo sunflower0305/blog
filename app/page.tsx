@@ -43,7 +43,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ p
         getPublicContentCached(
           env,
           `home:posts:${PAGE_SIZE}:${currentPage}`,
-          () => getPosts(db, PAGE_SIZE, (currentPage - 1) * PAGE_SIZE),
+          () => getPosts(db, { limit: PAGE_SIZE, offset: (currentPage - 1) * PAGE_SIZE }),
           900,
         ),
         getPublicContentCached(env, "home:posts:count", () => getPostsCount(db), 900),

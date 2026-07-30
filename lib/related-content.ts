@@ -262,7 +262,7 @@ async function getRuleBasedRelatedPosts(
   limit: number,
 ): Promise<PostWithTags[]> {
   const query = buildRelatedQuery(current);
-  const fromSearch = query ? await searchPosts(db, query, Math.max(limit * 4, 12)) : [];
+  const fromSearch = query ? await searchPosts(db, query, { limit: Math.max(limit * 4, 12) }) : [];
   const recentResult = await db
     .prepare(
       `SELECT * FROM posts
@@ -331,7 +331,7 @@ export async function searchPostsWithStrategy(
   return {
     strategy: "fts",
     source: "fts",
-    results: await searchPosts(db, trimmedQuery, limit),
+    results: await searchPosts(db, trimmedQuery, { limit }),
   };
 }
 
@@ -362,7 +362,7 @@ export async function getRelatedPosts(
   return {
     strategy: "fts",
     source: "fts",
-    results: (await searchPosts(db, buildRelatedQuery(post) || post.title, limit + 1))
+    results: (await searchPosts(db, buildRelatedQuery(post) || post.title, { limit: limit + 1 }))
       .filter((candidate) => candidate.slug !== post.slug)
       .slice(0, limit),
   };

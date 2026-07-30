@@ -2,16 +2,27 @@ import { mapPostWithTags } from "@/lib/repositories/post-mappers";
 import type { Database } from "@/lib/repositories/schema";
 import type { Post, PostWithTags } from "@/lib/repositories/types";
 
+interface SearchPostsOptions {
+  limit?: number;
+  includeDrafts?: boolean;
+  includeEncrypted?: boolean;
+  includeHidden?: boolean;
+  includeDeleted?: boolean;
+}
+
 // 全文搜索（FTS5，回退 LIKE）
 export async function searchPosts(
   db: Database,
   query: string,
-  limit = 20,
-  includeDrafts = false,
-  includeEncrypted = false,
-  includeHidden = false,
-  includeDeleted = false,
+  options: SearchPostsOptions = {},
 ): Promise<PostWithTags[]> {
+  const {
+    limit = 20,
+    includeDrafts = false,
+    includeEncrypted = false,
+    includeHidden = false,
+    includeDeleted = false,
+  } = options;
   let results: Post[];
 
   const conditions: string[] = [];

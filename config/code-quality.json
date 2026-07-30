@@ -4,10 +4,8 @@
     "targetMax": 15
   },
   "lintWarningBaseline": {
-    "eslint(complexity)": 20,
-    "eslint(max-depth)": 1,
+    "eslint(complexity)": 19,
     "eslint(max-lines)": 8,
-    "eslint(max-lines-per-function)": 15,
-    "eslint(max-params)": 3
+    "eslint(max-lines-per-function)": 15
   }
 }

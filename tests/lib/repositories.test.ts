@@ -101,7 +101,12 @@ describe("repository public visibility contracts", () => {
     insertPost(database, { slug: "hidden", isHidden: 1 });
     insertPost(database, { slug: "deleted", deletedAt: 123 });
 
-    const posts = await getPosts(database.db, 50, 0, true, true, true, true);
+    const posts = await getPosts(database.db, {
+      includeDrafts: true,
+      includeEncrypted: true,
+      includeHidden: true,
+      includeDeleted: true,
+    });
     const count = await getPostsCount(database.db, true, true, true, true);
 
     expect(new Set(posts.map((post) => post.slug))).toEqual(
@@ -135,6 +140,26 @@ describe("searchPosts", () => {
     const posts = await searchPosts(database.db, "needle");
 
     expect(posts.map((post) => post.slug)).toEqual(["public"]);
+  });
+
+  it("returns all post states when the administrative visibility options are enabled", async () => {
+    const database = createDatabase();
+    insertPost(database, { slug: "public" });
+    insertPost(database, { slug: "draft", status: "draft" });
+    insertPost(database, { slug: "encrypted", password: "secret" });
+    insertPost(database, { slug: "hidden", isHidden: 1 });
+    insertPost(database, { slug: "deleted", deletedAt: 123 });
+
+    const posts = await searchPosts(database.db, "needle", {
+      includeDrafts: true,
+      includeEncrypted: true,
+      includeHidden: true,
+      includeDeleted: true,
+    });
+
+    expect(new Set(posts.map((post) => post.slug))).toEqual(
+      new Set(["public", "draft", "encrypted", "hidden", "deleted"]),
+    );
   });
 });
 

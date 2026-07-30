@@ -64,7 +64,7 @@ export default defineConfig(({ mode }) => {
       },
       rules: {
         complexity: isQualityMetricsEnabled ? ["warn", { max: complexityMax }] : "off",
-        "max-depth": isQualityMetricsEnabled ? ["warn", { max: 4 }] : "off",
+        "max-depth": isQualityMetricsEnabled ? ["error", { max: 4 }] : "off",
         "max-lines": [codeSizeSeverity, { max: 600, skipBlankLines: false, skipComments: false }],
         "max-lines-per-function": [
           codeSizeSeverity,
@@ -75,7 +75,7 @@ export default defineConfig(({ mode }) => {
             IIFEs: false,
           },
         ],
-        "max-params": isQualityMetricsEnabled ? ["warn", { max: 5 }] : "off",
+        "max-params": isQualityMetricsEnabled ? ["error", { max: 5 }] : "off",
         "import/no-cycle": isQualityMetricsEnabled
           ? ["warn", { ignoreExternal: true, ignoreTypes: true }]
           : "off",

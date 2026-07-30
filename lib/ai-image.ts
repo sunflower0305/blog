@@ -171,14 +171,17 @@ function buildUserFacingPrompt(userPrompt?: string, articleTitle?: string, conte
   return buildContextText(articleTitle, contextText);
 }
 
-function buildFinalImagePrompt(
-  actionPrompt: string | undefined,
-  userPrompt?: string,
-  articleTitle?: string,
-  contextText?: string,
-  aspectRatio?: string,
-  resolution?: string,
-) {
+interface FinalImagePromptOptions {
+  actionPrompt?: string;
+  userPrompt?: string;
+  articleTitle?: string;
+  contextText?: string;
+  aspectRatio?: string;
+  resolution?: string;
+}
+
+function buildFinalImagePrompt(options: FinalImagePromptOptions) {
+  const { actionPrompt, userPrompt, articleTitle, contextText, aspectRatio, resolution } = options;
   const contentPrompt = buildUserFacingPrompt(userPrompt, articleTitle, contextText);
   if (!contentPrompt) {
     throw new Error("请输入图片主题，或在正文中提供足够的上下文");
@@ -955,14 +958,14 @@ async function resolveImageGenerationContext(
     aspectRatio,
     resolution,
     profile,
-    finalPrompt: buildFinalImagePrompt(
-      input.actionPrompt || action?.prompt,
-      input.userPrompt,
-      input.articleTitle,
-      input.contextText,
+    finalPrompt: buildFinalImagePrompt({
+      actionPrompt: input.actionPrompt || action?.prompt,
+      userPrompt: input.userPrompt,
+      articleTitle: input.articleTitle,
+      contextText: input.contextText,
       aspectRatio,
       resolution,
-    ),
+    }),
     referenceImageUrl:
       typeof input.referenceImageUrl === "string" ? input.referenceImageUrl.trim() : "",
   };

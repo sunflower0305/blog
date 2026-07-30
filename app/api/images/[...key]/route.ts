@@ -137,6 +137,76 @@ function appendVary(headers: Headers, value: string) {
   headers.set("vary", values.join(", "));
 }
 
+function createRawImageUrl(requestUrl: string) {
+  const rawUrl = new URL(requestUrl);
+  rawUrl.searchParams.set("__raw", "1");
+  for (const key of TRANSFORM_QUERY_KEYS) {
+    rawUrl.searchParams.delete(key);
+  }
+  return rawUrl;
+}
+
+interface TransformImageOptions {
+  request: NextRequest;
+  bucket: ImageBucket;
+  objectKey: string;
+  transform: CloudflareImageTransform;
+}
+
+async function transformImage({ request, bucket, objectKey, transform }: TransformImageOptions) {
+  const headInfo = await bucket.head(objectKey);
+  if (!headInfo) {
+    return { attempted: false, response: new Response("Not found", { status: 404 }) };
+  }
+
+  const contentType = headInfo.httpMetadata?.contentType || "";
+  const canTransform =
+    contentType.startsWith("image/") &&
+    contentType !== "image/gif" &&
+    contentType !== "image/svg+xml";
+  if (!canTransform) return { attempted: false, response: null };
+
+  const negotiateFormat = transform.format === "auto";
+  const resolvedTransform = negotiateImageFormat(transform, request.headers.get("Accept"));
+  let transformed: Response;
+  try {
+    transformed = await fetch(createRawImageUrl(request.url).toString(), {
+      cf: {
+        image: resolvedTransform,
+      },
+    } as RequestInit & { cf: { image: Record<string, unknown> } });
+  } catch (error) {
+    console.warn("Cloudflare image transform failed, falling back to original asset", {
+      objectKey,
+      transform: resolvedTransform,
+      error,
+    });
+    return { attempted: true, response: null };
+  }
+
+  if (!transformed.ok) {
+    console.warn("Cloudflare image transform failed, falling back to original asset", {
+      objectKey,
+      status: transformed.status,
+      transform: resolvedTransform,
+    });
+    return { attempted: true, response: null };
+  }
+
+  const headers = new Headers(transformed.headers);
+  headers.set("cache-control", "public, max-age=31536000, immutable");
+  headers.set("Accept-Ranges", "bytes");
+  if (negotiateFormat) appendVary(headers, "Accept");
+
+  return {
+    attempted: true,
+    response: new Response(transformed.body, {
+      status: transformed.status,
+      headers,
+    }),
+  };
+}
+
 export async function GET(req: NextRequest, { params }: { params: Promise<{ key: string[] }> }) {
   const { key } = await params;
   const requestPath = key?.join("/") || "";
@@ -160,60 +230,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ key:
   const negotiateFormat = transform?.format === "auto";
 
   if (transform && readFlag(env.ENABLE_CF_IMAGE_PIPELINE)) {
-    const headInfo = await env.IMAGES.head(objectKey);
-
-    if (!headInfo) {
-      return new Response("Not found", { status: 404 });
-    }
-
-    const contentType = headInfo.httpMetadata?.contentType || "";
-    const canTransform =
-      contentType.startsWith("image/") &&
-      contentType !== "image/gif" &&
-      contentType !== "image/svg+xml";
-
-    if (canTransform) {
-      const resolvedTransform = negotiateImageFormat(transform, req.headers.get("Accept"));
-
-      try {
-        const rawUrl = new URL(req.url);
-        rawUrl.searchParams.set("__raw", "1");
-        for (const key of TRANSFORM_QUERY_KEYS) {
-          rawUrl.searchParams.delete(key);
-        }
-
-        transformAttempted = true;
-        const transformed = await fetch(rawUrl.toString(), {
-          cf: {
-            image: resolvedTransform,
-          },
-        } as RequestInit & { cf: { image: Record<string, unknown> } });
-
-        if (transformed.ok) {
-          const headers = new Headers(transformed.headers);
-          headers.set("cache-control", "public, max-age=31536000, immutable");
-          headers.set("Accept-Ranges", "bytes");
-          if (negotiateFormat) appendVary(headers, "Accept");
-
-          return new Response(transformed.body, {
-            status: transformed.status,
-            headers,
-          });
-        }
-
-        console.warn("Cloudflare image transform failed, falling back to original asset", {
-          objectKey,
-          status: transformed.status,
-          transform: resolvedTransform,
-        });
-      } catch (error) {
-        console.warn("Cloudflare image transform failed, falling back to original asset", {
-          objectKey,
-          transform: resolvedTransform,
-          error,
-        });
-      }
-    }
+    const result = await transformImage({
+      request: req,
+      bucket: env.IMAGES,
+      objectKey,
+      transform,
+    });
+    if (result.response) return result.response;
+    transformAttempted = result.attempted;
   }
 
   if (rangeHeader) {

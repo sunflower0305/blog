@@ -10,16 +10,28 @@ import type {
   PostWithTags,
 } from "@/lib/repositories/types";
 
+interface GetPostsOptions {
+  limit?: number;
+  offset?: number;
+  includeDrafts?: boolean;
+  includeEncrypted?: boolean;
+  includeHidden?: boolean;
+  includeDeleted?: boolean;
+}
+
 // 获取文章列表（默认只返回已发布文章）
 export async function getPosts(
   db: Database,
-  limit = 50,
-  offset = 0,
-  includeDrafts = false,
-  includeEncrypted = false,
-  includeHidden = false,
-  includeDeleted = false,
+  options: GetPostsOptions = {},
 ): Promise<PostWithTags[]> {
+  const {
+    limit = 50,
+    offset = 0,
+    includeDrafts = false,
+    includeEncrypted = false,
+    includeHidden = false,
+    includeDeleted = false,
+  } = options;
   await ensureSchema(db);
   const conditions: string[] = [];
   if (!includeDrafts) {

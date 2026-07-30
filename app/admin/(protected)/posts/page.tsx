@@ -20,9 +20,21 @@ export default async function AdminPostsPage({
   if (env?.DB) {
     try {
       if (q && q.trim()) {
-        sourcePosts = await searchPosts(env.DB, q.trim(), 200, true, true, true, true); // includeDrafts, includeEncrypted, includeHidden, includeDeleted
+        sourcePosts = await searchPosts(env.DB, q.trim(), {
+          limit: 200,
+          includeDrafts: true,
+          includeEncrypted: true,
+          includeHidden: true,
+          includeDeleted: true,
+        });
       } else {
-        sourcePosts = await getPosts(env.DB, 200, 0, true, true, true, true); // includeDrafts, includeEncrypted, includeHidden, includeDeleted
+        sourcePosts = await getPosts(env.DB, {
+          limit: 200,
+          includeDrafts: true,
+          includeEncrypted: true,
+          includeHidden: true,
+          includeDeleted: true,
+        });
       }
     } catch (error) {
       console.error("Posts fetch error:", error);
