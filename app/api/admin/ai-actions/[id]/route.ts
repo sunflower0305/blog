@@ -38,24 +38,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     sets.push("temperature = ?");
     values.push(Number(parsed.body.temperature));
   }
-  await appendProfileUpdate(
-    route.db,
-    parsed.body.profile_id,
-    ensureDefaultProfileId,
-    sets,
-    values,
-  );
+  await appendProfileUpdate(route.db, parsed.body.profile_id, ensureDefaultProfileId, sets, values);
   if (sets.length === 0) {
     return NextResponse.json({ error: "没有可更新的字段" }, { status: 400 });
   }
 
-  return finishActionUpdate(
-    route.db,
-    "ai_actions",
-    Number((await params).id),
-    sets,
-    values,
-  );
+  return finishActionUpdate(route.db, "ai_actions", Number((await params).id), sets, values);
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

@@ -29,11 +29,7 @@ export interface ProviderProfilePayload {
 
 export async function initializeProviderProfileRoute(
   req: NextRequest,
-  initialize: (
-    db: D1Database,
-    env: Partial<CloudflareEnv>,
-    secret: string,
-  ) => Promise<void>,
+  initialize: (db: D1Database, env: Partial<CloudflareEnv>, secret: string) => Promise<void>,
   resolveSecret: (env: Partial<CloudflareEnv>) => string,
 ) {
   const route = await getAuthenticatedRoute(req);
@@ -45,10 +41,9 @@ export async function initializeProviderProfileRoute(
 
 export async function handleProviderProfileList<T>(
   req: NextRequest,
-  initialize: (req: NextRequest) => Promise<
-    | { ok: false; response: NextResponse }
-    | { ok: true; db: D1Database }
-  >,
+  initialize: (
+    req: NextRequest,
+  ) => Promise<{ ok: false; response: NextResponse } | { ok: true; db: D1Database }>,
   list: (db: D1Database) => Promise<{ profiles: T[]; defaultProfileId: number | null }>,
 ) {
   const route = await initialize(req);
@@ -94,10 +89,7 @@ export async function readProviderProfileBody<
 >(
   req: NextRequest,
   build: (body: TBody) => TPayload | { error: string },
-): Promise<
-  | { ok: true; body: TBody; payload: TPayload }
-  | { ok: false; response: NextResponse }
-> {
+): Promise<{ ok: true; body: TBody; payload: TPayload } | { ok: false; response: NextResponse }> {
   const parsed = await readJsonBody<TBody>(req);
   if (!parsed.ok) return parsed;
   const payload = build(parsed.body);
@@ -115,11 +107,7 @@ export async function prepareProviderProfileRequest<
   TPayload extends object,
 >(
   req: NextRequest,
-  initialize: (
-    db: D1Database,
-    env: Partial<CloudflareEnv>,
-    secret: string,
-  ) => Promise<void>,
+  initialize: (db: D1Database, env: Partial<CloudflareEnv>, secret: string) => Promise<void>,
   resolveSecret: (env: Partial<CloudflareEnv>) => string,
   build: (body: TBody) => TPayload | { error: string },
 ) {
@@ -135,20 +123,11 @@ export async function prepareProviderProfileUpdateRequest<
 >(
   req: NextRequest,
   table: string,
-  initialize: (
-    db: D1Database,
-    env: Partial<CloudflareEnv>,
-    secret: string,
-  ) => Promise<void>,
+  initialize: (db: D1Database, env: Partial<CloudflareEnv>, secret: string) => Promise<void>,
   resolveSecret: (env: Partial<CloudflareEnv>) => string,
   build: (body: TBody) => TPayload | { error: string },
 ) {
-  const prepared = await prepareProviderProfileRequest(
-    req,
-    initialize,
-    resolveSecret,
-    build,
-  );
+  const prepared = await prepareProviderProfileRequest(req, initialize, resolveSecret, build);
   if (!prepared.ok) return prepared;
   const id = Number(prepared.body.id);
   const loaded = await loadExistingProviderProfile(prepared.db, table, id);
@@ -162,21 +141,12 @@ export async function prepareProviderProfileCreateRequest<
   TPayload extends object,
 >(
   req: NextRequest,
-  initialize: (
-    db: D1Database,
-    env: Partial<CloudflareEnv>,
-    secret: string,
-  ) => Promise<void>,
+  initialize: (db: D1Database, env: Partial<CloudflareEnv>, secret: string) => Promise<void>,
   resolveSecret: (env: Partial<CloudflareEnv>) => string,
   build: (body: TBody) => TPayload | { error: string },
   encrypt: (rawKey: string, secret: string) => Promise<{ encrypted: string; masked: string }>,
 ) {
-  const prepared = await prepareProviderProfileRequest(
-    req,
-    initialize,
-    resolveSecret,
-    build,
-  );
+  const prepared = await prepareProviderProfileRequest(req, initialize, resolveSecret, build);
   if (!prepared.ok) return prepared;
   const key = await encrypt((prepared.body.api_key || "").trim(), prepared.secret);
   return { ...prepared, ...key };
@@ -192,11 +162,7 @@ export async function readProviderProfileId(req: NextRequest) {
 
 export async function initializeAndReadProviderProfileId(
   req: NextRequest,
-  initialize: (
-    db: D1Database,
-    env: Partial<CloudflareEnv>,
-    secret: string,
-  ) => Promise<void>,
+  initialize: (db: D1Database, env: Partial<CloudflareEnv>, secret: string) => Promise<void>,
   resolveSecret: (env: Partial<CloudflareEnv>) => string,
 ) {
   const route = await initializeProviderProfileRoute(req, initialize, resolveSecret);
@@ -205,11 +171,7 @@ export async function initializeAndReadProviderProfileId(
   return parsed.ok ? { ...route, id: parsed.id } : parsed;
 }
 
-export async function loadExistingProviderProfile(
-  db: D1Database,
-  table: string,
-  id: number,
-) {
+export async function loadExistingProviderProfile(db: D1Database, table: string, id: number) {
   const invalid = invalidProfileIdResponse(id);
   if (invalid) return { ok: false as const, response: invalid };
   const profile = await loadProviderProfileRow<{
@@ -229,10 +191,7 @@ export function findDefaultProfileId<T extends { id: number; is_default: number 
   return profiles.find((profile) => profile.is_default === 1)?.id ?? null;
 }
 
-export function resolveNextProfileDefault(
-  requested: boolean | undefined,
-  current: number,
-) {
+export function resolveNextProfileDefault(requested: boolean | undefined, current: number) {
   return requested === true ? 1 : requested === false ? 0 : current;
 }
 

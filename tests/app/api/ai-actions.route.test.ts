@@ -133,9 +133,9 @@ describe("/api/admin/ai-actions CRUD", () => {
 
   it("rejects empty reorder data and empty updates", async () => {
     expect((await REORDER(makeRequest({ items: [] }))).status).toBe(400);
-    expect(
-      (await UPDATE(makeRequest({}), { params: Promise.resolve({ id: "7" }) })).status,
-    ).toBe(400);
+    expect((await UPDATE(makeRequest({}), { params: Promise.resolve({ id: "7" }) })).status).toBe(
+      400,
+    );
   });
 
   it("deletes an existing action", async () => {

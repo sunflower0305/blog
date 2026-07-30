@@ -97,8 +97,6 @@ describe("/api/admin/ai-post-generators route", () => {
     mocks.getByTarget.mockResolvedValueOnce(null);
     expect((await PUT(request("PUT", { target_key: "summary" }))).status).toBe(404);
     mocks.getByTarget.mockResolvedValueOnce({ ...current, prompt: "" });
-    expect(
-      (await PUT(request("PUT", { target_key: "summary", prompt: " " }))).status,
-    ).toBe(400);
+    expect((await PUT(request("PUT", { target_key: "summary", prompt: " " }))).status).toBe(400);
   });
 });

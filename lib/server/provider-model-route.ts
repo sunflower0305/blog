@@ -47,10 +47,7 @@ export function missingProviderKeyResponse(config: ProviderModelConfig) {
       );
 }
 
-export function emptyProviderModelResponse(
-  warning: string | undefined,
-  fallbackModels: string[],
-) {
+export function emptyProviderModelResponse(warning: string | undefined, fallbackModels: string[]) {
   if (fallbackModels.length > 0) {
     return presetModelResponse(
       fallbackModels,

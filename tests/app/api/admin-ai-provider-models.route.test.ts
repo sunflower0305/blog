@@ -155,12 +155,9 @@ describe("/api/admin/ai-provider/models route", () => {
       models: [{ id: "@cf/model", name: "@cf/model" }],
       source: "provider",
     });
-    expect(mocks.fetchWorkersAiModels).toHaveBeenCalledWith(
-      "acct",
-      "token",
-      "text",
-      ["workers-text-model"],
-    );
+    expect(mocks.fetchWorkersAiModels).toHaveBeenCalledWith("acct", "token", "text", [
+      "workers-text-model",
+    ]);
   });
 
   it("falls back when the Workers AI account id is still a placeholder", async () => {

@@ -105,13 +105,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "没有可更新的字段" }, { status: 400 });
   }
 
-  return finishActionUpdate(
-    route.db,
-    "ai_image_actions",
-    id,
-    sets,
-    values,
-  );
+  return finishActionUpdate(route.db, "ai_image_actions", id, sets, values);
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

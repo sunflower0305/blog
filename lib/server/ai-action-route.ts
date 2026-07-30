@@ -123,7 +123,10 @@ export async function runActionWrite(
   values: SqlValue[],
 ) {
   try {
-    await db.prepare(sql).bind(...values).run();
+    await db
+      .prepare(sql)
+      .bind(...values)
+      .run();
   } catch (error) {
     const escapedTable = table.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     if (
@@ -222,13 +225,10 @@ export async function handleActionDelete(
   req: NextRequest,
   params: Promise<{ id: string }>,
   table: string,
-  initialize: (req: NextRequest) => Promise<
-    | { ok: false; response: NextResponse }
-    | { ok: true; db: D1Database }
-  >,
+  initialize: (
+    req: NextRequest,
+  ) => Promise<{ ok: false; response: NextResponse } | { ok: true; db: D1Database }>,
 ) {
   const route = await initialize(req);
-  return route.ok
-    ? deleteAction(route.db, table, Number((await params).id))
-    : route.response;
+  return route.ok ? deleteAction(route.db, table, Number((await params).id)) : route.response;
 }

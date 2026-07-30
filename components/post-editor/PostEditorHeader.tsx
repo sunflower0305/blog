@@ -72,9 +72,17 @@ export function PostEditorHeader({ controller }: Props) {
         {uploadingImage && <UploadProgress progress={uploadProgress} />}
 
         <div className="flex items-center gap-1">
-          <HeaderAction title="复制公众号格式" onClick={() => void handleCopyWechat()} icon={<Copy />} />
+          <HeaderAction
+            title="复制公众号格式"
+            onClick={() => void handleCopyWechat()}
+            icon={<Copy />}
+          />
           <HeaderAction title="发布到公众号" onClick={handleOpenWechatPublish} icon={<Send />} />
-          <HeaderAction title="下载 PDF" onClick={() => void handleDownloadPdf()} icon={<FileDown />} />
+          <HeaderAction
+            title="下载 PDF"
+            onClick={() => void handleDownloadPdf()}
+            icon={<FileDown />}
+          />
           <HeaderAction
             title="Ask AI（基于标题和正文）"
             onClick={(target) => openDocumentAIModal(target)}

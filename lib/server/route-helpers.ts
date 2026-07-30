@@ -111,9 +111,7 @@ export async function ensureAuthenticatedRequest(
   return null;
 }
 
-export async function getAuthenticatedRoute(
-  req: NextRequest,
-): Promise<AuthenticatedRouteResult> {
+export async function getAuthenticatedRoute(req: NextRequest): Promise<AuthenticatedRouteResult> {
   const env = await getAppCloudflareEnv();
   const db = env?.DB as D1Database | undefined;
   const unauthorized = await ensureAuthenticatedRequest(req, db);

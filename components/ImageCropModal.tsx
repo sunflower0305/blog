@@ -244,20 +244,20 @@ export function ImageCropModal({
                         void (async () => {
                           if (!croppedAreaPixels) return;
 
-                        setSubmitting(true);
-                        setError("");
+                          setSubmitting(true);
+                          setError("");
 
-                        try {
-                          const croppedFile = await cropImageForUpload(
-                            imageUrl,
-                            croppedAreaPixels,
-                            EDITOR_IMAGE_OPTIMIZE_OPTIONS,
-                            imageAlt || "cropped-image",
-                          );
+                          try {
+                            const croppedFile = await cropImageForUpload(
+                              imageUrl,
+                              croppedAreaPixels,
+                              EDITOR_IMAGE_OPTIMIZE_OPTIONS,
+                              imageAlt || "cropped-image",
+                            );
 
-                          await onApply(croppedFile, placementMode);
-                        } catch (nextError) {
-                          setError(nextError instanceof Error ? nextError.message : "裁剪失败");
+                            await onApply(croppedFile, placementMode);
+                          } catch (nextError) {
+                            setError(nextError instanceof Error ? nextError.message : "裁剪失败");
                           } finally {
                             setSubmitting(false);
                           }

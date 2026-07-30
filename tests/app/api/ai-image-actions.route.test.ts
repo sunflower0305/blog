@@ -133,10 +133,9 @@ describe("/api/admin/ai-image-actions CRUD", () => {
   });
 
   it("updates image options and rejects empty reorder data", async () => {
-    const updated = await UPDATE(
-      makeRequest({ size: "1024x1024", quality: "hd", profile_id: 0 }),
-      { params: Promise.resolve({ id: "7" }) },
-    );
+    const updated = await UPDATE(makeRequest({ size: "1024x1024", quality: "hd", profile_id: 0 }), {
+      params: Promise.resolve({ id: "7" }),
+    });
     expect(await updated.json()).toEqual({ success: true });
     expect((await REORDER(makeRequest({}))).status).toBe(400);
   });

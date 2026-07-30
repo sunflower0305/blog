@@ -83,7 +83,10 @@ describe("/api/admin/workers-ai-models route", () => {
     mocks.fetchModels.mockRejectedValueOnce(new Error("rate limited"));
     const response = await GET(request());
     expect(await response.json()).toEqual(
-      expect.objectContaining({ source: "preset", warning: expect.stringContaining("rate limited") }),
+      expect.objectContaining({
+        source: "preset",
+        warning: expect.stringContaining("rate limited"),
+      }),
     );
   });
 });
