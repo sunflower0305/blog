@@ -23,7 +23,7 @@ export async function initializeActionRoute(
   return route;
 }
 
-export function validateRequiredActionFields(body: CommonActionBody) {
+function validateRequiredActionFields(body: CommonActionBody) {
   return Boolean(body.action_key && body.label && body.description && body.prompt);
 }
 
@@ -38,7 +38,7 @@ export async function readValidActionBody<T extends CommonActionBody>(req: NextR
       };
 }
 
-export async function resolveActionProfileId(
+async function resolveActionProfileId(
   db: D1Database,
   requestedId: number | undefined,
   ensureDefaultId: (db: D1Database) => Promise<number | null>,
@@ -48,7 +48,7 @@ export async function resolveActionProfileId(
     : await ensureDefaultId(db);
 }
 
-export async function resolveActionSortOrder(
+async function resolveActionSortOrder(
   db: D1Database,
   table: string,
   requestedOrder: number | undefined,
@@ -60,7 +60,7 @@ export async function resolveActionSortOrder(
   return (row?.max_sort ?? 0) + 10;
 }
 
-export async function prepareActionCreate(
+async function prepareActionCreate(
   db: D1Database,
   table: string,
   body: CommonActionBody,
@@ -116,12 +116,7 @@ export async function createAction(options: {
   return duplicate ?? NextResponse.json({ success: true });
 }
 
-export async function runActionWrite(
-  db: D1Database,
-  table: string,
-  sql: string,
-  values: SqlValue[],
-) {
+async function runActionWrite(db: D1Database, table: string, sql: string, values: SqlValue[]) {
   try {
     await db
       .prepare(sql)
@@ -140,7 +135,7 @@ export async function runActionWrite(
   return null;
 }
 
-export async function reorderActions(
+async function reorderActions(
   db: D1Database,
   table: string,
   items: Array<{ id: number; sort_order: number }> | undefined,
@@ -211,7 +206,7 @@ export async function finishActionUpdate(
   return duplicate ?? NextResponse.json({ success: true });
 }
 
-export async function deleteAction(db: D1Database, table: string, id: number) {
+async function deleteAction(db: D1Database, table: string, id: number) {
   const row = await db
     .prepare(`SELECT id FROM ${table} WHERE id = ?`)
     .bind(id)

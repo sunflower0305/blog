@@ -77,13 +77,13 @@ export function buildProviderProfilePayload(
   };
 }
 
-export function invalidProfileIdResponse(id: number) {
+function invalidProfileIdResponse(id: number) {
   return Number.isFinite(id) && id > 0
     ? null
     : NextResponse.json({ error: "缺少有效的配置 ID" }, { status: 400 });
 }
 
-export async function readProviderProfileBody<
+async function readProviderProfileBody<
   TBody extends SaveProviderProfileBody,
   TPayload extends object,
 >(
@@ -102,7 +102,7 @@ export async function readProviderProfileBody<
   return { ok: true, body: parsed.body, payload: payload as TPayload };
 }
 
-export async function prepareProviderProfileRequest<
+async function prepareProviderProfileRequest<
   TBody extends SaveProviderProfileBody,
   TPayload extends object,
 >(
@@ -152,7 +152,7 @@ export async function prepareProviderProfileCreateRequest<
   return { ...prepared, ...key };
 }
 
-export async function readProviderProfileId(req: NextRequest) {
+async function readProviderProfileId(req: NextRequest) {
   const parsed = await readJsonBody<{ id?: number }>(req);
   if (!parsed.ok) return parsed;
   const id = Number(parsed.body.id);
@@ -171,7 +171,7 @@ export async function initializeAndReadProviderProfileId(
   return parsed.ok ? { ...route, id: parsed.id } : parsed;
 }
 
-export async function loadExistingProviderProfile(db: D1Database, table: string, id: number) {
+async function loadExistingProviderProfile(db: D1Database, table: string, id: number) {
   const invalid = invalidProfileIdResponse(id);
   if (invalid) return { ok: false as const, response: invalid };
   const profile = await loadProviderProfileRow<{
@@ -195,11 +195,11 @@ export function resolveNextProfileDefault(requested: boolean | undefined, curren
   return requested === true ? 1 : requested === false ? 0 : current;
 }
 
-export async function loadProviderProfileRow<T>(db: D1Database, sql: string, id: number) {
+async function loadProviderProfileRow<T>(db: D1Database, sql: string, id: number) {
   return db.prepare(sql).bind(id).first<T>();
 }
 
-export function providerProfileSuccess<T>(row: T | null, map: (value: T) => unknown = (v) => v) {
+function providerProfileSuccess<T>(row: T | null, map: (value: T) => unknown = (v) => v) {
   return NextResponse.json({ success: true, profile: row ? map(row) : null });
 }
 
@@ -292,7 +292,7 @@ export async function insertProviderProfile(options: {
   return result.meta.last_row_id;
 }
 
-export async function backfillActionProfiles(
+async function backfillActionProfiles(
   db: D1Database,
   actionTable: string,
   defaultId: number | null,
