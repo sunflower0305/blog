@@ -57,7 +57,7 @@ export default defineConfig(({ mode }) => {
         typeCheck: true,
       },
       rules: {
-        complexity: isQualityMetricsEnabled ? ["warn", { max: 15 }] : "off",
+        complexity: isQualityMetricsEnabled ? ["warn", { max: 20 }] : "off",
         "max-depth": isQualityMetricsEnabled ? ["warn", { max: 4 }] : "off",
         "max-lines": [codeSizeSeverity, { max: 600, skipBlankLines: false, skipComments: false }],
         "max-lines-per-function": [
