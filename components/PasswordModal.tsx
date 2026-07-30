@@ -124,7 +124,7 @@ export function PasswordModal({
                   />
                   <button
                     type="button"
-                    onClick={() => copyToClipboard(password, "password")}
+                    onClick={() => void copyToClipboard(password, "password")}
                     className="px-3 py-2 text-sm rounded-md border border-[var(--editor-line)] bg-[var(--background)] text-[var(--editor-ink)] hover:bg-[var(--editor-soft)] transition-colors"
                   >
                     {copied === "password" ? "✓" : "复制"}
@@ -145,7 +145,7 @@ export function PasswordModal({
                   />
                   <button
                     type="button"
-                    onClick={() => copyToClipboard(fullUrl, "url")}
+                    onClick={() => void copyToClipboard(fullUrl, "url")}
                     className="px-3 py-2 text-sm rounded-md border border-[var(--editor-line)] bg-[var(--background)] text-[var(--editor-ink)] hover:bg-[var(--editor-soft)] transition-colors"
                   >
                     {copied === "url" ? "✓" : "复制"}
@@ -158,7 +158,7 @@ export function PasswordModal({
 
               <button
                 type="button"
-                onClick={handleToggleEncryption}
+                onClick={() => void handleToggleEncryption()}
                 disabled={loading}
                 className="w-full px-4 py-2 text-sm font-medium text-rose-600 border border-rose-200 rounded-lg hover:bg-rose-50 transition-colors disabled:opacity-50"
               >
@@ -172,7 +172,7 @@ export function PasswordModal({
               </p>
               <button
                 type="button"
-                onClick={handleToggleEncryption}
+                onClick={() => void handleToggleEncryption()}
                 disabled={loading}
                 className="w-full px-4 py-2 text-sm font-semibold bg-[var(--editor-accent)] text-[var(--editor-accent-ink)] rounded-lg hover:brightness-105 transition-all disabled:opacity-50"
               >

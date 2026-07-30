@@ -489,7 +489,7 @@ export function InlineArticleEditor({
             </button>
             <button
               type="button"
-              onClick={handleSave}
+              onClick={() => void handleSave()}
               disabled={saving}
               className="px-2 py-1 rounded-md bg-[var(--editor-accent)] text-[var(--editor-accent-ink)] font-medium hover:brightness-110 transition disabled:opacity-50"
             >

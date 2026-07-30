@@ -241,7 +241,7 @@ export function WeChatBridgeManager() {
         <div className="mt-5 flex flex-wrap justify-end gap-2">
           <button
             type="button"
-            onClick={handleTest}
+            onClick={() => void handleTest()}
             disabled={testing}
             className="rounded-lg border border-[var(--editor-line)] px-3 py-2 text-sm text-[var(--editor-ink)] transition hover:bg-[var(--editor-soft)] disabled:opacity-50"
           >
@@ -249,7 +249,7 @@ export function WeChatBridgeManager() {
           </button>
           <button
             type="button"
-            onClick={handleSave}
+            onClick={() => void handleSave()}
             disabled={saving}
             className="rounded-lg bg-[var(--editor-accent)] px-3 py-2 text-sm font-semibold text-[var(--editor-accent-ink)] transition hover:brightness-105 disabled:opacity-50"
           >

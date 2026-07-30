@@ -25,7 +25,7 @@ function TweetComponent(props: ReactNodeViewProps) {
   }, [tweetId, src]);
 
   useEffect(() => {
-    renderTweet();
+    void renderTweet();
   }, [renderTweet]);
 
   return (

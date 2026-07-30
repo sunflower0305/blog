@@ -338,7 +338,7 @@ export function AiImageProviderManager() {
         emptyText="暂无配置"
         onEdit={openEdit}
         onDelete={setDeleteTarget}
-        onSetDefault={setAsDefault}
+        onSetDefault={(id) => void setAsDefault(id)}
       />
 
       {editing && (
@@ -363,7 +363,7 @@ export function AiImageProviderManager() {
             modelsSource={modelsSource}
             modelsWarning={modelsWarning}
             onChange={updateEditing}
-            onFetchModels={handleFetchModels}
+            onFetchModels={() => void handleFetchModels()}
             fetchModelsLabel="获取模型"
           />
 
@@ -388,7 +388,7 @@ export function AiImageProviderManager() {
             </button>
             <button
               type="button"
-              onClick={handleSave}
+              onClick={() => void handleSave()}
               disabled={saving}
               className="rounded-lg bg-[var(--editor-accent)] px-4 py-2 text-sm font-semibold text-[var(--editor-accent-ink)] hover:brightness-105 disabled:opacity-50"
             >

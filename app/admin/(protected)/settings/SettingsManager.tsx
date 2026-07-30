@@ -95,7 +95,7 @@ export function SettingsManager({
           )}
           <NavLinksEditor
             initialValue={initialNavLinks}
-            onSave={(val) => save("nav_links", val)}
+            onSave={(val) => void save("nav_links", val)}
             saving={saving}
           />
         </div>
@@ -122,7 +122,7 @@ export function SettingsManager({
           </p>
           <CustomJsEditor
             initialValue={initialCustomJs}
-            onSave={(val) => save("custom_js", val)}
+            onSave={(val) => void save("custom_js", val)}
             saving={saving}
           />
         </div>

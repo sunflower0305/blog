@@ -140,7 +140,7 @@ export function CategoryManager({ initialCategories }: { initialCategories: Cate
     <div className="space-y-6">
       {/* 添加分类 */}
       <form
-        onSubmit={handleAdd}
+        onSubmit={(event) => void handleAdd(event)}
         className="bg-[var(--editor-panel)] rounded-xl border border-[var(--editor-line)] p-5"
       >
         <h2 className="text-sm font-semibold text-[var(--editor-ink)] mb-3">添加分类</h2>
@@ -218,7 +218,7 @@ export function CategoryManager({ initialCategories }: { initialCategories: Cate
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      onClick={handleUpdate}
+                      onClick={() => void handleUpdate()}
                       className="text-xs text-emerald-600 hover:underline"
                     >
                       保存
@@ -249,7 +249,7 @@ export function CategoryManager({ initialCategories }: { initialCategories: Cate
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleDelete(cat.slug, cat.name)}
+                      onClick={() => void handleDelete(cat.slug, cat.name)}
                       className="text-xs text-rose-500 hover:underline"
                     >
                       删除

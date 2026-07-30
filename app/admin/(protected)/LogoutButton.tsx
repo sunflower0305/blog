@@ -15,7 +15,7 @@ export function LogoutButton() {
   return (
     <button
       type="button"
-      onClick={handleLogout}
+      onClick={() => void handleLogout()}
       className="p-2 rounded-lg text-[var(--editor-muted)] hover:text-rose-500 hover:bg-[var(--editor-soft)] transition-all"
       title="退出登录"
     >

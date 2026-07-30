@@ -227,15 +227,17 @@ function ResizableImageView(props: any) {
           </button>
           <button
             type="button"
-            onClick={async () => {
-              try {
-                await copyEditorImage(imageTarget.src);
-                toast.success("已复制图片");
-              } catch (error) {
-                toast.error(error instanceof Error ? error.message : "复制图片失败");
-              } finally {
-                closeMenu();
-              }
+            onClick={() => {
+              void (async () => {
+                try {
+                  await copyEditorImage(imageTarget.src);
+                  toast.success("已复制图片");
+                } catch (error) {
+                  toast.error(error instanceof Error ? error.message : "复制图片失败");
+                } finally {
+                  closeMenu();
+                }
+              })();
             }}
             className="editor-image-menu-item"
           >

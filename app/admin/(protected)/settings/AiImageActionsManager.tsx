@@ -267,7 +267,7 @@ export function AiImageActionsManager() {
                     <button
                       type="button"
                       disabled={index === 0}
-                      onClick={() => moveAction(index, "up")}
+                      onClick={() => void moveAction(index, "up")}
                       className="rounded px-1 text-[var(--editor-muted)] hover:bg-[var(--editor-soft)] disabled:opacity-30"
                     >
                       ↑
@@ -275,7 +275,7 @@ export function AiImageActionsManager() {
                     <button
                       type="button"
                       disabled={index === actions.length - 1}
-                      onClick={() => moveAction(index, "down")}
+                      onClick={() => void moveAction(index, "down")}
                       className="rounded px-1 text-[var(--editor-muted)] hover:bg-[var(--editor-soft)] disabled:opacity-30"
                     >
                       ↓
@@ -301,7 +301,7 @@ export function AiImageActionsManager() {
                 <td className="px-3 py-2 text-center">
                   <button
                     type="button"
-                    onClick={() => toggleEnabled(action)}
+                    onClick={() => void toggleEnabled(action)}
                     className={`inline-block h-4 w-4 rounded-full transition ${action.is_enabled ? "bg-emerald-500" : "bg-[var(--editor-line)]"}`}
                     title={action.is_enabled ? "已启用（点击禁用）" : "已禁用（点击启用）"}
                   />
@@ -482,7 +482,7 @@ export function AiImageActionsManager() {
               </button>
               <button
                 type="button"
-                onClick={handleSave}
+                onClick={() => void handleSave()}
                 disabled={saving}
                 className="rounded-lg bg-[var(--editor-accent)] px-4 py-2 text-sm font-semibold text-[var(--editor-accent-ink)] hover:brightness-105 disabled:opacity-50"
               >

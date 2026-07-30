@@ -313,7 +313,7 @@ export function PostRow({ post, categories }: PostRowProps) {
           <Dropdown
             options={categoryOptions}
             value={post.category || ""}
-            onChange={handleCategoryChange}
+            onChange={(value) => void handleCategoryChange(value)}
             placeholder="未分类"
             className="w-full"
             disabled={loading || isDeleted}
@@ -335,7 +335,7 @@ export function PostRow({ post, categories }: PostRowProps) {
           {isDeleted ? (
             <>
               <button
-                onClick={handleRestore}
+                onClick={() => void handleRestore()}
                 disabled={loading}
                 className="p-1.5 rounded hover:bg-[var(--editor-soft)] transition-colors disabled:opacity-50"
                 title="恢复"
@@ -361,7 +361,7 @@ export function PostRow({ post, categories }: PostRowProps) {
                 <Eye className="w-4 h-4 text-[var(--stone-gray)]" />
               </button>
               <button
-                onClick={handleCopyLink}
+                onClick={() => void handleCopyLink()}
                 className="p-1.5 rounded hover:bg-[var(--editor-soft)] transition-colors"
                 title="复制链接"
               >
@@ -475,7 +475,7 @@ export function PostRow({ post, categories }: PostRowProps) {
             <Dropdown
               options={categoryOptions}
               value={post.category || ""}
-              onChange={handleCategoryChange}
+              onChange={(value) => void handleCategoryChange(value)}
               placeholder="未分类"
               className="w-full"
               disabled={loading || isDeleted}
@@ -491,7 +491,7 @@ export function PostRow({ post, categories }: PostRowProps) {
           {isDeleted ? (
             <>
               <button
-                onClick={handleRestore}
+                onClick={() => void handleRestore()}
                 disabled={loading}
                 className="p-1.5 rounded hover:bg-[var(--editor-soft)] transition-colors disabled:opacity-50"
                 title="恢复"
@@ -516,7 +516,7 @@ export function PostRow({ post, categories }: PostRowProps) {
                 <Eye className="w-4 h-4 text-[var(--stone-gray)]" />
               </button>
               <button
-                onClick={handleCopyLink}
+                onClick={() => void handleCopyLink()}
                 className="p-1.5 rounded hover:bg-[var(--editor-soft)] transition-colors"
               >
                 <Link2 className="w-4 h-4 text-[var(--stone-gray)]" />

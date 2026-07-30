@@ -406,7 +406,7 @@ export function AiProviderManager() {
         emptyText="暂无配置"
         onEdit={openEdit}
         onDelete={setDeleteTarget}
-        onSetDefault={setAsDefault}
+        onSetDefault={(id) => void setAsDefault(id)}
       />
 
       {editing && (
@@ -431,7 +431,7 @@ export function AiProviderManager() {
             modelsSource={modelsSource}
             modelsWarning={modelsWarning}
             onChange={updateEditing}
-            onFetchModels={handleFetchModels}
+            onFetchModels={() => void handleFetchModels()}
           />
 
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -500,7 +500,7 @@ export function AiProviderManager() {
           <div className="mt-5 flex justify-end gap-2">
             <button
               type="button"
-              onClick={handleTest}
+              onClick={() => void handleTest()}
               disabled={testing}
               className="rounded-lg border border-[var(--editor-line)] px-4 py-2 text-sm text-[var(--editor-ink)] hover:bg-[var(--editor-soft)] disabled:opacity-50"
             >
@@ -515,7 +515,7 @@ export function AiProviderManager() {
             </button>
             <button
               type="button"
-              onClick={handleSave}
+              onClick={() => void handleSave()}
               disabled={saving}
               className="rounded-lg bg-[var(--editor-accent)] px-4 py-2 text-sm font-semibold text-[var(--editor-accent-ink)] hover:brightness-105 disabled:opacity-50"
             >

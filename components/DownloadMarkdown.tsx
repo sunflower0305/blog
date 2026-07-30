@@ -100,14 +100,14 @@ export function DownloadMarkdown({ title, html }: { title: string; html: string 
         </svg>
       </button>
       <button
-        onClick={handleCopyWechat}
+        onClick={() => void handleCopyWechat()}
         title="复制公众号格式"
         className="inline-flex items-center justify-center rounded p-1 text-[var(--stone-gray)] hover:text-[var(--editor-accent)] hover:bg-[var(--editor-accent)]/8 transition-colors"
       >
         <Copy className="h-3.5 w-3.5" />
       </button>
       <button
-        onClick={handleDownloadPdf}
+        onClick={() => void handleDownloadPdf()}
         title="下载 PDF"
         className="inline-flex items-center justify-center rounded p-1 text-[var(--stone-gray)] hover:text-[var(--editor-accent)] hover:bg-[var(--editor-accent)]/8 transition-colors"
       >

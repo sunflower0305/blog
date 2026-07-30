@@ -240,8 +240,9 @@ export function ImageCropModal({
                     <button
                       type="button"
                       disabled={submitting || !croppedAreaPixels}
-                      onClick={async () => {
-                        if (!croppedAreaPixels) return;
+                      onClick={() => {
+                        void (async () => {
+                          if (!croppedAreaPixels) return;
 
                         setSubmitting(true);
                         setError("");
@@ -257,9 +258,10 @@ export function ImageCropModal({
                           await onApply(croppedFile, placementMode);
                         } catch (nextError) {
                           setError(nextError instanceof Error ? nextError.message : "裁剪失败");
-                        } finally {
-                          setSubmitting(false);
-                        }
+                          } finally {
+                            setSubmitting(false);
+                          }
+                        })();
                       }}
                       className="inline-flex items-center gap-2 rounded-xl bg-[var(--editor-accent)] px-4 py-2 text-sm font-semibold text-[var(--editor-accent-ink)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
                     >

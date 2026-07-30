@@ -72,7 +72,7 @@ export function AiActionsManager() {
   }, []);
 
   useEffect(() => {
-    loadData();
+    void loadData();
   }, [loadData]);
 
   const getProfileName = (profileId: number | null | undefined) => {
@@ -126,7 +126,7 @@ export function AiActionsManager() {
 
       setEditAction(null);
       setIsNew(false);
-      loadData();
+      void loadData();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "保存失败");
     } finally {
@@ -142,7 +142,7 @@ export function AiActionsManager() {
       if (!res.ok) throw new Error(data.error || "删除失败");
       toast.success("操作已删除");
       setDeleteTarget(null);
-      loadData();
+      void loadData();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "删除失败");
     }
@@ -156,7 +156,7 @@ export function AiActionsManager() {
         body: JSON.stringify({ is_enabled: action.is_enabled ? 0 : 1 }),
       });
       if (!res.ok) throw new Error();
-      loadData();
+      void loadData();
     } catch {
       toast.error("更新失败");
     }
@@ -182,7 +182,7 @@ export function AiActionsManager() {
           ],
         }),
       });
-      loadData();
+      void loadData();
     } catch {
       toast.error("排序失败");
     }
@@ -240,7 +240,7 @@ export function AiActionsManager() {
                     <button
                       type="button"
                       disabled={idx === 0}
-                      onClick={() => moveAction(idx, "up")}
+                      onClick={() => void moveAction(idx, "up")}
                       className="rounded px-1 text-[var(--editor-muted)] hover:bg-[var(--editor-soft)] disabled:opacity-30"
                     >
                       ↑
@@ -248,7 +248,7 @@ export function AiActionsManager() {
                     <button
                       type="button"
                       disabled={idx === actions.length - 1}
-                      onClick={() => moveAction(idx, "down")}
+                      onClick={() => void moveAction(idx, "down")}
                       className="rounded px-1 text-[var(--editor-muted)] hover:bg-[var(--editor-soft)] disabled:opacity-30"
                     >
                       ↓
@@ -268,7 +268,7 @@ export function AiActionsManager() {
                 <td className="px-3 py-2 text-center">
                   <button
                     type="button"
-                    onClick={() => toggleEnabled(action)}
+                    onClick={() => void toggleEnabled(action)}
                     className={`inline-block h-4 w-4 rounded-full transition ${action.is_enabled ? "bg-emerald-500" : "bg-[var(--editor-line)]"}`}
                     title={action.is_enabled ? "已启用（点击禁用）" : "已禁用（点击启用）"}
                   />
@@ -409,7 +409,7 @@ export function AiActionsManager() {
               </button>
               <button
                 type="button"
-                onClick={handleSave}
+                onClick={() => void handleSave()}
                 disabled={saving}
                 className="rounded-lg bg-[var(--editor-accent)] px-4 py-2 text-sm font-semibold text-[var(--editor-accent-ink)] hover:brightness-105 disabled:opacity-50"
               >

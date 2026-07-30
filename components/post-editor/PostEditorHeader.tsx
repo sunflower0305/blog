@@ -72,9 +72,9 @@ export function PostEditorHeader({ controller }: Props) {
         {uploadingImage && <UploadProgress progress={uploadProgress} />}
 
         <div className="flex items-center gap-1">
-          <HeaderAction title="复制公众号格式" onClick={handleCopyWechat} icon={<Copy />} />
+          <HeaderAction title="复制公众号格式" onClick={() => void handleCopyWechat()} icon={<Copy />} />
           <HeaderAction title="发布到公众号" onClick={handleOpenWechatPublish} icon={<Send />} />
-          <HeaderAction title="下载 PDF" onClick={handleDownloadPdf} icon={<FileDown />} />
+          <HeaderAction title="下载 PDF" onClick={() => void handleDownloadPdf()} icon={<FileDown />} />
           <HeaderAction
             title="Ask AI（基于标题和正文）"
             onClick={(target) => openDocumentAIModal(target)}
@@ -193,7 +193,7 @@ function PublishControl({ controller }: Props) {
       <div className="inline-flex">
         <button
           type="button"
-          onClick={handleSave}
+          onClick={() => void handleSave()}
           disabled={saving || uploadingImage}
           className="inline-flex items-center gap-1.5 rounded-l-lg bg-[var(--editor-accent)] pl-3 pr-2 py-1.5 text-sm font-semibold text-[var(--editor-accent-ink)] transition hover:brightness-105 disabled:opacity-60"
         >
@@ -256,7 +256,7 @@ function PublishControl({ controller }: Props) {
               </button>
               <button
                 type="button"
-                onClick={handleSave}
+                onClick={() => void handleSave()}
                 disabled={saving}
                 className="px-3 py-1.5 text-sm font-semibold text-[var(--editor-accent-ink)] bg-[var(--editor-accent)] rounded-lg hover:brightness-105 disabled:opacity-50"
               >

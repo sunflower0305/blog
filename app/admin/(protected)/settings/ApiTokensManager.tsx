@@ -38,7 +38,7 @@ export function ApiTokensManager() {
   };
 
   useEffect(() => {
-    loadTokens();
+    void loadTokens();
   }, []);
 
   const createToken = async () => {
@@ -55,7 +55,7 @@ export function ApiTokensManager() {
       setNewToken(data.token);
       setNewName("");
       toast.success("Token 已创建");
-      loadTokens();
+      void loadTokens();
     } catch {
       toast.error("创建 Token 失败");
     } finally {
@@ -73,7 +73,7 @@ export function ApiTokensManager() {
       });
       if (!res.ok) throw new Error("删除失败");
       toast.success("Token 已删除");
-      loadTokens();
+      void loadTokens();
     } catch {
       toast.error("删除失败");
     }
@@ -115,7 +115,7 @@ export function ApiTokensManager() {
               {newToken}
             </code>
             <button
-              onClick={() => copyToken(newToken)}
+              onClick={() => void copyToken(newToken)}
               className="shrink-0 px-3 py-2 text-sm bg-[var(--editor-accent)] text-[var(--editor-accent-ink)] rounded-lg hover:brightness-105"
             >
               复制
@@ -136,13 +136,15 @@ export function ApiTokensManager() {
           type="text"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && createToken()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") void createToken();
+          }}
           placeholder="Token 用途，如 Obsidian插件"
           className="flex-1 px-3 py-2 text-sm border border-[var(--editor-line)] rounded-lg bg-[var(--background)] text-[var(--editor-ink)] placeholder:text-[var(--editor-muted)]
                      focus:outline-none focus:border-[var(--editor-accent)]"
         />
         <button
-          onClick={createToken}
+          onClick={() => void createToken()}
           disabled={creating || !newName.trim()}
           className="px-4 py-2 text-sm bg-[var(--editor-accent)] text-[var(--editor-accent-ink)] rounded-lg font-medium
                      hover:brightness-105 disabled:opacity-50"
@@ -173,7 +175,7 @@ export function ApiTokensManager() {
                 </div>
               </div>
               <button
-                onClick={() => deleteToken(t.id, t.name)}
+                onClick={() => void deleteToken(t.id, t.name)}
                 className="text-xs text-rose-500 hover:text-rose-700 shrink-0 ml-4"
               >
                 删除

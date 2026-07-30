@@ -150,7 +150,7 @@ export function MediaLibrary() {
   }, [page, q, category, toast]);
 
   useEffect(() => {
-    fetchMedia();
+    void fetchMedia();
   }, [fetchMedia]);
 
   async function uploadFiles(files: FileList | File[]) {
@@ -174,19 +174,19 @@ export function MediaLibrary() {
     if (succeeded > 0) {
       toast.success(`上传成功 ${succeeded} 个文件`);
       setPage(1);
-      fetchMedia();
+      void fetchMedia();
     }
   }
 
   function handleFileInput(e: React.ChangeEvent<HTMLInputElement>) {
-    if (e.target.files) uploadFiles(e.target.files);
+    if (e.target.files) void uploadFiles(e.target.files);
     e.target.value = "";
   }
 
   function handleDrop(e: DragEvent<HTMLDivElement>) {
     e.preventDefault();
     setDragOver(false);
-    if (e.dataTransfer.files) uploadFiles(e.dataTransfer.files);
+    if (e.dataTransfer.files) void uploadFiles(e.dataTransfer.files);
   }
 
   function handleDragOver(e: DragEvent<HTMLDivElement>) {
@@ -196,7 +196,7 @@ export function MediaLibrary() {
 
   function handleCopy(item: MediaItem) {
     const url = `${window.location.origin}${item.url}`;
-    navigator.clipboard.writeText(url).then(() => {
+    void navigator.clipboard.writeText(url).then(() => {
       setCopiedKey(item.key);
       toast.success("URL 已复制");
       setTimeout(() => setCopiedKey(null), 2000);
