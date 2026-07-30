@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { authenticateRequest } from "@/lib/admin-auth";
-import { getAppCloudflareEnv } from "@/lib/cloudflare";
 import {
   ensureAiImageConfigInfrastructure,
   ensureDefaultImageProfileId,
@@ -13,165 +11,111 @@ import {
   normalizeAiImageAspectRatio,
   normalizeAiImageResolution,
 } from "@/lib/ai-image-options";
-import { readJsonBody } from "@/lib/server/route-helpers";
+import {
+  appendCommonActionUpdates,
+  appendProfileUpdate,
+  deleteAction,
+  finishActionUpdate,
+  initializeActionRoute,
+  type CommonActionBody,
+  type SqlValue,
+} from "@/lib/server/ai-action-route";
+import { getAuthenticatedRoute, readJsonBody } from "@/lib/server/route-helpers";
+
+interface ImageActionBody extends CommonActionBody {
+  aspect_ratio?: string;
+  resolution?: string;
+  size?: string;
+  quality?: string;
+}
+
+interface CurrentImageOptions {
+  id: number;
+  aspect_ratio: string;
+  resolution: string;
+  size: string;
+  quality: string;
+}
+
+async function initialize(req: NextRequest) {
+  return initializeActionRoute(req, (db) => ensureAiImageConfigInfrastructure(db));
+}
+
+function appendImageOptionUpdates(
+  body: ImageActionBody,
+  current: CurrentImageOptions,
+  sets: string[],
+  values: SqlValue[],
+) {
+  if (
+    body.aspect_ratio === undefined &&
+    body.resolution === undefined &&
+    body.size === undefined &&
+    body.quality === undefined
+  ) {
+    return;
+  }
+  const aspectRatio = normalizeAiImageAspectRatio(
+    body.aspect_ratio ||
+      (body.size !== undefined ? inferAspectRatioFromLegacySize(body.size) : current.aspect_ratio),
+  );
+  const resolution = normalizeAiImageResolution(
+    body.resolution ||
+      (body.quality !== undefined
+        ? inferResolutionFromLegacyQuality(body.quality)
+        : current.resolution),
+  );
+  sets.push("aspect_ratio = ?", "resolution = ?", "size = ?", "quality = ?");
+  values.push(
+    aspectRatio,
+    resolution,
+    deriveLegacySizeFromAspectRatio(aspectRatio, body.size || current.size),
+    deriveLegacyQualityFromResolution(resolution, body.quality || current.quality),
+  );
+}
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const env = await getAppCloudflareEnv();
-  const db = env?.DB as D1Database | undefined;
-  if (!(await authenticateRequest(req, db))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!db) return NextResponse.json({ error: "DB unavailable" }, { status: 500 });
-
-  await ensureAiImageConfigInfrastructure(db);
-
-  const { id } = await params;
-  const parsed = await readJsonBody<{
-    action_key?: string;
-    label?: string;
-    description?: string;
-    prompt?: string;
-    aspect_ratio?: string;
-    resolution?: string;
-    size?: string;
-    quality?: string;
-    profile_id?: number;
-    is_enabled?: number;
-  }>(req);
+  const route = await initialize(req);
+  if (!route.ok) return route.response;
+  const parsed = await readJsonBody<ImageActionBody>(req);
   if (!parsed.ok) return parsed.response;
-  const body = parsed.body;
-  const numericId = Number(id);
-  const current = await db
-    .prepare(`
-    SELECT id, aspect_ratio, resolution, size, quality
-    FROM ai_image_actions
-    WHERE id = ?
-    LIMIT 1
-  `)
-    .bind(numericId)
-    .first<{
-      id: number;
-      aspect_ratio: string;
-      resolution: string;
-      size: string;
-      quality: string;
-    }>();
-
+  const id = Number((await params).id);
+  const current = await route.db
+    .prepare(
+      "SELECT id, aspect_ratio, resolution, size, quality FROM ai_image_actions WHERE id = ? LIMIT 1",
+    )
+    .bind(id)
+    .first<CurrentImageOptions>();
   if (!current?.id) {
     return NextResponse.json({ error: "操作不存在" }, { status: 404 });
   }
 
   const sets: string[] = [];
-  const values: Array<string | number | null> = [];
-
-  if (body.action_key !== undefined) {
-    sets.push("action_key = ?");
-    values.push(body.action_key);
-  }
-  if (body.label !== undefined) {
-    sets.push("label = ?");
-    values.push(body.label);
-  }
-  if (body.description !== undefined) {
-    sets.push("description = ?");
-    values.push(body.description);
-  }
-  if (body.prompt !== undefined) {
-    sets.push("prompt = ?");
-    values.push(body.prompt);
-  }
-  if (
-    body.aspect_ratio !== undefined ||
-    body.resolution !== undefined ||
-    body.size !== undefined ||
-    body.quality !== undefined
-  ) {
-    const nextAspectRatio = normalizeAiImageAspectRatio(
-      body.aspect_ratio ||
-        (body.size !== undefined
-          ? inferAspectRatioFromLegacySize(body.size)
-          : current.aspect_ratio),
-    );
-    const nextResolution = normalizeAiImageResolution(
-      body.resolution ||
-        (body.quality !== undefined
-          ? inferResolutionFromLegacyQuality(body.quality)
-          : current.resolution),
-    );
-
-    sets.push("aspect_ratio = ?");
-    values.push(nextAspectRatio);
-    sets.push("resolution = ?");
-    values.push(nextResolution);
-    sets.push("size = ?");
-    values.push(deriveLegacySizeFromAspectRatio(nextAspectRatio, body.size || current.size));
-    sets.push("quality = ?");
-    values.push(deriveLegacyQualityFromResolution(nextResolution, body.quality || current.quality));
-  }
-  if (body.profile_id !== undefined) {
-    if (Number.isFinite(body.profile_id) && Number(body.profile_id) > 0) {
-      sets.push("profile_id = ?");
-      values.push(Number(body.profile_id));
-    } else {
-      const defaultProfileId = await ensureDefaultImageProfileId(db);
-      sets.push("profile_id = ?");
-      values.push(defaultProfileId ?? null);
-    }
-  }
-  if (body.is_enabled !== undefined) {
-    sets.push("is_enabled = ?");
-    values.push(body.is_enabled);
-  }
-
+  const values: SqlValue[] = [];
+  appendCommonActionUpdates(parsed.body, sets, values);
+  appendImageOptionUpdates(parsed.body, current, sets, values);
+  await appendProfileUpdate(
+    route.db,
+    parsed.body.profile_id,
+    ensureDefaultImageProfileId,
+    sets,
+    values,
+  );
   if (sets.length === 0) {
     return NextResponse.json({ error: "没有可更新的字段" }, { status: 400 });
   }
 
-  sets.push("updated_at = strftime('%s', 'now')");
-  values.push(numericId);
-
-  try {
-    await db
-      .prepare(`
-      UPDATE ai_image_actions
-      SET ${sets.join(", ")}
-      WHERE id = ?
-    `)
-      .bind(...values)
-      .run();
-  } catch (error) {
-    if (
-      error instanceof Error &&
-      /UNIQUE constraint failed: ai_image_actions\.action_key/i.test(error.message)
-    ) {
-      return NextResponse.json({ error: "操作标识已存在" }, { status: 409 });
-    }
-    throw error;
-  }
-
-  return NextResponse.json({ success: true });
+  return finishActionUpdate(
+    route.db,
+    "ai_image_actions",
+    id,
+    sets,
+    values,
+  );
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const env = await getAppCloudflareEnv();
-  const db = env?.DB as D1Database | undefined;
-  if (!(await authenticateRequest(req, db))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!db) return NextResponse.json({ error: "DB unavailable" }, { status: 500 });
-
-  await ensureAiImageConfigInfrastructure(db);
-
-  const { id } = await params;
-  const row = await db
-    .prepare("SELECT id FROM ai_image_actions WHERE id = ?")
-    .bind(Number(id))
-    .first<{ id: number }>();
-
-  if (!row?.id) {
-    return NextResponse.json({ error: "操作不存在" }, { status: 404 });
-  }
-
-  await db.prepare("DELETE FROM ai_image_actions WHERE id = ?").bind(Number(id)).run();
-  return NextResponse.json({ success: true });
+  const route = await initialize(req);
+  if (!route.ok) return route.response;
+  return deleteAction(route.db, "ai_image_actions", Number((await params).id));
 }

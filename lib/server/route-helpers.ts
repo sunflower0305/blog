@@ -19,6 +19,8 @@ type RouteEnvWithDbResult =
       response: NextResponse;
     };
 
+export type AuthenticatedRouteResult = RouteEnvWithDbResult;
+
 type RouteContextWithDbResult =
   | {
       ok: true;
@@ -107,4 +109,15 @@ export async function ensureAuthenticatedRequest(
     return jsonError(unauthorizedMessage, 401);
   }
   return null;
+}
+
+export async function getAuthenticatedRoute(
+  req: NextRequest,
+): Promise<AuthenticatedRouteResult> {
+  const env = await getAppCloudflareEnv();
+  const db = env?.DB as D1Database | undefined;
+  const unauthorized = await ensureAuthenticatedRequest(req, db);
+  if (unauthorized) return { ok: false, response: unauthorized };
+  if (!db) return { ok: false, response: jsonError("DB unavailable", 500) };
+  return { ok: true, env: env as RouteDbEnv, db };
 }

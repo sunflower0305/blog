@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { authenticateRequest } from "@/lib/admin-auth";
-import { getAppCloudflareEnv } from "@/lib/cloudflare";
 import {
   decryptApiKey,
   ensureAiConfigInfrastructure,
@@ -8,11 +6,17 @@ import {
   resolveAiConfigSecret,
 } from "@/lib/ai-provider-profiles";
 import { AI_PROVIDER_MAP } from "@/lib/ai-provider-presets";
+import { fetchProviderModelItems } from "@/lib/provider-model-discovery";
 import {
-  buildPresetModels,
-  errorMessage,
-  fetchProviderModelItems,
-} from "@/lib/provider-model-discovery";
+  emptyProviderModelResponse,
+  firstDefinedValue,
+  missingProviderKeyResponse,
+  presetModelResponse,
+  providerModelNetworkError,
+  readProviderModelQuery,
+  type ProviderModelConfig,
+} from "@/lib/server/provider-model-route";
+import { getAuthenticatedRoute } from "@/lib/server/route-helpers";
 import {
   buildWorkersAiModelOptions,
   extractCloudflareAccountId,
@@ -25,39 +29,6 @@ interface ProviderProfile {
   provider: string;
   base_url: string;
   api_key_encrypted: string;
-}
-
-interface ModelRequestConfig {
-  provider: string;
-  baseUrl: string;
-  apiKey: string;
-  fallbackModels: string[];
-  storedKeyUnavailable: boolean;
-}
-
-interface ModelQuery {
-  provider: string;
-  baseUrl: string;
-  apiKey: string;
-  profileId: number;
-}
-
-function readModelQuery(req: NextRequest): ModelQuery {
-  const params = new URL(req.url).searchParams;
-  return {
-    provider: readQueryParam(params, "provider"),
-    baseUrl: readQueryParam(params, "base_url"),
-    apiKey: readQueryParam(params, "api_key"),
-    profileId: Number(params.get("profile_id") || ""),
-  };
-}
-
-function readQueryParam(params: URLSearchParams, name: string) {
-  return params.get(name)?.trim() || "";
-}
-
-function firstValue(values: Array<string | null | undefined>, fallback = "") {
-  return values.find((value) => Boolean(value)) || fallback;
 }
 
 async function decryptProfileKey(profile: ProviderProfile | null, secret: string) {
@@ -89,36 +60,19 @@ async function resolveModelRequest(
   req: NextRequest,
   db: D1Database,
   secret: string,
-): Promise<ModelRequestConfig> {
-  const query = readModelQuery(req);
+): Promise<ProviderModelConfig> {
+  const query = readProviderModelQuery(req);
   const profile = await loadProviderProfile(db, query.profileId);
-  const provider = firstValue([query.provider, profile?.provider], "custom");
+  const provider = firstDefinedValue([query.provider, profile?.provider], "custom");
   const profileApiKey = await decryptProfileKey(profile, secret);
 
   return {
     provider,
-    baseUrl: normalizeBaseUrl(firstValue([query.baseUrl, profile?.base_url])),
-    apiKey: firstValue([query.apiKey, profileApiKey]),
+    baseUrl: normalizeBaseUrl(firstDefinedValue([query.baseUrl, profile?.base_url])),
+    apiKey: firstDefinedValue([query.apiKey, profileApiKey]),
     fallbackModels: AI_PROVIDER_MAP[provider]?.quickModels || [],
     storedKeyUnavailable: isStoredKeyUnavailable(query.apiKey, profile, profileApiKey),
   };
-}
-
-function missingKeyResponse(config: ModelRequestConfig) {
-  const warning = config.storedKeyUnavailable
-    ? "已保存 API Key 无法解密，请重新输入 API Key，或检查 AI_CONFIG_ENCRYPTION_SECRET / ADMIN_TOKEN_SALT 是否与保存时一致"
-    : "未提供 API Key，返回预设模型列表";
-  if (config.fallbackModels.length > 0) {
-    return NextResponse.json({
-      models: buildPresetModels(config.fallbackModels),
-      source: "preset",
-      warning,
-    });
-  }
-  return NextResponse.json(
-    { error: config.storedKeyUnavailable ? warning : "缺少 API Key" },
-    { status: 400 },
-  );
 }
 
 function isSiliconFlowProvider(provider: string, baseUrl: string) {
@@ -146,11 +100,7 @@ function isTextModel(item: RawWorkersAiModelItem) {
   return type ? /(text|language|llm)/.test(type) : true;
 }
 
-function fallbackResponse(models: string[], warning: string) {
-  return NextResponse.json({ models: buildPresetModels(models), source: "preset", warning });
-}
-
-async function workersAiResponse(config: ModelRequestConfig) {
+async function workersAiResponse(config: ProviderModelConfig) {
   const accountId = extractCloudflareAccountId(config.baseUrl);
   if (!accountId || /<account_id>/i.test(accountId)) {
     return invalidWorkersAccountResponse(config.fallbackModels);
@@ -163,14 +113,14 @@ async function workersAiResponse(config: ModelRequestConfig) {
     config.fallbackModels,
   );
   if (models.length === 0 && config.fallbackModels.length > 0) {
-    return fallbackResponse(config.fallbackModels, "Workers AI 接口返回为空，已回退预设模型");
+    return presetModelResponse(config.fallbackModels, "Workers AI 接口返回为空，已回退预设模型");
   }
   return NextResponse.json({ models, source: "provider" });
 }
 
 function invalidWorkersAccountResponse(fallbackModels: string[]) {
   if (fallbackModels.length > 0) {
-    return fallbackResponse(
+    return presetModelResponse(
       fallbackModels,
       "Workers AI 需要把 Base URL 里的 <ACCOUNT_ID> 替换成真实 Cloudflare Account ID 后才能拉取完整模型列表",
     );
@@ -181,7 +131,7 @@ function invalidWorkersAccountResponse(fallbackModels: string[]) {
   );
 }
 
-async function compatibleProviderResponse(config: ModelRequestConfig) {
+async function compatibleProviderResponse(config: ProviderModelConfig) {
   const urls = isSiliconFlowProvider(config.provider, config.baseUrl)
     ? [`${config.baseUrl}/models?sub_type=chat`, `${config.baseUrl}/models`]
     : [`${config.baseUrl}/models`];
@@ -209,46 +159,24 @@ function modelResultResponse(
       ...(warnings.length > 0 ? { warning: warnings[0] } : {}),
     });
   }
-  if (fallbackModels.length > 0) {
-    const warning = warnings.length
-      ? `接口拉取失败，已回退预设：${warnings[0]}`
-      : "接口返回为空，已回退预设模型";
-    return fallbackResponse(fallbackModels, warning);
-  }
-  const message = warnings[0];
-  return NextResponse.json(
-    { error: message ? `获取模型列表失败：${message}` : undefined },
-    { status: message ? 502 : 200 },
-  );
-}
-
-function networkErrorResponse(error: unknown, fallbackModels: string[]) {
-  const message = errorMessage(error, "获取模型列表失败");
-  if (fallbackModels.length > 0) {
-    return fallbackResponse(fallbackModels, `网络异常，已回退预设：${message}`);
-  }
-  return NextResponse.json({ error: message }, { status: 502 });
+  return emptyProviderModelResponse(warnings[0], fallbackModels);
 }
 
 export async function GET(req: NextRequest) {
-  const env = await getAppCloudflareEnv();
-  const db = env?.DB as D1Database | undefined;
-  if (!(await authenticateRequest(req, db))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!db) return NextResponse.json({ error: "DB unavailable" }, { status: 500 });
+  const route = await getAuthenticatedRoute(req);
+  if (!route.ok) return route.response;
 
-  const secret = resolveAiConfigSecret(env);
-  await ensureAiConfigInfrastructure(db, secret);
-  const config = await resolveModelRequest(req, db, secret);
+  const secret = resolveAiConfigSecret(route.env);
+  await ensureAiConfigInfrastructure(route.db, secret);
+  const config = await resolveModelRequest(req, route.db, secret);
   if (!config.baseUrl) return NextResponse.json({ error: "缺少 base_url 参数" }, { status: 400 });
-  if (!config.apiKey && config.provider !== "openrouter") return missingKeyResponse(config);
+  if (!config.apiKey && config.provider !== "openrouter") return missingProviderKeyResponse(config);
 
   try {
     return isWorkersAiProvider(config.provider, config.baseUrl)
       ? await workersAiResponse(config)
       : await compatibleProviderResponse(config);
   } catch (error) {
-    return networkErrorResponse(error, config.fallbackModels);
+    return providerModelNetworkError(error, config.fallbackModels);
   }
 }

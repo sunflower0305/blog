@@ -143,4 +143,60 @@ describe("/api/admin/ai-provider/models route", () => {
       error: "获取模型列表失败：invalid token",
     });
   });
+
+  it("loads Workers AI models with a real account id", async () => {
+    mocks.fetchWorkersAiModels.mockResolvedValueOnce([{ id: "@cf/model", name: "@cf/model" }]);
+    const response = await GET(
+      request(
+        "?provider=workers_ai&base_url=https%3A%2F%2Fapi.cloudflare.com%2Fclient%2Fv4%2Faccounts%2Facct%2Fai%2Fv1&api_key=token",
+      ),
+    );
+    expect(await response.json()).toEqual({
+      models: [{ id: "@cf/model", name: "@cf/model" }],
+      source: "provider",
+    });
+    expect(mocks.fetchWorkersAiModels).toHaveBeenCalledWith(
+      "acct",
+      "token",
+      "text",
+      ["workers-text-model"],
+    );
+  });
+
+  it("falls back when the Workers AI account id is still a placeholder", async () => {
+    const response = await GET(
+      request(
+        "?provider=workers_ai&base_url=https%3A%2F%2Fapi.cloudflare.com%2Fclient%2Fv4%2Faccounts%2F%3CACCOUNT_ID%3E%2Fai%2Fv1&api_key=token",
+      ),
+    );
+    expect(await response.json()).toEqual(
+      expect.objectContaining({ source: "preset", warning: expect.stringContaining("Account ID") }),
+    );
+  });
+
+  it("uses a stored profile and warns when its key cannot be decrypted", async () => {
+    mocks.getAppCloudflareEnv.mockResolvedValue({
+      DB: createDb({
+        id: 7,
+        provider: "openai",
+        base_url: "https://api.openai.com/v1",
+        api_key_encrypted: "encrypted",
+      }),
+    });
+    mocks.decryptApiKey.mockResolvedValueOnce("");
+    const response = await GET(request("?profile_id=7"));
+    expect(await response.json()).toEqual(
+      expect.objectContaining({ source: "preset", warning: expect.stringContaining("无法解密") }),
+    );
+  });
+
+  it("falls back to presets on a thrown network error", async () => {
+    vi.spyOn(globalThis, "fetch").mockRejectedValueOnce(new Error("offline"));
+    const response = await GET(
+      request("?provider=openai&base_url=https%3A%2F%2Fapi.openai.com%2Fv1&api_key=key"),
+    );
+    expect(await response.json()).toEqual(
+      expect.objectContaining({ source: "preset", warning: expect.stringContaining("offline") }),
+    );
+  });
 });

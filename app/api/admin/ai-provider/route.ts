@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { authenticateRequest } from "@/lib/admin-auth";
-import { getAppCloudflareEnv } from "@/lib/cloudflare";
 import {
   clampMaxTokens,
   clampTemperature,
@@ -9,46 +7,48 @@ import {
   ensureDefaultProfileId,
   mapProfileRow,
   maskApiKey,
-  normalizeBaseUrl,
   resolveAiConfigSecret,
   type AIProviderProfileRow,
 } from "@/lib/ai-provider-profiles";
-import { readJsonBody } from "@/lib/server/route-helpers";
+import {
+  backfillActionProfiles,
+  baseProfileUpdate,
+  buildProviderProfilePayload,
+  clearDefaultProfile,
+  createProviderProfile,
+  executeProfileUpdate,
+  finishProviderProfileWrite,
+  handleProviderProfileList,
+  findDefaultProfileId,
+  initializeProviderProfileRoute,
+  initializeAndReadProviderProfileId,
+  insertProviderProfile,
+  invalidProfileIdResponse,
+  loadProviderProfileRow,
+  loadExistingProviderProfile,
+  providerProfileSuccess,
+  prepareProviderProfileRequest,
+  prepareProviderProfileCreateRequest,
+  prepareProviderProfileUpdateRequest,
+  readProviderProfileId,
+  readProviderProfileBody,
+  resolveNextProfileDefault,
+  type ProviderProfilePayload,
+  type SaveProviderProfileBody,
+} from "@/lib/server/provider-profile-route";
+import { getAuthenticatedRoute, readJsonBody } from "@/lib/server/route-helpers";
 
-interface SaveProfileBody {
+interface SaveProfileBody extends SaveProviderProfileBody {
   id?: number;
-  name?: string;
-  provider?: string;
-  provider_name?: string;
-  provider_type?: string;
-  provider_category?: string;
-  api_key_url?: string;
-  base_url?: string;
-  model?: string;
   temperature?: number;
   max_tokens?: number;
-  api_key?: string;
-  is_default?: boolean;
 }
 
 function buildProfilePayload(body: SaveProfileBody) {
-  const name = (body.name || "").trim();
-  const model = (body.model || "").trim();
-  const baseUrl = normalizeBaseUrl(body.base_url || "");
-
-  if (!name) return { error: "配置名称不能为空" };
-  if (!baseUrl) return { error: "Base URL 不能为空" };
-  if (!model) return { error: "模型名称不能为空" };
-
+  const base = buildProviderProfilePayload(body, "openai_compatible");
+  if ("error" in base) return base;
   return {
-    name,
-    provider: (body.provider || "custom").trim() || "custom",
-    provider_name: (body.provider_name || "").trim(),
-    provider_type: (body.provider_type || "openai_compatible").trim() || "openai_compatible",
-    provider_category: (body.provider_category || "").trim(),
-    api_key_url: (body.api_key_url || "").trim(),
-    base_url: baseUrl,
-    model,
+    ...base,
     temperature: clampTemperature(Number(body.temperature)),
     max_tokens: clampMaxTokens(Number(body.max_tokens)),
   };
@@ -66,224 +66,129 @@ async function listProfiles(db: D1Database) {
     .all<AIProviderProfileRow>();
 
   const profiles = (results || []).map((row) => mapProfileRow(row));
-  const defaultProfileId = profiles.find((p) => p.is_default === 1)?.id ?? null;
+  const defaultProfileId = findDefaultProfileId(profiles);
 
   return { profiles, defaultProfileId };
 }
 
+async function initialize(req: NextRequest) {
+  return initializeProviderProfileRoute(
+    req,
+    (db, _env, secret) => ensureAiConfigInfrastructure(db, secret),
+    resolveAiConfigSecret,
+  );
+}
+
+function prepareRequest(req: NextRequest) {
+  return prepareProviderProfileRequest<
+    SaveProfileBody,
+    ProviderProfilePayload & { temperature: number; max_tokens: number }
+  >(
+    req,
+    (db, _env, secret) => ensureAiConfigInfrastructure(db, secret),
+    resolveAiConfigSecret,
+    buildProfilePayload,
+  );
+}
+
+function prepareCreateRequest(req: NextRequest) {
+  return prepareProviderProfileCreateRequest<
+    SaveProfileBody,
+    ProviderProfilePayload & { temperature: number; max_tokens: number }
+  >(
+    req,
+    (db, _env, secret) => ensureAiConfigInfrastructure(db, secret),
+    resolveAiConfigSecret,
+    buildProfilePayload,
+    async (rawKey, secret) => ({
+      encrypted: rawKey ? await encryptApiKey(rawKey, secret) : "",
+      masked: rawKey ? maskApiKey(rawKey) : "",
+    }),
+  );
+}
+
 export async function GET(req: NextRequest) {
-  const env = await getAppCloudflareEnv();
-  const db = env?.DB as D1Database | undefined;
-  if (!(await authenticateRequest(req, db))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!db) return NextResponse.json({ error: "DB unavailable" }, { status: 500 });
-
-  const secret = resolveAiConfigSecret(env);
-  await ensureAiConfigInfrastructure(db, secret);
-  const { profiles, defaultProfileId } = await listProfiles(db);
-
-  return NextResponse.json({ profiles, default_profile_id: defaultProfileId });
+  return handleProviderProfileList(req, initialize, listProfiles);
 }
 
 export async function POST(req: NextRequest) {
-  const env = await getAppCloudflareEnv();
-  const db = env?.DB as D1Database | undefined;
-  if (!(await authenticateRequest(req, db))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!db) return NextResponse.json({ error: "DB unavailable" }, { status: 500 });
+  const route = await prepareCreateRequest(req);
+  if (!route.ok) return route.response;
+  const { db, body, payload, encrypted, masked } = route;
 
-  const secret = resolveAiConfigSecret(env);
-  await ensureAiConfigInfrastructure(db, secret);
-
-  const parsed = await readJsonBody<SaveProfileBody>(req);
-  if (!parsed.ok) return parsed.response;
-  const body = parsed.body;
-  const payload = buildProfilePayload(body);
-  if ("error" in payload) {
-    return NextResponse.json({ error: payload.error }, { status: 400 });
-  }
-
-  const rawApiKey = (body.api_key || "").trim();
-  const encrypted = rawApiKey ? await encryptApiKey(rawApiKey, secret) : "";
-  const masked = rawApiKey ? maskApiKey(rawApiKey) : "";
-
-  if (body.is_default) {
-    await db.prepare("UPDATE ai_provider_profiles SET is_default = 0").run();
-  }
-
-  const result = await db
-    .prepare(`
-    INSERT INTO ai_provider_profiles (
-      name, provider, provider_name, provider_type, provider_category, api_key_url,
-      base_url, model, temperature, max_tokens, api_key_encrypted, api_key_masked,
-      is_default, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%s', 'now'), strftime('%s', 'now'))
-  `)
-    .bind(
-      payload.name,
-      payload.provider,
-      payload.provider_name,
-      payload.provider_type,
-      payload.provider_category,
-      payload.api_key_url,
-      payload.base_url,
-      payload.model,
-      payload.temperature,
-      payload.max_tokens,
+  return createProviderProfile<AIProviderProfileRow>({
+    insert: {
+      db,
+      table: "ai_provider_profiles",
+      body,
+      payload,
+      extraColumns: ["temperature", "max_tokens"],
+      extraValues: [payload.temperature, payload.max_tokens],
       encrypted,
       masked,
-      body.is_default ? 1 : 0,
-    )
-    .run();
-
-  const insertedId = result.meta.last_row_id;
-
-  const defaultId = await ensureDefaultProfileId(db);
-  if (defaultId) {
-    await db
-      .prepare("UPDATE ai_actions SET profile_id = ? WHERE profile_id IS NULL")
-      .bind(defaultId)
-      .run();
-  }
-
-  const row = await db
-    .prepare(`
-    SELECT id, name, provider, provider_name, provider_type, provider_category, api_key_url,
-           base_url, model, temperature, max_tokens, api_key_masked, is_default,
-           created_at, updated_at
-    FROM ai_provider_profiles WHERE id = ?
-  `)
-    .bind(insertedId)
-    .first<AIProviderProfileRow>();
-
-  return NextResponse.json({ success: true, profile: row ? mapProfileRow(row) : null });
+    },
+    actionTable: "ai_actions",
+    ensureDefaultId: ensureDefaultProfileId,
+    selectSql: `SELECT id, name, provider, provider_name, provider_type, provider_category,
+      api_key_url, base_url, model, temperature, max_tokens, api_key_masked, is_default,
+      created_at, updated_at FROM ai_provider_profiles WHERE id = ?`,
+    map: mapProfileRow,
+  });
 }
 
 export async function PUT(req: NextRequest) {
-  const env = await getAppCloudflareEnv();
-  const db = env?.DB as D1Database | undefined;
-  if (!(await authenticateRequest(req, db))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!db) return NextResponse.json({ error: "DB unavailable" }, { status: 500 });
-
-  const secret = resolveAiConfigSecret(env);
-  await ensureAiConfigInfrastructure(db, secret);
-
-  const parsed = await readJsonBody<SaveProfileBody>(req);
-  if (!parsed.ok) return parsed.response;
-  const body = parsed.body;
-  const id = Number(body.id);
-  if (!Number.isFinite(id) || id <= 0) {
-    return NextResponse.json({ error: "缺少有效的配置 ID" }, { status: 400 });
-  }
-
-  const exists = await db
-    .prepare("SELECT id, api_key_masked, is_default FROM ai_provider_profiles WHERE id = ?")
-    .bind(id)
-    .first<{ id: number; api_key_masked: string; is_default: number }>();
-  if (!exists) {
-    return NextResponse.json({ error: "配置不存在" }, { status: 404 });
-  }
-
-  const payload = buildProfilePayload(body);
-  if ("error" in payload) {
-    return NextResponse.json({ error: payload.error }, { status: 400 });
-  }
+  const route = await prepareProviderProfileUpdateRequest<
+    SaveProfileBody,
+    ProviderProfilePayload & { temperature: number; max_tokens: number }
+  >(
+    req,
+    "ai_provider_profiles",
+    (db, _env, secret) => ensureAiConfigInfrastructure(db, secret),
+    resolveAiConfigSecret,
+    buildProfilePayload,
+  );
+  if (!route.ok) return route.response;
+  const { db, secret, body, payload, id, existing: exists } = route;
 
   const rawApiKey = (body.api_key || "").trim();
   const encrypted = rawApiKey ? await encryptApiKey(rawApiKey, secret) : null;
   const masked = rawApiKey ? maskApiKey(rawApiKey) : exists.api_key_masked;
 
-  const nextIsDefault =
-    body.is_default === true ? 1 : body.is_default === false ? 0 : exists.is_default;
+  const nextIsDefault = resolveNextProfileDefault(body.is_default, exists.is_default);
 
-  if (nextIsDefault === 1) {
-    await db.prepare("UPDATE ai_provider_profiles SET is_default = 0").run();
-  }
+  await clearDefaultProfile(db, "ai_provider_profiles", nextIsDefault === 1);
 
-  const sets = [
-    "name = ?",
-    "provider = ?",
-    "provider_name = ?",
-    "provider_type = ?",
-    "provider_category = ?",
-    "api_key_url = ?",
-    "base_url = ?",
-    "model = ?",
-    "temperature = ?",
-    "max_tokens = ?",
-    "api_key_masked = ?",
-    "is_default = ?",
-    "updated_at = strftime('%s', 'now')",
-  ];
-  const values: Array<string | number> = [
-    payload.name,
-    payload.provider,
-    payload.provider_name,
-    payload.provider_type,
-    payload.provider_category,
-    payload.api_key_url,
-    payload.base_url,
-    payload.model,
-    payload.temperature,
-    payload.max_tokens,
-    masked,
-    nextIsDefault,
-  ];
+  const { sets, values } = baseProfileUpdate(payload, masked, nextIsDefault);
+  sets.splice(8, 0, "temperature = ?", "max_tokens = ?");
+  values.splice(8, 0, payload.temperature, payload.max_tokens);
 
   if (encrypted !== null) {
     sets.splice(10, 0, "api_key_encrypted = ?");
     values.splice(10, 0, encrypted);
   }
 
-  values.push(id);
+  await executeProfileUpdate(db, "ai_provider_profiles", sets, values, id);
 
-  await db
-    .prepare(`UPDATE ai_provider_profiles SET ${sets.join(", ")} WHERE id = ?`)
-    .bind(...values)
-    .run();
-
-  const defaultId = await ensureDefaultProfileId(db);
-  if (defaultId) {
-    await db
-      .prepare("UPDATE ai_actions SET profile_id = ? WHERE profile_id IS NULL")
-      .bind(defaultId)
-      .run();
-  }
-
-  const row = await db
-    .prepare(`
-    SELECT id, name, provider, provider_name, provider_type, provider_category, api_key_url,
-           base_url, model, temperature, max_tokens, api_key_masked, is_default,
-           created_at, updated_at
-    FROM ai_provider_profiles WHERE id = ?
-  `)
-    .bind(id)
-    .first<AIProviderProfileRow>();
-
-  return NextResponse.json({ success: true, profile: row ? mapProfileRow(row) : null });
+  return finishProviderProfileWrite<AIProviderProfileRow>({
+    db,
+    id,
+    actionTable: "ai_actions",
+    ensureDefaultId: ensureDefaultProfileId,
+    selectSql: `SELECT id, name, provider, provider_name, provider_type, provider_category,
+      api_key_url, base_url, model, temperature, max_tokens, api_key_masked, is_default,
+      created_at, updated_at FROM ai_provider_profiles WHERE id = ?`,
+    map: mapProfileRow,
+  });
 }
 
 export async function DELETE(req: NextRequest) {
-  const env = await getAppCloudflareEnv();
-  const db = env?.DB as D1Database | undefined;
-  if (!(await authenticateRequest(req, db))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!db) return NextResponse.json({ error: "DB unavailable" }, { status: 500 });
-
-  const secret = resolveAiConfigSecret(env);
-  await ensureAiConfigInfrastructure(db, secret);
-
-  const parsed = await readJsonBody<{ id?: number }>(req);
-  if (!parsed.ok) return parsed.response;
-  const id = Number(parsed.body.id);
-  if (!Number.isFinite(id) || id <= 0) {
-    return NextResponse.json({ error: "缺少有效的配置 ID" }, { status: 400 });
-  }
+  const route = await initializeAndReadProviderProfileId(
+    req,
+    (db, _env, secret) => ensureAiConfigInfrastructure(db, secret),
+    resolveAiConfigSecret,
+  );
+  if (!route.ok) return route.response;
+  const { db, id } = route;
 
   const target = await db
     .prepare("SELECT id, is_default FROM ai_provider_profiles WHERE id = ?")

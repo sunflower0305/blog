@@ -21,14 +21,16 @@ vi.mock("@/lib/ai-image-config", () => ({
   ensureDefaultImageProfileId: mocks.ensureDefaultImageProfileId,
 }));
 
-import { POST } from "@/app/api/admin/ai-image-actions/route";
-import { PUT } from "@/app/api/admin/ai-image-actions/[id]/route";
+import { GET, POST, PUT as REORDER } from "@/app/api/admin/ai-image-actions/route";
+import { DELETE, PUT as UPDATE } from "@/app/api/admin/ai-image-actions/[id]/route";
 
 // Chainable D1 stub. POST reads MAX(sort_order); PUT first SELECTs the current row
 // (must be non-null or it 404s before reaching the UNIQUE catch), then UPDATEs.
 function makeDb() {
   return {
     prepare: (sql: string) => ({
+      all: async () => ({ results: [{ id: 1, action_key: "cover" }] }),
+      run: () => mocks.run(),
       bind: () => ({
         run: () => mocks.run(),
         first: async () =>
@@ -65,7 +67,7 @@ const branches = [
   {
     name: "PUT (update)",
     invoke: () =>
-      PUT(makeRequest({ action_key: "cover" }), {
+      UPDATE(makeRequest({ action_key: "cover" }), {
         params: Promise.resolve({ id: "7" }),
       }),
   },
@@ -105,4 +107,37 @@ describe("/api/admin/ai-image-actions — UNIQUE constraint handling", () => {
       });
     });
   }
+});
+
+describe("/api/admin/ai-image-actions CRUD", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.getAppCloudflareEnv.mockResolvedValue({ DB: makeDb() });
+    mocks.authenticateRequest.mockResolvedValue(true);
+    mocks.ensureAiImageConfigInfrastructure.mockResolvedValue(undefined);
+    mocks.ensureDefaultImageProfileId.mockResolvedValue(1);
+    mocks.run.mockResolvedValue({ success: true });
+  });
+
+  it("lists, reorders, and deletes actions", async () => {
+    expect(await (await GET(makeRequest(undefined))).json()).toEqual({
+      actions: [{ id: 1, action_key: "cover" }],
+    });
+    expect(
+      await (await REORDER(makeRequest({ items: [{ id: 1, sort_order: 10 }] }))).json(),
+    ).toEqual({ success: true });
+    const deleted = await DELETE(makeRequest(undefined), {
+      params: Promise.resolve({ id: "7" }),
+    });
+    expect(await deleted.json()).toEqual({ success: true });
+  });
+
+  it("updates image options and rejects empty reorder data", async () => {
+    const updated = await UPDATE(
+      makeRequest({ size: "1024x1024", quality: "hd", profile_id: 0 }),
+      { params: Promise.resolve({ id: "7" }) },
+    );
+    expect(await updated.json()).toEqual({ success: true });
+    expect((await REORDER(makeRequest({}))).status).toBe(400);
+  });
 });

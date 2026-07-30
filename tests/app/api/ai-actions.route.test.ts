@@ -23,15 +23,18 @@ vi.mock("@/lib/ai-provider-profiles", () => ({
   resolveAiConfigSecret: mocks.resolveAiConfigSecret,
 }));
 
-import { POST } from "@/app/api/admin/ai-actions/route";
-import { PUT } from "@/app/api/admin/ai-actions/[id]/route";
+import { GET, POST, PUT as REORDER } from "@/app/api/admin/ai-actions/route";
+import { DELETE, PUT as UPDATE } from "@/app/api/admin/ai-actions/[id]/route";
 
 // A chainable D1 stub: SELECT MAX(...) resolves a row, INSERT/UPDATE delegate to mocks.run.
 function makeDb() {
   return {
     prepare: (sql: string) => ({
+      all: async () => ({ results: [{ id: 1, action_key: "summary" }] }),
+      run: () => mocks.run(),
       bind: () => ({
         run: () => mocks.run(),
+        first: async () => ({ id: 7 }),
       }),
       first: async () => (/MAX\(sort_order\)/.test(sql) ? { max_sort: 20 } : null),
     }),
@@ -64,7 +67,7 @@ const branches = [
   {
     name: "PUT (update)",
     invoke: () =>
-      PUT(makeRequest({ action_key: "summarize" }), {
+      UPDATE(makeRequest({ action_key: "summarize" }), {
         params: Promise.resolve({ id: "7" }),
       }),
   },
@@ -106,4 +109,39 @@ describe("/api/admin/ai-actions — UNIQUE constraint handling", () => {
       });
     });
   }
+});
+
+describe("/api/admin/ai-actions CRUD", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.getAppCloudflareEnv.mockResolvedValue({ DB: makeDb() });
+    mocks.authenticateRequest.mockResolvedValue(true);
+    mocks.ensureAiConfigInfrastructure.mockResolvedValue(undefined);
+    mocks.ensureDefaultProfileId.mockResolvedValue(1);
+    mocks.resolveAiConfigSecret.mockReturnValue("secret");
+    mocks.run.mockResolvedValue({ success: true });
+  });
+
+  it("lists and reorders actions", async () => {
+    expect(await (await GET(makeRequest(undefined))).json()).toEqual({
+      actions: [{ id: 1, action_key: "summary" }],
+    });
+    expect(
+      await (await REORDER(makeRequest({ items: [{ id: 1, sort_order: 10 }] }))).json(),
+    ).toEqual({ success: true });
+  });
+
+  it("rejects empty reorder data and empty updates", async () => {
+    expect((await REORDER(makeRequest({ items: [] }))).status).toBe(400);
+    expect(
+      (await UPDATE(makeRequest({}), { params: Promise.resolve({ id: "7" }) })).status,
+    ).toBe(400);
+  });
+
+  it("deletes an existing action", async () => {
+    const response = await DELETE(makeRequest(undefined), {
+      params: Promise.resolve({ id: "7" }),
+    });
+    expect(await response.json()).toEqual({ success: true });
+  });
 });
