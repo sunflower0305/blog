@@ -7,12 +7,10 @@ import {
 import {
   handleActionReorder,
   initializeActionRoute,
-  prepareActionCreate,
-  runActionWrite,
-  validateRequiredActionFields,
+  createAction,
+  readValidActionBody,
   type CommonActionBody,
 } from "@/lib/server/ai-action-route";
-import { getAuthenticatedRoute, readJsonBody } from "@/lib/server/route-helpers";
 
 interface AiActionRow {
   id: number;
@@ -51,34 +49,17 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const route = await initialize(req);
   if (!route.ok) return route.response;
-  const parsed = await readJsonBody<TextActionBody>(req);
+  const parsed = await readValidActionBody<TextActionBody>(req);
   if (!parsed.ok) return parsed.response;
   const body = parsed.body;
-  if (!validateRequiredActionFields(body)) {
-    return NextResponse.json({ error: "缺少必填字段" }, { status: 400 });
-  }
-
-  const { profileId, sortOrder } = await prepareActionCreate(
-    route.db,
-    "ai_actions",
+  return createAction({
+    db: route.db,
+    table: "ai_actions",
     body,
-    ensureDefaultProfileId,
-  );
-  const duplicate = await runActionWrite(
-    route.db,
-    "ai_actions",
-    "INSERT INTO ai_actions (action_key, label, description, prompt, temperature, profile_id, sort_order, is_builtin) VALUES (?, ?, ?, ?, ?, ?, ?, 0)",
-    [
-      body.action_key!,
-      body.label!,
-      body.description!,
-      body.prompt!,
-      Number.isFinite(body.temperature) ? Number(body.temperature) : 0.6,
-      profileId,
-      sortOrder,
-    ],
-  );
-  return duplicate ?? NextResponse.json({ success: true });
+    ensureDefaultId: ensureDefaultProfileId,
+    extraColumns: ["temperature"],
+    extraValues: [Number.isFinite(body.temperature) ? Number(body.temperature) : 0.6],
+  });
 }
 
 export async function PUT(req: NextRequest) {

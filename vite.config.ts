@@ -80,9 +80,9 @@ export default defineConfig(({ mode }) => {
           ? ["warn", { ignoreExternal: true, ignoreTypes: true }]
           : "off",
         "typescript/no-base-to-string": "off",
-        "typescript/no-floating-promises": isQualityMetricsEnabled ? "warn" : "off",
+        "typescript/no-floating-promises": isQualityMetricsEnabled ? "error" : "off",
         "typescript/no-meaningless-void-operator": "off",
-        "typescript/no-misused-promises": isQualityMetricsEnabled ? "warn" : "off",
+        "typescript/no-misused-promises": isQualityMetricsEnabled ? "error" : "off",
         "typescript/no-redundant-type-constituents": "off",
         "typescript/unbound-method": "off",
       },

@@ -11,7 +11,6 @@ import {
   type AIProviderProfileRow,
 } from "@/lib/ai-provider-profiles";
 import {
-  backfillActionProfiles,
   baseProfileUpdate,
   buildProviderProfilePayload,
   clearDefaultProfile,
@@ -22,21 +21,12 @@ import {
   findDefaultProfileId,
   initializeProviderProfileRoute,
   initializeAndReadProviderProfileId,
-  insertProviderProfile,
-  invalidProfileIdResponse,
-  loadProviderProfileRow,
-  loadExistingProviderProfile,
-  providerProfileSuccess,
-  prepareProviderProfileRequest,
   prepareProviderProfileCreateRequest,
   prepareProviderProfileUpdateRequest,
-  readProviderProfileId,
-  readProviderProfileBody,
   resolveNextProfileDefault,
   type ProviderProfilePayload,
   type SaveProviderProfileBody,
 } from "@/lib/server/provider-profile-route";
-import { getAuthenticatedRoute, readJsonBody } from "@/lib/server/route-helpers";
 
 interface SaveProfileBody extends SaveProviderProfileBody {
   id?: number;
@@ -76,18 +66,6 @@ async function initialize(req: NextRequest) {
     req,
     (db, _env, secret) => ensureAiConfigInfrastructure(db, secret),
     resolveAiConfigSecret,
-  );
-}
-
-function prepareRequest(req: NextRequest) {
-  return prepareProviderProfileRequest<
-    SaveProfileBody,
-    ProviderProfilePayload & { temperature: number; max_tokens: number }
-  >(
-    req,
-    (db, _env, secret) => ensureAiConfigInfrastructure(db, secret),
-    resolveAiConfigSecret,
-    buildProfilePayload,
   );
 }
 

@@ -27,6 +27,17 @@ export function validateRequiredActionFields(body: CommonActionBody) {
   return Boolean(body.action_key && body.label && body.description && body.prompt);
 }
 
+export async function readValidActionBody<T extends CommonActionBody>(req: NextRequest) {
+  const parsed = await readJsonBody<T>(req);
+  if (!parsed.ok) return parsed;
+  return validateRequiredActionFields(parsed.body)
+    ? parsed
+    : {
+        ok: false as const,
+        response: NextResponse.json({ error: "缺少必填字段" }, { status: 400 }),
+      };
+}
+
 export async function resolveActionProfileId(
   db: D1Database,
   requestedId: number | undefined,
@@ -59,6 +70,50 @@ export async function prepareActionCreate(
     profileId: await resolveActionProfileId(db, body.profile_id, ensureDefaultId),
     sortOrder: await resolveActionSortOrder(db, table, body.sort_order),
   };
+}
+
+export async function createAction(options: {
+  db: D1Database;
+  table: string;
+  body: CommonActionBody;
+  ensureDefaultId: (db: D1Database) => Promise<number | null>;
+  extraColumns: string[];
+  extraValues: SqlValue[];
+}) {
+  const { profileId, sortOrder } = await prepareActionCreate(
+    options.db,
+    options.table,
+    options.body,
+    options.ensureDefaultId,
+  );
+  const columns = [
+    "action_key",
+    "label",
+    "description",
+    "prompt",
+    ...options.extraColumns,
+    "profile_id",
+    "sort_order",
+    "is_builtin",
+  ];
+  const values = [
+    options.body.action_key!,
+    options.body.label!,
+    options.body.description!,
+    options.body.prompt!,
+    ...options.extraValues,
+    profileId,
+    sortOrder,
+    0,
+  ];
+  const placeholders = columns.map(() => "?").join(", ");
+  const duplicate = await runActionWrite(
+    options.db,
+    options.table,
+    `INSERT INTO ${options.table} (${columns.join(", ")}) VALUES (${placeholders})`,
+    values,
+  );
+  return duplicate ?? NextResponse.json({ success: true });
 }
 
 export async function runActionWrite(
@@ -161,4 +216,19 @@ export async function deleteAction(db: D1Database, table: string, id: number) {
   if (!row?.id) return NextResponse.json({ error: "操作不存在" }, { status: 404 });
   await db.prepare(`DELETE FROM ${table} WHERE id = ?`).bind(id).run();
   return NextResponse.json({ success: true });
+}
+
+export async function handleActionDelete(
+  req: NextRequest,
+  params: Promise<{ id: string }>,
+  table: string,
+  initialize: (req: NextRequest) => Promise<
+    | { ok: false; response: NextResponse }
+    | { ok: true; db: D1Database }
+  >,
+) {
+  const route = await initialize(req);
+  return route.ok
+    ? deleteAction(route.db, table, Number((await params).id))
+    : route.response;
 }

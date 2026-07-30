@@ -7,13 +7,13 @@ import {
 import {
   appendCommonActionUpdates,
   appendProfileUpdate,
-  deleteAction,
   finishActionUpdate,
+  handleActionDelete,
   initializeActionRoute,
   type CommonActionBody,
   type SqlValue,
 } from "@/lib/server/ai-action-route";
-import { getAuthenticatedRoute, readJsonBody } from "@/lib/server/route-helpers";
+import { readJsonBody } from "@/lib/server/route-helpers";
 
 interface TextActionBody extends CommonActionBody {
   temperature?: number;
@@ -59,7 +59,5 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const route = await initialize(req);
-  if (!route.ok) return route.response;
-  return deleteAction(route.db, "ai_actions", Number((await params).id));
+  return handleActionDelete(req, params, "ai_actions", initialize);
 }

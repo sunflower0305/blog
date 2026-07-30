@@ -122,9 +122,9 @@ describe("post editor support hooks", () => {
     );
 
     const callbacks = mocks.createEditorExtensions.mock.calls[0]?.[0].imageActions;
-    act(() => callbacks.onSetCover(target));
-    act(() => callbacks.onOpenReferenceImage(target));
-    act(() => callbacks.onOpenCrop(target));
+    void act(() => callbacks.onSetCover(target));
+    void act(() => callbacks.onOpenReferenceImage(target));
+    void act(() => callbacks.onOpenCrop(target));
     expect(options.setCoverImage).toHaveBeenCalledWith("before.png");
     expect(options.markDirty).toHaveBeenCalledWith({ coverImage: "before.png" });
     expect(options.setFeedback).toHaveBeenCalledWith({ type: "success", message: "已设为封面" });
@@ -175,13 +175,13 @@ describe("post editor support hooks", () => {
     expect(focus).toHaveBeenCalled();
     expect(window.localStorage.getItem("blog:sidebar-open")).toBe("true");
 
-    act(() => document.dispatchEvent(new MouseEvent("mousedown", { bubbles: true })));
-    act(() =>
+    void act(() => document.dispatchEvent(new MouseEvent("mousedown", { bubbles: true })));
+    void act(() =>
       document.dispatchEvent(
         new KeyboardEvent("keydown", { key: "s", metaKey: true, bubbles: true }),
       ),
     );
-    act(() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })));
+    void act(() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })));
     expect(options.setPublishPanelOpen).toHaveBeenCalledWith(false);
     expect(options.handleSave).toHaveBeenCalled();
   });

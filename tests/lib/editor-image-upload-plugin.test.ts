@@ -55,7 +55,7 @@ describe("editor image upload plugin", () => {
     const file = new File(["image"], "image.png", { type: "image/png" });
 
     editor.commands.setTextSelection(8);
-    upload(file, editor.view, editor.state.selection.from);
+    void upload(file, editor.view, editor.state.selection.from);
     expect(editor.view.dom.querySelector(".img-placeholder img")?.className).toContain(
       "opacity-40",
     );
@@ -71,7 +71,7 @@ describe("editor image upload plugin", () => {
     const upload = createImageUpload({ onUpload: vi.fn().mockRejectedValue(new Error("failed")) });
     const file = new File(["image"], "image.png", { type: "image/png" });
 
-    upload(file, editor.view, editor.state.selection.from);
+    void upload(file, editor.view, editor.state.selection.from);
     expect(editor.view.dom.querySelector(".img-placeholder")).not.toBeNull();
 
     await vi.waitFor(() => expect(editor.view.dom.querySelector(".img-placeholder")).toBeNull());

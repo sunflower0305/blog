@@ -68,7 +68,7 @@ describe("TiptapEditorSurface", () => {
     });
     await vi.waitFor(() => expect(editors).toHaveLength(2));
 
-    act(() => editors[0]?.commands.setContent("<p>只修改第一个</p>"));
+    void act(() => editors[0]?.commands.setContent("<p>只修改第一个</p>"));
     expect(editors[0]?.getText()).toBe("只修改第一个");
     expect(editors[1]?.getText()).toBe("第二个");
   });

@@ -7,7 +7,6 @@ import {
 } from "@/lib/ai-image-config";
 import { resolveAiConfigSecret } from "@/lib/ai-provider-profiles";
 import {
-  backfillActionProfiles,
   baseProfileUpdate,
   buildProviderProfilePayload,
   clearDefaultProfile,
@@ -18,20 +17,11 @@ import {
   findDefaultProfileId,
   initializeProviderProfileRoute,
   initializeAndReadProviderProfileId,
-  insertProviderProfile,
-  invalidProfileIdResponse,
-  loadProviderProfileRow,
-  loadExistingProviderProfile,
-  providerProfileSuccess,
-  prepareProviderProfileRequest,
   prepareProviderProfileCreateRequest,
   prepareProviderProfileUpdateRequest,
-  readProviderProfileId,
-  readProviderProfileBody,
   resolveNextProfileDefault,
   type SaveProviderProfileBody,
 } from "@/lib/server/provider-profile-route";
-import { getAuthenticatedRoute, readJsonBody } from "@/lib/server/route-helpers";
 
 type SaveProfileBody = SaveProviderProfileBody;
 
@@ -55,15 +45,6 @@ async function initialize(req: NextRequest) {
     req,
     (db) => ensureAiImageConfigInfrastructure(db),
     resolveAiConfigSecret,
-  );
-}
-
-function prepareRequest(req: NextRequest) {
-  return prepareProviderProfileRequest(
-    req,
-    (db) => ensureAiImageConfigInfrastructure(db),
-    resolveAiConfigSecret,
-    (body: SaveProfileBody) => buildProviderProfilePayload(body, "openai_images"),
   );
 }
 
