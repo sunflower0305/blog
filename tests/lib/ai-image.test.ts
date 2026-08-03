@@ -170,9 +170,7 @@ describe("extractWorkersAiImageAsset", () => {
     );
     expect(pngAsset).toMatchObject({ contentType: "image/png", extension: "png" });
 
-    const webpBytes = new Uint8Array([
-      0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50,
-    ]);
+    const webpBytes = new Uint8Array([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50]);
     const webpAsset = await extractWorkersAiImageAsset(webpBytes.buffer, "image-model");
     expect(webpAsset).toMatchObject({ contentType: "image/webp", extension: "webp" });
 
@@ -190,10 +188,11 @@ describe("extractWorkersAiImageAsset", () => {
     );
     expect(base64Asset).toMatchObject({ contentType: "image/jpeg", extension: "jpg" });
 
-    vi.spyOn(globalThis, "fetch").mockImplementation(async () =>
-      new Response(new Uint8Array([0x52, 0x49, 0x46, 0x46]), {
-        headers: { "content-type": "image/webp" },
-      }),
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async () =>
+        new Response(new Uint8Array([0x52, 0x49, 0x46, 0x46]), {
+          headers: { "content-type": "image/webp" },
+        }),
     );
     const remoteAsset = await extractWorkersAiImageAsset(
       { url: "https://images.test/generated.webp" },

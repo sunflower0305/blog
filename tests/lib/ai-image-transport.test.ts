@@ -55,9 +55,9 @@ describe("extractGeneratedImagePayload", () => {
     await expect(extractGeneratedImagePayload({ created: 1, data: [] })).rejects.toThrow(
       "未返回结果",
     );
-    await expect(
-      extractGeneratedImagePayload({ created: 1, data: [{}] }),
-    ).rejects.toThrow("未返回可用内容");
+    await expect(extractGeneratedImagePayload({ created: 1, data: [{}] })).rejects.toThrow(
+      "未返回可用内容",
+    );
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("missing", { status: 404 }));
     await expect(
       extractGeneratedImagePayload({

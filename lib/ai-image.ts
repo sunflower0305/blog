@@ -28,11 +28,7 @@ import {
 } from "@/lib/ai-image-workers";
 import { isWorkersAiBaseUrl, resolveAiConfigSecret } from "@/lib/ai-provider-profiles";
 
-export {
-  extractWorkersAiImageAsset,
-  resolveWorkersAiImageSize,
-  runWorkersAiCompatImageRequest,
-};
+export { extractWorkersAiImageAsset, resolveWorkersAiImageSize, runWorkersAiCompatImageRequest };
 
 type ImageBucket = {
   put: (
@@ -269,7 +265,12 @@ async function storeGeneratedImage(
   payload: GeneratedImagePayload,
 ): Promise<GeneratedEditorImage> {
   const actionLabel = input.actionLabel || context.action?.label || "自定义生成";
-  const alt = buildAltText(payload.revisedPrompt, input.userPrompt, input.articleTitle, actionLabel);
+  const alt = buildAltText(
+    payload.revisedPrompt,
+    input.userPrompt,
+    input.articleTitle,
+    actionLabel,
+  );
   const { yyyy, mm } = getNowPrefix();
   const baseName = sanitizeFilename(alt).slice(0, 48);
   const key = `image/${yyyy}/${mm}/ai-${nanoid(10)}-${baseName}.${payload.extension}`;

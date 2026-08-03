@@ -135,11 +135,7 @@ function getDefaultWorkersImageType(model: string) {
 function typeFromContentType(contentType: string) {
   return {
     contentType,
-    extension: contentType.includes("jpeg")
-      ? "jpg"
-      : contentType.includes("webp")
-        ? "webp"
-        : "png",
+    extension: contentType.includes("jpeg") ? "jpg" : contentType.includes("webp") ? "webp" : "png",
   };
 }
 
@@ -156,10 +152,7 @@ export async function extractWorkersAiImageAsset(
   return extractStructuredWorkersAsset(result, model);
 }
 
-function extractDirectWorkersAsset(
-  result: unknown,
-  model: string,
-): WorkersAiImageAsset | null {
+function extractDirectWorkersAsset(result: unknown, model: string): WorkersAiImageAsset | null {
   if (result instanceof Response) {
     if (!result.body) throw new Error("Workers AI 未返回图片内容");
     const fallback = getDefaultWorkersImageType(model);
@@ -206,9 +199,7 @@ async function extractStructuredWorkersAsset(
     if (!response.ok) throw new Error(`拉取 Workers AI 图片失败：HTTP ${response.status}`);
     const bytes = new Uint8Array(await response.arrayBuffer());
     const fallback = getDefaultWorkersImageType(model);
-    const type = typeFromContentType(
-      response.headers.get("content-type") || fallback.contentType,
-    );
+    const type = typeFromContentType(response.headers.get("content-type") || fallback.contentType);
     return { data: bytes, ...type };
   }
 
