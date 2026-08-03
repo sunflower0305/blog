@@ -290,7 +290,7 @@ export default async function PostPage({
         >
           {!needsPassword && <PostViewTracker slug={post.slug} />}
           <article>
-            <header className="mb-10 sm:mb-12">
+            <header className="mb-4 sm:mb-6">
               <h1
                 data-admin-edit-trigger
                 className="article-display-title text-2xl sm:text-3xl lg:text-4xl font-bold text-[var(--editor-ink)] leading-snug mb-4 sm:mb-5"

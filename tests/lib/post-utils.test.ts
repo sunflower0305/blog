@@ -45,4 +45,11 @@ describe("optimizePostImageUrls", () => {
     expect(page).toContain("dangerouslySetInnerHTML={{ __html: deliveredHtml }}");
     expect(page).toContain("html={deliveredHtml}");
   });
+
+  it("keeps article metadata close to the opening paragraph", () => {
+    const page = readFileSync("app/[slug]/page.tsx", "utf8");
+
+    expect(page).toContain('<header className="mb-4 sm:mb-6">');
+    expect(page).not.toContain('<header className="mb-10 sm:mb-12">');
+  });
 });
