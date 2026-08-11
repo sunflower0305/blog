@@ -12,7 +12,11 @@ export function normalizePostSlug(value: string): string {
 }
 
 export function buildAutoDescription(value: string, maxLength = 160): string {
-  const normalized = value.replace(/\s+/g, " ").trim();
+  const prose = value
+    .replace(/<img\b[^>]*>/gi, " ")
+    .replace(/!\[[^\]]*\]\(\s*(?:<[^>]*>|[^)\n]*)\s*\)/g, " ")
+    .replace(/!\[[^\]]*\]\[[^\]]*\]/g, " ");
+  const normalized = prose.replace(/\s+/g, " ").trim();
   if (!normalized) return "";
   return normalized.slice(0, maxLength);
 }

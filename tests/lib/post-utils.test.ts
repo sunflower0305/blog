@@ -1,8 +1,22 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { optimizePostImageUrls } from "@/lib/post-utils";
+import { buildAutoDescription, optimizePostImageUrls } from "@/lib/post-utils";
 
 const SITE_URL = "https://blog.zhangleyang.com";
+
+describe("buildAutoDescription", () => {
+  it("skips a leading Markdown image and uses the opening prose", () => {
+    const content = [
+      "![先看行为，再谈收益](https://blog.zhangleyang.com/api/images/image/2026/08/cover.png)",
+      "",
+      "科技基金套了两个月，我没有继续猜涨跌，而是先检查自己的交易行为。",
+    ].join("\n");
+
+    expect(buildAutoDescription(content)).toBe(
+      "科技基金套了两个月，我没有继续猜涨跌，而是先检查自己的交易行为。",
+    );
+  });
+});
 
 describe("optimizePostImageUrls", () => {
   it("adds the article delivery variant to local static images", () => {
