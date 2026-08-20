@@ -4,7 +4,10 @@ import { act, createElement, useEffect } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const editorState = vi.hoisted(() => ({ html: "<p>saved before edit</p>" }));
+const editorState = vi.hoisted(() => ({
+  html: "<p>saved before edit</p>",
+  root: undefined as HTMLElement | undefined,
+}));
 
 vi.mock("@/components/TiptapEditorSurface", () => ({
   TiptapEditorSurface: ({ onCreate, onUpdate }: Record<string, (...args: unknown[]) => void>) => {
@@ -13,6 +16,7 @@ vi.mock("@/components/TiptapEditorSurface", () => ({
       getHTML: () => editorState.html,
       getText: () => editorState.html.replace(/<[^>]+>/g, ""),
       state: { doc: { textBetween: vi.fn() }, selection: { from: 0, to: 0 } },
+      view: { dom: editorState.root },
     };
     useEffect(() => {
       onCreate({ editor });
@@ -29,6 +33,15 @@ vi.mock("@/components/TiptapEditorSurface", () => ({
 vi.mock("@/components/DownloadMarkdown", () => ({
   DownloadMarkdown: ({ html }: { html: string }) =>
     createElement("output", { "data-testid": "export-html" }, html),
+}));
+
+vi.mock("@/components/ArticleToc", () => ({
+  ArticleToc: ({ headings }: { headings: Array<{ text: string }> }) =>
+    createElement(
+      "nav",
+      { "data-testid": "editor-toc" },
+      headings.map(({ text }) => text).join("|"),
+    ),
 }));
 
 vi.mock("@/lib/editor-extensions", () => ({
@@ -75,6 +88,7 @@ describe("InlineArticleEditor", () => {
   beforeEach(() => {
     vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
     editorState.html = "<p>saved before edit</p>";
+    editorState.root = document.createElement("div");
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -113,6 +127,32 @@ describe("InlineArticleEditor", () => {
 
     expect(container.querySelector('[data-testid="export-html"]')?.textContent).toBe(
       "<p>saved after edit</p>",
+    );
+  });
+
+  it("shows and updates the table of contents while editing", async () => {
+    editorState.root!.innerHTML = "<h2>开始编辑</h2><h3>第一节</h3>";
+    await act(async () => {
+      root.render(
+        createElement(InlineArticleEditor, {
+          html: "<h2>开始编辑</h2><h3>第一节</h3>",
+          slug: "article",
+          title: "Article",
+        }),
+      );
+    });
+
+    expect(container.querySelector('[data-testid="editor-toc"]')?.textContent).toBe(
+      "开始编辑|第一节",
+    );
+
+    editorState.root!.innerHTML = "<h2>开始编辑</h2><h3>更新后的章节</h3>";
+    await act(async () => {
+      (container.querySelector('[data-testid="update-editor"]') as HTMLButtonElement).click();
+    });
+
+    expect(container.querySelector('[data-testid="editor-toc"]')?.textContent).toBe(
+      "开始编辑|更新后的章节",
     );
   });
 });

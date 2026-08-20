@@ -39,6 +39,9 @@ import type { EditorImageActionTarget } from "@/lib/resizable-image";
 import { resizeTextareaHeight, useAutoResizeTextarea } from "@/lib/textarea-autosize";
 import { setEditorHtmlContent } from "@/lib/editor-content";
 import { getEditorImageValidationError } from "@/lib/editor-image-upload-plugin";
+import { ArticleToc } from "@/components/ArticleToc";
+import { collectEditorArticleToc } from "@/lib/editor-article-toc";
+import type { ArticleTocHeading } from "@/lib/article-toc";
 
 interface InlineArticleEditorProps {
   slug: string;
@@ -87,6 +90,7 @@ export function InlineArticleEditor({
     null,
   );
   const [charCount, setCharCount] = useState(0);
+  const [articleToc, setArticleToc] = useState<ArticleTocHeading[]>([]);
   const [referenceImageTarget, setReferenceImageTarget] = useState<EditorImageActionTarget | null>(
     null,
   );
@@ -123,6 +127,21 @@ export function InlineArticleEditor({
   useEffect(() => {
     coverImageValueRef.current = coverImage;
   }, [coverImage]);
+
+  const syncArticleToc = useCallback((editor: Editor) => {
+    const next = collectEditorArticleToc(editor.view.dom);
+    setArticleToc((current) => {
+      const unchanged =
+        current.length === next.length &&
+        current.every(
+          (heading, index) =>
+            heading.id === next[index]?.id &&
+            heading.level === next[index]?.level &&
+            heading.text === next[index]?.text,
+        );
+      return unchanged ? current : next;
+    });
+  }, []);
 
   const handleSave = async () => {
     const editor = editorRef.current;
@@ -501,105 +520,112 @@ export function InlineArticleEditor({
         ) : null}
       </div>
 
-      {/* 可编辑标题 */}
-      <textarea
-        ref={titleRef}
-        rows={1}
-        value={title}
-        onChange={(e) => {
-          const next = e.target.value;
-          setTitle(next);
-          autoResizeTitle(e.target);
-          if (editorRef.current) checkDirty(editorRef.current, { title: next });
-        }}
-        onPaste={(e) => {
-          const files = extractFilesFromClipboard(e);
-          if (files.length === 0) return;
-          e.preventDefault();
-          editorRef.current?.chain().focus().run();
-          void handleSelectedFiles(files);
-        }}
-        className="editor-title-textarea mb-2 block w-full resize-none overflow-hidden border-0 bg-transparent p-0 text-2xl font-bold leading-tight text-[var(--editor-ink)] outline-none shadow-none focus:outline-none focus-visible:outline-none sm:text-4xl"
-        style={{ fontFamily: 'Georgia, "Noto Serif SC", serif' }}
-        placeholder="文章标题"
-      />
+      <div className="article-reading-layout">
+        <ArticleToc headings={articleToc} />
+        <div className="min-w-0 lg:col-start-1 lg:row-start-1">
+          {/* 可编辑标题 */}
+          <textarea
+            ref={titleRef}
+            rows={1}
+            value={title}
+            onChange={(e) => {
+              const next = e.target.value;
+              setTitle(next);
+              autoResizeTitle(e.target);
+              if (editorRef.current) checkDirty(editorRef.current, { title: next });
+            }}
+            onPaste={(e) => {
+              const files = extractFilesFromClipboard(e);
+              if (files.length === 0) return;
+              e.preventDefault();
+              editorRef.current?.chain().focus().run();
+              void handleSelectedFiles(files);
+            }}
+            className="editor-title-textarea mb-2 block w-full resize-none overflow-hidden border-0 bg-transparent p-0 text-2xl font-bold leading-tight text-[var(--editor-ink)] outline-none shadow-none focus:outline-none focus-visible:outline-none sm:text-4xl"
+            style={{ fontFamily: 'Georgia, "Noto Serif SC", serif' }}
+            placeholder="文章标题"
+          />
 
-      <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--stone-gray)] mb-6">
-        <CategorySelector
-          value={selectedCategory}
-          onChange={(val) => {
-            setSelectedCategory(val);
-            if (editorRef.current) checkDirty(editorRef.current, { category: val });
-          }}
-        />
-        {publishedAt && (
-          <>
-            <span aria-hidden>·</span>
-            <time>
-              {new Date(publishedAt * 1000).toLocaleDateString("zh-CN", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              })}
-            </time>
-          </>
-        )}
-        {viewCount !== undefined && (
-          <>
-            <span aria-hidden>·</span>
-            <span>{viewCount} 次阅读</span>
-          </>
-        )}
-        {content && (
-          <>
-            <span aria-hidden>·</span>
-            <span>约 {Math.max(1, Math.ceil(content.length / 400))} 分钟</span>
-          </>
-        )}
-        <DownloadMarkdown title={title} html={savedHtml} />
-        {password && (
-          <>
-            <span aria-hidden>·</span>
-            <div className="flex items-center gap-1.5">
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-              </svg>
-              <span>已加密</span>
-            </div>
-          </>
-        )}
+          <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--stone-gray)] mb-6">
+            <CategorySelector
+              value={selectedCategory}
+              onChange={(val) => {
+                setSelectedCategory(val);
+                if (editorRef.current) checkDirty(editorRef.current, { category: val });
+              }}
+            />
+            {publishedAt && (
+              <>
+                <span aria-hidden>·</span>
+                <time>
+                  {new Date(publishedAt * 1000).toLocaleDateString("zh-CN", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </time>
+              </>
+            )}
+            {viewCount !== undefined && (
+              <>
+                <span aria-hidden>·</span>
+                <span>{viewCount} 次阅读</span>
+              </>
+            )}
+            {content && (
+              <>
+                <span aria-hidden>·</span>
+                <span>约 {Math.max(1, Math.ceil(content.length / 400))} 分钟</span>
+              </>
+            )}
+            <DownloadMarkdown title={title} html={savedHtml} />
+            {password && (
+              <>
+                <span aria-hidden>·</span>
+                <div className="flex items-center gap-1.5">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                  <span>已加密</span>
+                </div>
+              </>
+            )}
+          </div>
+
+          <TiptapEditorSurface
+            extensions={imageExtensions}
+            className="editor-surface inline-editor"
+            editorProps={editorProps}
+            onCreate={({ editor }) => {
+              editorRef.current = editor;
+              setEditorHtmlContent(editor, html);
+              setCharCount(getEditorCharacterCount(editor));
+              syncArticleToc(editor);
+            }}
+            onUpdate={({ editor }) => {
+              editorRef.current = editor;
+              checkDirty(editor);
+              setCharCount(getEditorCharacterCount(editor));
+              syncArticleToc(editor);
+            }}
+            onDestroy={() => {
+              editorRef.current = null;
+            }}
+          >
+            <FormattingBubble />
+          </TiptapEditorSurface>
+        </div>
       </div>
-
-      <TiptapEditorSurface
-        extensions={imageExtensions}
-        className="editor-surface inline-editor"
-        editorProps={editorProps}
-        onCreate={({ editor }) => {
-          editorRef.current = editor;
-          setEditorHtmlContent(editor, html);
-          setCharCount(getEditorCharacterCount(editor));
-        }}
-        onUpdate={({ editor }) => {
-          editorRef.current = editor;
-          checkDirty(editor);
-          setCharCount(getEditorCharacterCount(editor));
-        }}
-        onDestroy={() => {
-          editorRef.current = null;
-        }}
-      >
-        <FormattingBubble />
-      </TiptapEditorSurface>
 
       <InputModal
         open={inputModal.open}
