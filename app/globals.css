@@ -219,6 +219,11 @@ body {
   padding-right: 40px;
 }
 
+[data-theme="editorial"] .article-page-main,
+[data-theme="terminal"] .article-page-main {
+  max-width: 72rem;
+}
+
 /* ── 默认主题：首页文章列表 ── */
 .default-post-title,
 .default-post-arrow {

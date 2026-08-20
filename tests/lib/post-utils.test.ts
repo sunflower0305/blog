@@ -51,11 +51,14 @@ describe("optimizePostImageUrls", () => {
     expect(optimizePostImageUrls(html, "not a URL")).toBe(html);
   });
 
-  it("applies optimized delivery at the public article rendering boundary", () => {
+  it("applies article transforms before the public rendering boundary", () => {
     const page = readFileSync("app/[slug]/page.tsx", "utf8");
 
     expect(page).toContain("const optimizedHtml = optimizePostImageUrls(post.html, getSiteUrl())");
-    expect(page).toContain("const deliveredHtml = await highlightCodeBlocksInHtml(optimizedHtml)");
+    expect(page).toContain(
+      "const highlightedHtml = await highlightCodeBlocksInHtml(optimizedHtml)",
+    );
+    expect(page).toContain("await addArticleTocToHtml(highlightedHtml)");
     expect(page).toContain("dangerouslySetInnerHTML={{ __html: deliveredHtml }}");
     expect(page).toContain("html={deliveredHtml}");
   });
