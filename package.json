@@ -70,7 +70,7 @@
     "juice": "^12.1.2",
     "katex": "^0.18.4",
     "lowlight": "^3.3.0",
-    "lucide-react": "^1.32.0",
+    "lucide-react": "^1.33.0",
     "markdown-it": "^15.0.0",
     "nanoid": "^6.0.1",
     "next": "^16.3.1",
@@ -88,7 +88,7 @@
     "tiptap-extension-global-drag-handle": "^0.1.18",
     "tiptap-markdown": "^0.9.0",
     "turndown": "^7.2.4",
-    "vinext": "1.0.0-beta.7"
+    "vinext": "1.0.0-beta.8"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.53.0",
@@ -97,17 +97,17 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@types/turndown": "^5.0.6",
-    "@vitejs/plugin-react": "^6.0.5",
+    "@vitejs/plugin-react": "^6.1.0",
     "@vitejs/plugin-rsc": "^0.5.34",
     "@vitest/coverage-v8": "4.1.11",
-    "happy-dom": "^20.11.2",
+    "happy-dom": "^20.11.6",
     "jscpd": "^5.0.16",
     "knip": "^6.32.2",
     "react-server-dom-webpack": "^19.2.8",
     "sloc": "^0.3.2",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
-    "vite": "^8.2.1",
+    "vite": "^8.2.2",
     "vite-plus": "^0.2.9",
     "vitest": "4.1.11",
     "wrangler": "^4.124.0"
