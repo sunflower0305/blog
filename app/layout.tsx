@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
 import "./globals.css";
 import { ToastProvider } from "@/components/Toast";
 import { CustomJsInjector } from "@/components/CustomJsInjector";
@@ -9,52 +8,6 @@ import { getSetting } from "@/lib/db";
 import { resolveDefaultSiteCoverImage } from "@/lib/default-cover-images";
 import { getSiteUrl, getSiteUrlObject } from "@/lib/site-config";
 import { getPublicContentCached } from "@/lib/cache";
-
-const geistSans = localFont({
-  src: [
-    { path: "./fonts/geist/Geist-Regular.ttf", weight: "400", style: "normal" },
-    { path: "./fonts/geist/Geist-Medium.ttf", weight: "500", style: "normal" },
-    {
-      path: "./fonts/geist/Geist-SemiBold.ttf",
-      weight: "600",
-      style: "normal",
-    },
-    { path: "./fonts/geist/Geist-Bold.ttf", weight: "700", style: "normal" },
-  ],
-  variable: "--font-geist-sans",
-  display: "swap",
-  preload: false,
-  fallback: ["system-ui", "Arial", "Helvetica", "sans-serif"],
-});
-
-const geistMono = localFont({
-  src: [
-    {
-      path: "./fonts/geist/GeistMono-Regular.ttf",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "./fonts/geist/GeistMono-Medium.ttf",
-      weight: "500",
-      style: "normal",
-    },
-    {
-      path: "./fonts/geist/GeistMono-SemiBold.ttf",
-      weight: "600",
-      style: "normal",
-    },
-    {
-      path: "./fonts/geist/GeistMono-Bold.ttf",
-      weight: "700",
-      style: "normal",
-    },
-  ],
-  variable: "--font-geist-mono",
-  display: "swap",
-  preload: false,
-  fallback: ["SFMono-Regular", "Consolas", "Monaco", "monospace"],
-});
 
 const SITE_URL = getSiteUrl();
 const DEFAULT_SITE_OG_IMAGE = resolveDefaultSiteCoverImage(SITE_URL);
@@ -197,7 +150,7 @@ export default async function RootLayout({
   return (
     <html
       lang="zh-CN"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className="h-full antialiased"
       data-font={bodyFont || "default"}
       data-theme={defaultTheme !== "default" ? defaultTheme : undefined}
       suppressHydrationWarning

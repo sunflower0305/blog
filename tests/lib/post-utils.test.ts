@@ -55,7 +55,9 @@ describe("optimizePostImageUrls", () => {
     const page = readFileSync("app/[slug]/page.tsx", "utf8");
     const renderer = readFileSync("lib/post-render.ts", "utf8");
 
-    expect(renderer).toContain("const optimizedHtml = optimizePostImageUrls(post.html, getSiteUrl())");
+    expect(renderer).toContain(
+      "const optimizedHtml = optimizePostImageUrls(post.html, getSiteUrl())",
+    );
     expect(renderer).toContain(
       "const highlightedHtml = await highlightCodeBlocksInHtml(optimizedHtml)",
     );
