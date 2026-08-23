@@ -1,5 +1,7 @@
 // Cloudflare KV 缓存层
 
+import { revalidatePath } from "next/cache";
+
 export function getCacheNamespace(env?: Partial<CloudflareEnv> | null): KVNamespace | undefined {
   return env?.CACHE ?? env?.KV;
 }
@@ -29,12 +31,26 @@ export function getPublicContentCacheNamespace(
 
 export async function invalidatePublicContentCache(
   env?: Partial<CloudflareEnv> | null,
+  paths: string[] = [],
 ): Promise<boolean> {
   const cache = getPublicContentCacheNamespace(env);
-  if (!cache) return false;
+  let invalidated = false;
 
-  await invalidateCache(cache);
-  return true;
+  if (cache) {
+    await invalidateCache(cache);
+    invalidated = true;
+  }
+
+  for (const path of new Set(paths)) {
+    try {
+      revalidatePath(path);
+      invalidated = true;
+    } catch {
+      // Background jobs and tests may run without an active Next request scope.
+    }
+  }
+
+  return invalidated;
 }
 
 export async function getPublicContentCached<T>(

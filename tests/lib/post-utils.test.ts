@@ -53,14 +53,16 @@ describe("optimizePostImageUrls", () => {
 
   it("applies article transforms before the public rendering boundary", () => {
     const page = readFileSync("app/[slug]/page.tsx", "utf8");
+    const renderer = readFileSync("lib/post-render.ts", "utf8");
 
-    expect(page).toContain("const optimizedHtml = optimizePostImageUrls(post.html, getSiteUrl())");
-    expect(page).toContain(
+    expect(renderer).toContain("const optimizedHtml = optimizePostImageUrls(post.html, getSiteUrl())");
+    expect(renderer).toContain(
       "const highlightedHtml = await highlightCodeBlocksInHtml(optimizedHtml)",
     );
-    expect(page).toContain("await addArticleTocToHtml(highlightedHtml)");
+    expect(renderer).toContain("return addArticleTocToHtml(highlightedHtml)");
+    expect(page).toContain("await getRenderedPostHtml(env, post)");
     expect(page).toContain("dangerouslySetInnerHTML={{ __html: deliveredHtml }}");
-    expect(page).toContain("html={deliveredHtml}");
+    expect(page).toContain("<TwitterEmbedsEnhancer containerId={contentContainerId} />");
   });
 
   it("keeps article metadata close to the opening paragraph", () => {

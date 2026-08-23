@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
     });
 
     // 6. 清除缓存
-    await invalidatePublicContentCache(env);
+    await invalidatePublicContentCache(env, ["/", `/${slug}`]);
 
     await enqueueBackgroundJob(
       env,
@@ -205,7 +205,11 @@ export async function PATCH(req: NextRequest) {
     await updatePostBySlug(db, currentSlug, updates);
 
     // 清除缓存
-    await invalidatePublicContentCache(env);
+    await invalidatePublicContentCache(env, [
+      "/",
+      `/${currentSlug}`,
+      `/${nextSlug || currentSlug}`,
+    ]);
 
     return jsonOk({ success: true, slug: nextSlug || currentSlug });
   } catch (error) {

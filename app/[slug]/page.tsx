@@ -1,7 +1,6 @@
 import "../content.css";
 import { getPostBySlug, isPubliclyAccessiblePost, isSearchIndexablePost } from "@/lib/db";
 import { getAppCloudflareEnv } from "@/lib/cloudflare";
-import { verifyPassword } from "@/lib/password";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -15,11 +14,9 @@ import { getRelatedPosts } from "@/lib/related-content";
 import { getPublicContentCacheNamespace } from "@/lib/cache";
 import { getSiteUrl } from "@/lib/site-config";
 import { resolvePostCoverImage } from "@/lib/default-cover-images";
-import { optimizePostImageUrls } from "@/lib/post-utils";
-import { highlightCodeBlocksInHtml } from "@/lib/code-highlight-html";
 import { PostViewTracker } from "@/components/PostViewTracker";
 import { ArticleToc } from "@/components/ArticleToc";
-import { addArticleTocToHtml } from "@/lib/article-toc";
+import { getRenderedPostHtml } from "@/lib/post-render";
 
 // Cloudflare Workers 缓存策略
 export const revalidate = 86400; // 24小时缓存
@@ -80,15 +77,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
-export default async function PostPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ slug: string }>;
-  searchParams: Promise<{ pwd?: string }>;
-}) {
+export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const { pwd } = await searchParams;
 
   let env: Awaited<ReturnType<typeof getAppCloudflareEnv>> | undefined;
   try {
@@ -110,72 +100,25 @@ export default async function PostPage({
   const activeCategorySlug =
     headerData.categories.find((category) => category.name === post.category)?.slug ?? null;
 
-  // 密码保护逻辑保持公开路径纯粹，由前台管理员增强层在客户端接管编辑能力
-  let passwordError: string | undefined;
   const needsPassword = Boolean(post.password);
+  const readingRootId = `post-reading-${post.slug}`;
 
   if (needsPassword) {
-    if (!pwd) {
-      return (
-        <div className="min-h-screen bg-[var(--background)] flex flex-col">
-          <SiteHeader
-            initialTheme={headerData.defaultTheme}
-            navLinks={headerData.navLinks}
-            categories={headerData.categories}
-            activeCategorySlug={activeCategorySlug}
-            stickyOnMobile={false}
-          />
-          <main className="page-main mx-auto w-full max-w-3xl px-4 sm:px-6 flex-1 py-8 sm:py-12">
-            <FrontPostAdminBoundary
-              slug={post.slug}
-              title={post.title}
-              html={post.html}
-              category={post.category}
-              coverImage={post.cover_image}
-              password={post.password}
-              publishedAt={post.published_at}
-              viewCount={post.view_count}
-              content={post.content}
-            >
-              <PasswordPrompt />
-            </FrontPostAdminBoundary>
-          </main>
-          <SiteFooter />
-        </div>
-      );
-    }
-
-    const isValid = await verifyPassword(pwd, post.password!);
-    if (!isValid) {
-      passwordError = "密码错误，请重试";
-      return (
-        <div className="min-h-screen bg-[var(--background)] flex flex-col">
-          <SiteHeader
-            initialTheme={headerData.defaultTheme}
-            navLinks={headerData.navLinks}
-            categories={headerData.categories}
-            activeCategorySlug={activeCategorySlug}
-            stickyOnMobile={false}
-          />
-          <main className="page-main mx-auto w-full max-w-3xl px-4 sm:px-6 flex-1 py-8 sm:py-12">
-            <FrontPostAdminBoundary
-              slug={post.slug}
-              title={post.title}
-              html={post.html}
-              category={post.category}
-              coverImage={post.cover_image}
-              password={post.password}
-              publishedAt={post.published_at}
-              viewCount={post.view_count}
-              content={post.content}
-            >
-              <PasswordPrompt error={passwordError} />
-            </FrontPostAdminBoundary>
-          </main>
-          <SiteFooter />
-        </div>
-      );
-    }
+    return (
+      <div className="min-h-screen bg-[var(--background)] flex flex-col">
+        <SiteHeader
+          initialTheme={headerData.defaultTheme}
+          navLinks={headerData.navLinks}
+          categories={headerData.categories}
+          activeCategorySlug={activeCategorySlug}
+          stickyOnMobile={false}
+        />
+        <main className="page-main article-page-main mx-auto w-full px-4 sm:px-6 flex-1 py-8 sm:py-12">
+          <PasswordPrompt slug={post.slug} />
+        </main>
+        <SiteFooter />
+      </div>
+    );
   }
 
   // 阅读时间估算（中文按 400 字/分钟）
@@ -190,9 +133,7 @@ export default async function PostPage({
       }))
     : { strategy: "fts" as const, source: "rules" as const, results: [] };
   const contentContainerId = `post-content-${post.slug}`;
-  const optimizedHtml = optimizePostImageUrls(post.html, getSiteUrl());
-  const highlightedHtml = await highlightCodeBlocksInHtml(optimizedHtml);
-  const { html: deliveredHtml, headings: articleToc } = await addArticleTocToHtml(highlightedHtml);
+  const { html: deliveredHtml, headings: articleToc } = await getRenderedPostHtml(env, post);
 
   return (
     <div className="min-h-screen bg-[var(--background)] flex flex-col">
@@ -280,17 +221,7 @@ export default async function PostPage({
               </>
             );
           })()}
-        <FrontPostAdminBoundary
-          slug={post.slug}
-          title={post.title}
-          html={post.html}
-          category={post.category}
-          coverImage={post.cover_image}
-          password={post.password}
-          publishedAt={post.published_at}
-          viewCount={post.view_count}
-          content={post.content}
-        >
+        <div id={readingRootId}>
           {!needsPassword && <PostViewTracker slug={post.slug} />}
           <div className="article-reading-layout">
             <ArticleToc headings={articleToc} />
@@ -331,7 +262,7 @@ export default async function PostPage({
                   <span>{post.view_count} 次阅读</span>
                   <span aria-hidden>·</span>
                   <span>约 {readingMinutes} 分钟</span>
-                  <DownloadMarkdown title={post.title} html={post.html} />
+                  <DownloadMarkdown title={post.title} containerId={contentContainerId} />
                 </div>
               </header>
 
@@ -341,7 +272,7 @@ export default async function PostPage({
                 className="rich-content"
                 dangerouslySetInnerHTML={{ __html: deliveredHtml }}
               />
-              <TwitterEmbedsEnhancer containerId={contentContainerId} html={deliveredHtml} />
+              <TwitterEmbedsEnhancer containerId={contentContainerId} />
 
               {related.results.length > 0 && (
                 <section className="mt-14 sm:mt-16 border-t border-[var(--editor-line)] pt-8 sm:pt-10">
@@ -401,7 +332,8 @@ export default async function PostPage({
               )}
             </article>
           </div>
-        </FrontPostAdminBoundary>
+        </div>
+        <FrontPostAdminBoundary slug={post.slug} readingRootId={readingRootId} />
       </main>
 
       <SiteFooter />

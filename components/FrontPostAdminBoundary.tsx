@@ -1,82 +1,114 @@
 "use client";
 
-import { useCallback, useState, type MouseEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { InlineArticleEditorClient } from "@/components/InlineArticleEditorClient";
 import { useAdminSession } from "@/lib/admin-session-client";
 
-interface FrontPostAdminBoundaryProps {
+interface EditablePost {
   slug: string;
   title: string;
   html: string;
   category?: string | null;
-  coverImage?: string | null;
+  cover_image?: string | null;
   password?: string | null;
-  publishedAt?: number;
-  viewCount?: number;
+  published_at?: number;
+  view_count?: number;
   content?: string;
-  children: ReactNode;
 }
 
-export function FrontPostAdminBoundary({
-  slug,
-  title,
-  html,
-  category,
-  coverImage,
-  password,
-  publishedAt,
-  viewCount,
-  content,
-  children,
-}: FrontPostAdminBoundaryProps) {
-  const { authenticated } = useAdminSession();
-  const [editing, setEditing] = useState(false);
+interface FrontPostAdminBoundaryProps {
+  slug: string;
+  readingRootId: string;
+}
 
-  const handleReadModeClick = useCallback(
-    (event: MouseEvent<HTMLDivElement>) => {
-      if (!authenticated || editing) return;
+/** Adds inline editing without sending the complete article through a client boundary. */
+export function FrontPostAdminBoundary({ slug, readingRootId }: FrontPostAdminBoundaryProps) {
+  const { authenticated } = useAdminSession();
+  const [post, setPost] = useState<EditablePost | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const setReadingVisibility = useCallback(
+    (visible: boolean) => {
+      const readingRoot = document.getElementById(readingRootId);
+      if (readingRoot) readingRoot.hidden = !visible;
+    },
+    [readingRootId],
+  );
+
+  const openEditor = useCallback(async () => {
+    if (!authenticated || loading || post) return;
+
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/admin/posts/${encodeURIComponent(slug)}`, {
+        cache: "no-store",
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("加载文章编辑数据失败");
+
+      const editablePost = (await response.json()) as EditablePost;
+      setPost(editablePost);
+      setReadingVisibility(false);
+    } catch (fetchError) {
+      setError(fetchError instanceof Error ? fetchError.message : "加载文章编辑数据失败");
+    } finally {
+      setLoading(false);
+    }
+  }, [authenticated, loading, post, setReadingVisibility, slug]);
+
+  useEffect(() => {
+    if (!authenticated || post) return;
+
+    const handleClick = (event: MouseEvent) => {
       if (event.defaultPrevented || event.button !== 0) return;
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
 
       const target = event.target;
       if (!(target instanceof HTMLElement)) return;
+      if (!target.closest(`#${CSS.escape(readingRootId)}`)) return;
       if (target.closest("a, button, input, textarea, select, summary, label, video, audio"))
         return;
-
-      const trigger = target.closest<HTMLElement>("[data-admin-edit-trigger]");
-      if (!trigger) return;
+      if (!target.closest<HTMLElement>("[data-admin-edit-trigger]")) return;
 
       event.preventDefault();
-      setEditing(true);
-    },
-    [authenticated, editing],
-  );
+      void openEditor();
+    };
 
-  if (authenticated && editing) {
+    document.addEventListener("click", handleClick, true);
+    return () => document.removeEventListener("click", handleClick, true);
+  }, [authenticated, openEditor, post, readingRootId]);
+
+  useEffect(() => () => setReadingVisibility(true), [setReadingVisibility]);
+
+  if (post) {
     return (
       <section>
         <InlineArticleEditorClient
-          slug={slug}
-          title={title}
-          html={html}
-          category={category}
-          coverImage={coverImage}
-          password={password}
-          publishedAt={publishedAt}
-          viewCount={viewCount}
-          content={content}
-          onExitReading={() => setEditing(false)}
+          slug={post.slug}
+          title={post.title}
+          html={post.html}
+          category={post.category}
+          coverImage={post.cover_image}
+          password={post.password}
+          publishedAt={post.published_at}
+          viewCount={post.view_count}
+          content={post.content}
+          onExitReading={() => {
+            setPost(null);
+            setReadingVisibility(true);
+          }}
         />
       </section>
     );
   }
 
+  if (!authenticated) return null;
+
   return (
-    <div
-      onClickCapture={handleReadModeClick}
-      data-admin-inline-entry={authenticated ? "true" : undefined}
-    >
-      {children}
+    <div aria-live="polite" className="sr-only">
+      {loading ? "正在加载编辑器" : error}
     </div>
   );
 }

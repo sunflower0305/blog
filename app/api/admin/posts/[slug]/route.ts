@@ -104,7 +104,7 @@ export async function PUT(req: NextRequest, { params }: Ctx) {
 
     // 清除 KV 缓存（失败不影响保存结果）
     try {
-      await invalidatePublicContentCache(env);
+      await invalidatePublicContentCache(env, ["/", `/${slug}`, `/${nextSlug || slug}`]);
     } catch (cacheErr) {
       console.warn("Cache invalidation failed:", cacheErr);
     }
@@ -151,7 +151,7 @@ export async function DELETE(req: NextRequest, { params }: Ctx) {
 
     // 清除 KV 缓存（失败不影响删除结果）
     try {
-      await invalidatePublicContentCache(env);
+      await invalidatePublicContentCache(env, ["/", `/${slug}`]);
     } catch (cacheErr) {
       console.warn("Cache invalidation failed:", cacheErr);
     }
