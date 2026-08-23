@@ -44,4 +44,14 @@ describe("cf-deploy-vinext arguments", () => {
 
     expect(config).toMatch(/\[assets\][\s\S]*?directory = "dist\/client"/);
   });
+
+  it("caches fingerprinted Geist fonts immutably", () => {
+    const headers = readFileSync("public/_headers", "utf8");
+    const styles = readFileSync("app/globals.css", "utf8");
+
+    expect(headers).toContain("/fonts/geist/*");
+    expect(headers).toContain("Cache-Control: public, max-age=31536000, immutable");
+    expect(styles).toMatch(/Geist-Variable\.[a-f0-9]{12}\.woff2/);
+    expect(styles).toMatch(/GeistMono-Regular\.[a-f0-9]{12}\.woff2/);
+  });
 });
