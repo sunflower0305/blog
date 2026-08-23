@@ -1,0 +1,70 @@
+diff --git a/dist/server/app-ssr-stream.js b/dist/server/app-ssr-stream.js
+index b893439a757d4d9c79d8275eb44a5cb476071e68..245b47b1795ba3a47047defe53b0e3d49da361c5 100644
+--- a/dist/server/app-ssr-stream.js
++++ b/dist/server/app-ssr-stream.js
+@@ -32,6 +32,30 @@ function createNextFlightChunkScript(chunk) {
+ function createNextFlightCleanupScript() {
+ 	return "self.addEventListener(\"DOMContentLoaded\",()=>{if(self.__next_f?.push===Array.prototype.push)self.__next_f.length=0},{once:true})";
+ }
++function utf8SequenceLength(leadingByte) {
++	if (leadingByte <= 127) return 1;
++	if (leadingByte >= 194 && leadingByte <= 223) return 2;
++	if (leadingByte >= 224 && leadingByte <= 239) return 3;
++	if (leadingByte >= 240 && leadingByte <= 244) return 4;
++	return 0;
++}
++function splitTrailingIncompleteUtf8(bytes) {
++	if (bytes.byteLength === 0) return [bytes, null];
++	let sequenceStart = bytes.byteLength - 1;
++	while (sequenceStart >= 0 && (bytes[sequenceStart] & 192) === 128) sequenceStart--;
++	if (sequenceStart < 0) return [bytes, null];
++	const expectedLength = utf8SequenceLength(bytes[sequenceStart]);
++	const actualLength = bytes.byteLength - sequenceStart;
++	if (expectedLength > actualLength) return [bytes.subarray(0, sequenceStart), bytes.slice(sequenceStart)];
++	return [bytes, null];
++}
++function prependBytes(prefix, bytes) {
++	if (prefix === null || prefix.byteLength === 0) return bytes;
++	const combined = new Uint8Array(prefix.byteLength + bytes.byteLength);
++	combined.set(prefix);
++	combined.set(bytes, prefix.byteLength);
++	return combined;
++}
+ /**
+ * Create a helper that progressively embeds RSC chunks as inline <script> tags.
+ * The browser entry turns the embedded chunks back into Uint8Array data.
+@@ -43,6 +67,7 @@ function createRscEmbedTransform(embedStream, optionsOrNonce = {}) {
+ 	const rawChunks = [];
+ 	let reading = false;
+ 	let mirroredNextFlightBootstrap = false;
++	let utf8Carry = null;
+ 	async function pumpReader() {
+ 		if (reading) return;
+ 		reading = true;
+@@ -51,16 +76,24 @@ function createRscEmbedTransform(embedStream, optionsOrNonce = {}) {
+ 				const result = await reader.read();
+ 				if (result.done) break;
+ 				rawChunks.push(result.value);
++				const bytes = prependBytes(utf8Carry, result.value);
++				const [decodableBytes, trailingBytes] = splitTrailingIncompleteUtf8(bytes);
++				utf8Carry = trailingBytes;
++				if (decodableBytes.byteLength === 0) continue;
+ 				try {
+ 					const text = new TextDecoder("utf-8", {
+ 						fatal: true,
+ 						ignoreBOM: true
+-					}).decode(result.value);
++					}).decode(decodableBytes);
+ 					pendingChunks.push(text);
+ 				} catch {
+-					pendingChunks.push([3, bytesToBase64(result.value)]);
++					pendingChunks.push([3, bytesToBase64(decodableBytes)]);
+ 				}
+ 			}
++			if (utf8Carry !== null) {
++				pendingChunks.push([3, bytesToBase64(utf8Carry)]);
++				utf8Carry = null;
++			}
+ 		} catch (error) {
+ 			if (process.env.NODE_ENV !== "production") console.warn("[vinext] RSC embed stream read error:", error);
+ 			throw error;

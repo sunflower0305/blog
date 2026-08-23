@@ -101,3 +101,5 @@ minimumReleaseAgeExclude:
   - miniflare@4.20260722.0
   - openai@7.0.0
   - wrangler@4.114.0
+patchedDependencies:
+  vinext@1.0.0-beta.8: patches/vinext@1.0.0-beta.8.patch
