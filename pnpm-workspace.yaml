@@ -10,7 +10,7 @@ overrides:
   "sharp@<0.35.0": 0.35.3
   vitest: 4.1.10
 minimumReleaseAgeExclude:
-  - '@voidzero-dev/vite-plus-core@0.2.2 || 0.2.4 || 0.2.5 || 0.2.6 || 0.3.0'
+  - '@voidzero-dev/vite-plus-core@0.2.2 || 0.2.4 || 0.2.5 || 0.2.6 || 0.3.0 || 0.3.3'
   - "@next/env@16.2.10"
   - "@next/swc-darwin-arm64@16.2.10"
   - "@next/swc-darwin-x64@16.2.10"
@@ -23,18 +23,18 @@ minimumReleaseAgeExclude:
   - "@types/node@26.1.0"
   - lucide-react@1.23.0 || 1.26.0
   - next@16.2.10
-  - vite-plus@0.2.2 || 0.2.4 || 0.2.5 || 0.2.6 || 0.3.0
+  - vite-plus@0.2.2 || 0.2.4 || 0.2.5 || 0.2.6 || 0.3.0 || 0.3.3
   - vitest@4.1.10
   - vinext@1.0.0-beta.0 || 1.0.0-beta.1 || 1.0.0-beta.2 || 1.0.0-beta.6 || 1.0.0-beta.7 || 1.0.0-beta.8
   - "@vinext/cloudflare@1.0.0-beta.0 || 1.0.0-beta.1 || 1.0.0-beta.2 || 1.0.0-beta.6"
-  - '@voidzero-dev/vite-plus-darwin-arm64@0.2.4 || 0.2.5 || 0.2.6 || 0.3.0'
-  - '@voidzero-dev/vite-plus-darwin-x64@0.2.4 || 0.2.5 || 0.2.6 || 0.3.0'
-  - '@voidzero-dev/vite-plus-linux-arm64-gnu@0.2.4 || 0.2.5 || 0.2.6 || 0.3.0'
-  - '@voidzero-dev/vite-plus-linux-arm64-musl@0.2.4 || 0.2.5 || 0.2.6 || 0.3.0'
-  - '@voidzero-dev/vite-plus-linux-x64-gnu@0.2.4 || 0.2.5 || 0.2.6 || 0.3.0'
-  - '@voidzero-dev/vite-plus-linux-x64-musl@0.2.4 || 0.2.5 || 0.2.6 || 0.3.0'
-  - '@voidzero-dev/vite-plus-win32-arm64-msvc@0.2.4 || 0.2.5 || 0.2.6 || 0.3.0'
-  - '@voidzero-dev/vite-plus-win32-x64-msvc@0.2.4 || 0.2.5 || 0.2.6 || 0.3.0'
+  - '@voidzero-dev/vite-plus-darwin-arm64@0.2.4 || 0.2.5 || 0.2.6 || 0.3.0 || 0.3.3'
+  - '@voidzero-dev/vite-plus-darwin-x64@0.2.4 || 0.2.5 || 0.2.6 || 0.3.0 || 0.3.3'
+  - '@voidzero-dev/vite-plus-linux-arm64-gnu@0.2.4 || 0.2.5 || 0.2.6 || 0.3.0 || 0.3.3'
+  - '@voidzero-dev/vite-plus-linux-arm64-musl@0.2.4 || 0.2.5 || 0.2.6 || 0.3.0 || 0.3.3'
+  - '@voidzero-dev/vite-plus-linux-x64-gnu@0.2.4 || 0.2.5 || 0.2.6 || 0.3.0 || 0.3.3'
+  - '@voidzero-dev/vite-plus-linux-x64-musl@0.2.4 || 0.2.5 || 0.2.6 || 0.3.0 || 0.3.3'
+  - '@voidzero-dev/vite-plus-win32-arm64-msvc@0.2.4 || 0.2.5 || 0.2.6 || 0.3.0 || 0.3.3'
+  - '@voidzero-dev/vite-plus-win32-x64-msvc@0.2.4 || 0.2.5 || 0.2.6 || 0.3.0 || 0.3.3'
   - "@typescript/typescript-aix-ppc64@7.0.2"
   - "@typescript/typescript-darwin-arm64@7.0.2"
   - "@typescript/typescript-darwin-x64@7.0.2"
@@ -102,4 +102,5 @@ minimumReleaseAgeExclude:
   - openai@7.0.0
   - wrangler@4.114.0
 patchedDependencies:
-  vinext@1.0.0-beta.8: patches/vinext@1.0.0-beta.8.patch
+  "@vinext/cloudflare@1.0.0-beta.8": patches/@vinext__cloudflare@1.0.0-beta.8.patch
+  vinext@1.0.0-beta.10: patches/vinext@1.0.0-beta.8.patch
