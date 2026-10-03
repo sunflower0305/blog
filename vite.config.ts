@@ -17,7 +17,7 @@ const vinextPostcssAliases: Record<string, string> = {
 function createVinextPlugins() {
   return [
     ...vinext({
-      prerender: true,
+      // Cloudflare bindings are only available at runtime; warm caches after deployment.
       cache: {
         cdn: cdnAdapter(),
         data: kvDataAdapter({

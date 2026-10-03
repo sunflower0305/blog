@@ -22,7 +22,7 @@ async function embedAndExtract(chunks: Uint8Array[]) {
   return { payload, scripts };
 }
 
-describe("patched Vinext RSC embedding", () => {
+describe("Vinext RSC embedding", () => {
   it("keeps split UTF-8 text as text instead of Base64", async () => {
     const input = encoder.encode("row:中文🙂end\n");
     const chunks = [input.slice(0, 5), input.slice(5, 8), input.slice(8, 11), input.slice(11)];
@@ -31,8 +31,7 @@ describe("patched Vinext RSC embedding", () => {
 
     expect(payload).toEqual(input);
     expect(scripts).not.toContain(".rsc.push([3,");
-    expect(scripts).toContain('.rsc.push("中")');
-    expect(scripts).toContain('.rsc.push("🙂end\\n")');
+    expect(scripts).toContain('.rsc.push("row:中文🙂end\\n")');
   });
 
   it("preserves genuinely non-UTF-8 bytes with Base64", async () => {

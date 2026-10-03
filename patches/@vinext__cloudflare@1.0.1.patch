@@ -1,7 +1,7 @@
 diff --git a/dist/cache/cdn-adapter.worker.js b/dist/cache/cdn-adapter.worker.js
 --- a/dist/cache/cdn-adapter.worker.js
 +++ b/dist/cache/cdn-adapter.worker.js
-@@ -132,6 +132,7 @@ async function createCacheFacingRequest(request, serializedInvocation) {
+@@ -132,6 +132,7 @@
  	return new Request(url, {
  		cf: { vary: { default: { action: "passthrough" } } },
  		headers,

@@ -114,8 +114,8 @@ minimumReleaseAgeExclude:
   - openai@7.0.0
   - wrangler@4.114.0
 patchedDependencies:
-  "@vinext/cloudflare@1.0.0-beta.8": patches/@vinext__cloudflare@1.0.0-beta.8.patch
-  vinext@1.0.0-beta.10: patches/vinext@1.0.0-beta.8.patch
+  "@vinext/cloudflare@1.0.1": patches/@vinext__cloudflare@1.0.1.patch
+  vinext@1.0.1: patches/vinext@1.0.1.patch
 catalog:
   vite: npm:@voidzero-dev/vite-plus-core@1.0.0
   vitest: 5.0.1

@@ -7,9 +7,6 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 CONFIG_PATH="$(bash "${SCRIPT_DIR}/cf-vinext-config.sh")"
 DRY_RUN=0
 WARM_CDN=1
-WARM_CDN_STRICT=0
-VINEXT_CACHE_BINDING="${VINEXT_CACHE_BINDING:-CACHE}"
-VINEXT_CACHE_PREFIX="${VINEXT_CACHE_PREFIX:-leyang-blog-vinext}"
 
 if [[ "${VINEXT_SKIP_CDN_WARMUP:-0}" == "1" ]]; then
   WARM_CDN=0
@@ -28,11 +25,10 @@ for arg in "$@"; do
       ;;
     --no-warm-cdn)
       WARM_CDN=0
-      WARM_CDN_STRICT=0
       ;;
     --warm-cdn-strict)
+      # Vinext 1.0.1 blocks promotion on warmup failure by default.
       WARM_CDN=1
-      WARM_CDN_STRICT=1
       ;;
     *)
       echo "Unknown argument: $arg" >&2
@@ -43,79 +39,6 @@ for arg in "$@"; do
 done
 
 cd "${REPO_ROOT}"
-
-upload_prerender_kv_cache() {
-  if [[ "${VINEXT_SKIP_PRERENDER_KV_UPLOAD:-0}" == "1" ]]; then
-    echo "==> skipping vinext prerender KV upload"
-    return 0
-  fi
-
-  mkdir -p "${REPO_ROOT}/.wrangler/tmp"
-
-  local kv_file
-  kv_file="$(mktemp "${REPO_ROOT}/.wrangler/tmp/vinext-prerender-kv.XXXXXX")"
-
-  set +e
-  node --input-type=module - "${REPO_ROOT}" "${kv_file}" "${VINEXT_CACHE_PREFIX}" <<'NODE'
-import { buildPrerenderKVPairs } from './node_modules/@vinext/cloudflare/dist/prerender-kv-populate.js'
-
-const [root, outputPath, appPrefix] = process.argv.slice(2)
-const { routeCount, pairs } = buildPrerenderKVPairs(`${root}/dist/server`, { appPrefix })
-
-if (pairs.length === 0) {
-  console.log('==> no vinext prerender KV entries to upload')
-  process.exit(2)
-}
-
-await import('node:fs').then(({ writeFileSync }) => {
-  writeFileSync(outputPath, `${JSON.stringify(pairs)}\n`)
-})
-
-console.log(`==> prepared ${pairs.length} vinext prerender KV entries for ${routeCount} routes`)
-NODE
-  local node_status=$?
-  set -e
-
-  if [[ "${node_status}" == "2" ]]; then
-    rm -f "${kv_file}"
-    return 0
-  fi
-
-  if [[ "${node_status}" != "0" ]]; then
-    rm -f "${kv_file}"
-    return "${node_status}"
-  fi
-
-  local namespace_id
-  namespace_id="$(
-    node --input-type=module - "${REPO_ROOT}/dist/server/wrangler.json" "${VINEXT_CACHE_BINDING}" <<'NODE'
-import fs from 'node:fs'
-
-const [configPath, binding] = process.argv.slice(2)
-const config = JSON.parse(fs.readFileSync(configPath, 'utf8'))
-const namespace = Array.isArray(config.kv_namespaces)
-  ? config.kv_namespaces.find((item) => item?.binding === binding)
-  : undefined
-
-if (typeof namespace?.id === 'string' && namespace.id.length > 0) {
-  process.stdout.write(namespace.id)
-}
-NODE
-  )"
-
-  if [[ -z "${namespace_id}" ]]; then
-    rm -f "${kv_file}"
-    echo "❌ Missing KV namespace id for binding ${VINEXT_CACHE_BINDING} in dist/server/wrangler.json" >&2
-    return 1
-  fi
-
-  WRANGLER_SEND_METRICS=false \
-    pnpm exec vp exec wrangler kv bulk put "${kv_file}" \
-      --namespace-id "${namespace_id}" \
-      --remote
-
-  rm -f "${kv_file}"
-}
 
 echo "==> using vinext wrangler config: ${CONFIG_PATH}"
 bash "${SCRIPT_DIR}/cf-validate-config.sh" "${CONFIG_PATH}"
@@ -177,11 +100,7 @@ if [[ "${DRY_RUN}" == "1" ]]; then
 fi
 
 if [[ "${WARM_CDN}" == "1" ]]; then
-  deploy_args+=(--experimental-warm-cdn-cache)
-fi
-
-if [[ "${WARM_CDN_STRICT}" == "1" ]]; then
-  deploy_args+=(--warm-cdn-strict)
+  deploy_args+=(--warm-cache)
 fi
 
 if [[ "${VINEXT_PRERENDER_ALL:-0}" == "1" ]]; then
@@ -193,26 +112,24 @@ if [[ -n "${VINEXT_PRERENDER_CONCURRENCY:-}" ]]; then
 fi
 
 if [[ "${VINEXT_EXPERIMENTAL_TPR:-0}" == "1" ]]; then
-  deploy_args+=(--experimental-tpr)
+  deploy_args+=(--traffic-aware-warm-cache)
 fi
 
 if [[ -n "${VINEXT_TPR_COVERAGE:-}" ]]; then
-  deploy_args+=(--tpr-coverage "${VINEXT_TPR_COVERAGE}")
+  deploy_args+=(--traffic-aware-coverage "${VINEXT_TPR_COVERAGE}")
 fi
 
 if [[ -n "${VINEXT_TPR_LIMIT:-}" ]]; then
-  deploy_args+=(--tpr-limit "${VINEXT_TPR_LIMIT}")
+  deploy_args+=(--traffic-aware-limit "${VINEXT_TPR_LIMIT}")
 fi
 
 if [[ -n "${VINEXT_TPR_WINDOW:-}" ]]; then
-  deploy_args+=(--tpr-window "${VINEXT_TPR_WINDOW}")
+  deploy_args+=(--traffic-aware-window "${VINEXT_TPR_WINDOW}")
 fi
 
 if [[ -n "${VINEXT_CF_ENV:-}" ]]; then
   deploy_args+=(--env "${VINEXT_CF_ENV}")
 fi
-
-upload_prerender_kv_cache
 
 echo "==> deploying vinext Worker with @vinext/cloudflare"
 
