@@ -68,7 +68,7 @@
     "highlight.js": "^11.12.0",
     "html2pdf.js": "^0.14.0",
     "juice": "^12.2.0",
-    "katex": "^0.18.11",
+    "katex": "^0.19.0",
     "lowlight": "^3.3.0",
     "lucide-react": "^1.49.0",
     "markdown-it": "^15.0.2",
@@ -115,7 +115,7 @@
   "engines": {
     "node": "^22.18.0 || ^24.11.0 || >=26.0.0"
   },
-  "packageManager": "pnpm@12.4.2",
+  "packageManager": "pnpm@12.8.1",
   "cloudflare": {
     "bindings": {
       "NEXT_PUBLIC_SITE_URL": {
