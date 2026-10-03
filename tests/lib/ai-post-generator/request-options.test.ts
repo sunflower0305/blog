@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { buildTextGenerationRequestOptions } from "@/lib/ai-post-generator/request-options";
 
 describe("ai-post-generator/request-options", () => {

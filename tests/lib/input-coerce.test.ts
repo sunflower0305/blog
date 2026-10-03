@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { POST_STATUS_VALUES } from "@/lib/db";
 import { asBit, asOptionalEnum, asStringArray, whenDefined } from "@/lib/server/input-coerce";
 

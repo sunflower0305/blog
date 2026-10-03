@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { extractRscPayloadFromPrerenderedHtml } from "../../node_modules/vinext/dist/build/prerender.js";
 import { createRscEmbedTransform } from "../../node_modules/vinext/dist/server/app-ssr-stream.js";
 

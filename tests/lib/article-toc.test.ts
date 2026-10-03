@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { addArticleTocToHtml, slugifyArticleHeading } from "@/lib/article-toc";
 
 describe("article table of contents", () => {

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { isTheme, normalizeTheme, THEME_OPTIONS } from "@/lib/appearance";
 
 describe("appearance themes", () => {

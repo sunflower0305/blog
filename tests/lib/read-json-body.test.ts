@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { readJsonBody } from "@/lib/server/route-helpers";
 
 function makeRequest(json: () => Promise<unknown>) {

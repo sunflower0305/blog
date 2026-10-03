@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { MAX_CONTEXT_LENGTH, MAX_COVER_PROMPT_LENGTH } from "@/lib/ai-post-generator/constants";
 import {
   buildContextBlock,

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { extractFilesFromClipboard } from "@/lib/editor-ui";
 
 function createFile(name: string, type: string, content = "test") {

@@ -5,7 +5,7 @@ import Image from "@tiptap/extension-image";
 import StarterKit from "@tiptap/starter-kit";
 import { Selection, TextSelection, NodeSelection } from "@tiptap/pm/state";
 import { Schema } from "@tiptap/pm/model";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 import { shouldShowEditorBubble } from "@/lib/editor-bubble";
 import { codeLowlight, DEFAULT_CODE_LANGUAGE } from "@/lib/code-highlighting";
 import { createDefaultTableContent, hasMarkdownTable, normalizeUrl } from "@/lib/editor-utils";

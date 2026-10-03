@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 import { Editor } from "@tiptap/core";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vite-plus/test";
 import { buildEditorProps, createEditorExtensions } from "@/lib/editor-extensions";
 import { setEditorHtmlContent } from "@/lib/editor-content";
 import { replaceEditorRangeWithMarkdown } from "@/lib/editor-markdown";

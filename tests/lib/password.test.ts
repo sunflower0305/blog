@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import { generatePassword, hashPassword, verifyPassword } from "@/lib/password";
 
 const PASSWORD = "文章密码-42";

@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, expect, it, vi } from "vite-plus/test";
 import type { EditorEvents } from "@tiptap/core";
 import type { PostEditorController } from "@/lib/use-post-editor-controller";
 import { PostEditorCanvas } from "@/components/post-editor/PostEditorCanvas";

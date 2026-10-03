@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 describe("article page layer ordering", () => {
   it("keeps header popovers above the inline editor toolbar", () => {

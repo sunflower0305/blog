@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 import {
   createImageHistoryStorageKey,
   DEFAULT_IMAGE_HISTORY_SCOPE,
